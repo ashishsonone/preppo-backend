@@ -5,7 +5,14 @@ var adminUserModel = require('../models/admin_user.js');
 var router = express.Router();
 
 router.get('/', function(req, res){
-	res.json({message : "Welcome to admin api home page"});
+	res.json({
+		message : "Welcome to admin api home page", 
+		supported : [
+			"GET /v1/admin/", 
+			"POST /v1/admin/users", 
+			"GET /v1/admin/users"
+		]
+	});
 });
 
 router.get('/users', function(req, res){
