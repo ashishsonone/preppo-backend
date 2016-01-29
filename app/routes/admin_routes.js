@@ -28,7 +28,7 @@ router.get('/', function(req, res){
         "endpoint" : "GET /v1/admin/", 
       },
       {
-        "info" : "Create a user. You need to be logged in as an admin",
+        "info" : "Create a user. You need to be logged in as an admin or editor. admin can create all users. editor can create only uploader and editor type users",
         "returns" : "Returns newly created user object",
         "endpoint" : "POST /v1/admin/users", 
         "required" : "email, password, role, name",
@@ -50,7 +50,7 @@ router.get('/', function(req, res){
         "endpoint" : "GET /v1/admin/logout",
       },
       {
-        "info" : "Delete a user. You need to be logged in as admin",
+        "info" : "Delete a user. You need to be logged in as an admin or editor. admin can delete all users. editor can delete only uploader and editor type users",
         "endpont" : "DELETE /v1/admin/<userid>"
       }
     ]
@@ -61,6 +61,7 @@ router.post('/login', function(req, res){
   var email = req.body.email;
   var password = req.body.password;
 
+  console.log("/login post %j", req.body);
   if(!email || !password){
     res.status(400);
     res.json({code : 400, error : "INVALID_PARAMETERS", description : "required post parameters : 'email', 'password'"});
@@ -124,7 +125,7 @@ router.get('/users', function(req, res){
     return;
   }
 
-  if(req.session.role !== 'admin' && req.session.role !== 'editor'){
+  if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
     res.json({code : 403, error : "UNAUTHORIZED", description : "you are not authorized - admin/editor only"});
     return;
@@ -169,9 +170,15 @@ router.post('/users', function(req, res){
     return;
   }
 
-  if(req.session.role !== 'admin'){
+  if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
-    res.json({code : 403, error : "UNAUTHORIZED", description : "you are not authorized - admin only"});
+    res.json({code : 403, error : "UNAUTHORIZED", description : "you are not authorized - admin/editor only"});
+    return;
+  }
+
+  if(req.session.role === 'editor' && req.body.role === 'admin'){
+    res.status(403);
+    res.json({code : 403, error : "UNAUTHORIZED", description : "editor can't create admin user"});
     return;
   }
 
@@ -211,9 +218,9 @@ router.delete('/users/:id', function(req, res){
     return;
   }
 
-  if(req.session.role !== 'admin'){
+  if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
-    res.json({code : 403, error : "UNAUTHORIZED", description : "you are not authorized - admin only"});
+    res.json({code : 403, error : "UNAUTHORIZED", description : "you are not authorized - admin/editor only"});
     return;
   }
 
@@ -226,20 +233,38 @@ router.delete('/users/:id', function(req, res){
   }
 
   if(id){
-    adminUserModel.remove({_id : id}, function(err, result){
-      if(!err){
-        if(result){
-          //x = {"ok":1,"n":1}, or {"ok":1,"n":0} i.e success count
-          console.log("%j", result);
+    adminUserModel.findOne(
+      {_id : id},
+      function(err, user){
+        if(err){
+          console.log("%j", err);
+          res.json({code : 500, error : "DB_ERROR", description : "unable to remove user"});
+          return;
         }
-        res.json({message : "success"});
-      }
-      else{
-        console.log("%j", err);
-        res.status(500);
-        res.json({code : 500, error : "DB_ERROR", description : "unable to remove user"});
-      }
-    });
+
+        if(!user){
+          //account doesnot exist or already deleted
+          res.json({message : "success"});
+          return;
+        }
+        
+        if(user.role === 'admin' && req.session.role !== 'admin'){
+          //unauthorized
+          res.status(403);
+          res.json({code: 403, error : "UNAUTHORIZED", description : "only admin can delete admin account"});
+        }
+        else{
+          user.remove(function(err){
+            if(!err){
+              res.json({message : "success"});
+            }
+            else{
+              res.status(500);
+              res.json({code : 500, error : "DB_ERROR", description : "unable to remove user"});
+            }
+          });
+        }
+      });
   }
 });
 
