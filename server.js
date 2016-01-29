@@ -25,10 +25,10 @@ var app = express();
 
 //enable CORS
 app.all('*', function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.header('Access-Control-Allow-Credentials', true);
+  res.header('Access-Control-Allow-Origin', req.headers.origin); //origins allowed for request, dynamically set to request's origin
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS'); //type of methods allowed
+  res.header('Access-Control-Allow-Headers', 'Content-Type'); //allow headers starting with
+  res.header('Access-Control-Allow-Credentials', true); //allow cookie to be sent
   next();
 });
 
