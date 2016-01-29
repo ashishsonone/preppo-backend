@@ -25,7 +25,7 @@ var app = express();
 
 //enable CORS
 app.all('*', function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'http://127.0.0.1:58425');
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
   res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   res.header('Access-Control-Allow-Credentials', true);
