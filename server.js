@@ -15,7 +15,7 @@ var sessionOptions = {
   store : new MongoStore({
     url : mongoConfig.url
   }),
-  cookie: { httpOnly: false }
+  cookie: {httpOnly: false, expires: new Date(253402300000000)}
 };
 
 
