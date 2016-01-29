@@ -14,12 +14,23 @@ var sessionOptions = {
   saveUninitialized : false, //save session into store even if not initialized(e.g not logged in)
   store : new MongoStore({
     url : mongoConfig.url
-  })
+  }),
+  cookie: { httpOnly: false }
 };
+
 
 var routes = require('./app/routes/admin_routes');
 
 var app = express();
+
+//enable CORS
+app.all('*', function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', 'http://127.0.0.1:58425');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Credentials', true);
+  next();
+});
 
 //enable session
 app.use(session(sessionOptions));

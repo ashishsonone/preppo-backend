@@ -4,6 +4,7 @@ var express = require('express');
 var adminUserModel = require('../models/admin_user.js');
 var router = express.Router();
 var mongoose = require('mongoose');
+var mailer = require('../utils/mailer');
 
 /*
   response codes : 
@@ -61,7 +62,7 @@ router.post('/login', function(req, res){
   var email = req.body.email;
   var password = req.body.password;
 
-  console.log("/login post %j", req.body);
+  console.log("/login post header:%j \nbody:%j \nquery:%j", req.headers, req.body, req.query);
   if(!email || !password){
     res.status(400);
     res.json({code : 400, error : "INVALID_PARAMETERS", description : "required post parameters : 'email', 'password'"});
@@ -191,6 +192,7 @@ router.post('/users', function(req, res){
 
     newUser.save(function(err, user){
       if(!err){
+        mailer.sendMail(user.email, "welcome", "hello");
         var result = {};
         result.email = user.email;
         result._id = user._id;
