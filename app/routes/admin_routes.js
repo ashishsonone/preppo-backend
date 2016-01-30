@@ -62,7 +62,7 @@ router.post('/login', function(req, res){
   var email = req.body.email;
   var password = req.body.password;
 
-  console.log("/login post header:%j \nbody:%j \nquery:%j", req.headers, req.body, req.query);
+  //console.log("/login post header:%j \nbody:%j \nquery:%j", req.headers, req.body, req.query);
   if(!email || !password){
     res.status(400);
     res.json({code : 400, error : "INVALID_PARAMETERS", description : "required post parameters : 'email', 'password'"});
@@ -119,13 +119,25 @@ router.get('/logout', function(req, res){
   }
 });
 
-router.get('/users', function(req, res){
+//middleware to check if logged in i.e session exists
+router.use(function(req, res, next){
+  if(req.method == 'OPTIONS'){
+    next();
+    return;
+  }
+
   if(!req.session.email){
+    console.log("authentication middleware : no session found");
     res.status(401);
     res.json({code : 401, error : "UNAUTHENTICATED", description : "login is required to access this end point"});
     return;
   }
+  else{
+    next();
+  }
+});
 
+router.get('/users', function(req, res){
   if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
     res.json({code : 403, error : "UNAUTHORIZED", description : "you are not authorized - admin/editor only"});
@@ -165,11 +177,6 @@ router.get('/users', function(req, res){
 
 router.post('/users', function(req, res){
   //check if authorized (role = [admin])
-  if(!req.session.email){
-    res.status(401);
-    res.json({code : 401, error : "UNAUTHENTICATED", description : "login is required to access this end point"});
-    return;
-  }
 
   if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
@@ -213,12 +220,7 @@ router.post('/users', function(req, res){
 });
 
 router.delete('/users/:id', function(req, res){
-  //check if authorized (role = [admin])
-  if(!req.session.email){
-    res.status(401);
-    res.json({code : 401, error : "UNAUTHENTICATED", description : "login is required to access this end point"});
-    return;
-  }
+  //check if authorized (role = [admin, editor])
 
   if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);

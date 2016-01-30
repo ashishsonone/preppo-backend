@@ -1,6 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var morgan = require('morgan');
 
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
@@ -33,6 +34,9 @@ app.all('*', function(req, res, next) {
 
 //enable session
 app.use(session(sessionOptions));
+
+//enable console logging using morgan
+app.use(morgan('dev'));
 
 //for post parameters
 app.use(bodyParser.json());
