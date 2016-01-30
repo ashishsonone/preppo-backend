@@ -2,3 +2,8 @@
 - make an error factory and define errors properly
 - cluster nodejs 
 - logs
+- Schema : required fields specify
+- authentication middleware instead of checking session existence in every function
+- use validators : how to interpret ValidationError object
+- how mongod connection errors handled automatically
+- how to use systemd to restart the server on crash

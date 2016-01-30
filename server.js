@@ -18,7 +18,6 @@ var sessionOptions = {
   cookie: {httpOnly: false, expires: new Date(253402300000000)}
 };
 
-
 var routes = require('./app/routes/admin_routes');
 
 var app = express();

@@ -52,7 +52,7 @@ router.get('/', function(req, res){
       },
       {
         "info" : "Delete a user. You need to be logged in as an admin or editor. admin can delete all users. editor can delete only uploader and editor type users",
-        "endpont" : "DELETE /v1/admin/<userid>"
+        "endpont" : "DELETE /v1/admin/users/<userid>"
       }
     ]
   });
