@@ -16,6 +16,7 @@ var mailer = require('../utils/mailer');
     400 : bad request
     401 : unauthenticated
     403 : unauthorized
+    404 : not found
 
   5xx
     500 : internal server error
@@ -30,21 +31,21 @@ router.get('/', function(req, res){
       },
       {
         "info" : "Create a user. You need to be logged in as an admin or editor. admin can create all users. editor can create only uploader and editor type users",
-        "returns" : "Returns newly created user object",
+        "return" : "Returns newly created user object",
         "endpoint" : "POST /v1/admin/users", 
-        "required" : "email, password, role, name",
+        "required" : "all of [email, password, role, name] as POST body",
       },
       {
         "info" : "Retrieve all users. You need to be logged in as an admin or editor.",
-        "returns" : "Returns array of user objects. If admin, returns all users. If editor, returns only editor and uploader type users.",
+        "return" : "Returns array of user objects(default limit=50). If admin, returns all users. If editor, returns only editor and uploader type users.",
         "endpoint" : "GET /v1/admin/users",
         "optional" : "?limit=2&role=uploader"
       },
       {
         "info" : "Login to you account. Sets the session cookie",
-        "returns" : "Returns user object",
+        "return" : "Returns user object",
         "endpoint" : "POST /v1/admin/login",
-        "required" : "email, password"
+        "required" : "all of [email, password] as POST body"
       },
       {
         "info" : "Logout",
@@ -53,6 +54,15 @@ router.get('/', function(req, res){
       {
         "info" : "Delete a user. You need to be logged in as an admin or editor. admin can delete all users. editor can delete only uploader and editor type users",
         "endpont" : "DELETE /v1/admin/users/<userid>"
+      },
+      {
+        "info" : "get details of logged-in user",
+        "endpont" : "GET /v1/admin/users/me"
+      },
+      {
+        "info" : "update name and/or password of logged-in user",
+        "endpont" : "PATCH /v1/admin/users/me",
+        "required" : "one of [name, password] like POST body"
       }
     ]
   });
@@ -73,17 +83,21 @@ router.post('/login', function(req, res){
       function(err, user){
         if(err){
           console.log("%j", err);
-          res.json({code : 500, error : "DB_ERROR", description : "unable to destroy session"});
+          res.status(500);
+          res.json({code : 500, error : "DB_ERROR", description : "unable to find user", debug : err});
+          return;
         }
         if(!user){
           //email doesnot exist
           res.status(401);
           res.json({code : 401, error : "INVALID_CREDENTIALS", description : "user not found in db"});
+          return;
         }
-        else if(!user.password || user.password != password){
+        else if(user.password != password){
           //password doesnot match
           res.status(401);
           res.json({code : 401, error : "INVALID_CREDENTIALS", description : "wrong password"});
+          return;
         }
         else{
           //set session
@@ -96,7 +110,9 @@ router.post('/login', function(req, res){
           newUser._id = user._id;
           newUser.role = user.role;
           newUser.name = user.name;
+          newUser.createdAt = user.createdAt;
           res.json(newUser);
+          return;
         }
       });
   }
@@ -107,15 +123,18 @@ router.get('/logout', function(req, res){
     req.session.destroy(function(err){
       if(err){
         res.status(500);
-        res.json({code : 500, error : "DB_ERROR", description : "unable to destroy session"});
+        res.json({code : 500, error : "DB_ERROR", description : "unable to destroy session", debug : err});
+        return;
       }
       else{
         res.json({ message : "log out success"});
+        return;
       }
     });
   }
   else{
     res.json({ message : "already logged out"});
+    return;
   }
 });
 
@@ -134,6 +153,7 @@ router.use(function(req, res, next){
   }
   else{
     next();
+    return;
   }
 });
 
@@ -168,9 +188,11 @@ router.get('/users', function(req, res){
     exec(function(err, users){
       if(!err){
         res.json(users);
+        return;
       }
       else{
         res.json(err);
+        return;
       }
     });
 });
@@ -199,23 +221,31 @@ router.post('/users', function(req, res){
 
     newUser.save(function(err, user){
       if(!err){
-        mailer.sendMail(user.email, "welcome", "hello");
+        mailer.sendMail(user.email, 
+          "welcome to admin platform", "Hi " + user.name + "," + 
+            "\nHere are your login details :" + 
+            "\nemail : " + user.email +
+            "\npassword : " + user.password);
         var result = {};
+        result.createdAt = user.createdAt;
         result.email = user.email;
         result._id = user._id;
         result.role = user.role;
         result.name = user.name;
         res.json(result);
+        return;
       }
       else{
         console.log("create user %j", err);
         res.status(400);
         res.json(err);
+        return;
       }
     });
   }
   else{
     res.json({code : 400, error : "PARAMETERS_REQUIRED", description : "required : 'email', 'password', 'name', 'role'"});
+    return;
   }
 });
 
@@ -236,40 +266,111 @@ router.delete('/users/:id', function(req, res){
     return;
   }
 
-  if(id){
-    adminUserModel.findOne(
-      {_id : id},
-      function(err, user){
-        if(err){
-          console.log("%j", err);
-          res.json({code : 500, error : "DB_ERROR", description : "unable to remove user"});
-          return;
-        }
+  adminUserModel.findOne(
+    {_id : id},
+    function(err, user){
+      if(err){
+        console.log("%j", err);
+        res.status(500);
+        res.json({code : 500, error : "DB_ERROR", description : "unable to remove user", debug : err});
+        return;
+      }
 
-        if(!user){
-          //account doesnot exist or already deleted
-          res.json({message : "success"});
+      if(!user){
+        //account doesnot exist or already deleted
+        res.json({message : "success"});
+        return;
+      }
+      
+      if(user.role === 'admin' && req.session.role !== 'admin'){
+        //unauthorized
+        res.status(403);
+        res.json({code: 403, error : "UNAUTHORIZED", description : "only admin can delete admin account"});
+        return;
+      }
+      else{
+        user.remove(function(err){
+          if(!err){
+            res.json({message : "success"});
+            return;
+          }
+          else{
+            res.status(500);
+            res.json({code : 500, error : "DB_ERROR", description : "unable to remove user", debug : err});
+            return;
+          }
+        });
+      }
+    });
+});
+
+router.patch('/users/me', function(req, res){
+  //only can change own [password, name]
+  console.log("/users/me : req.body : %j", req.body);
+  if(req.body.name || req.body.password){
+    var _id = req.session._id;
+
+    var changes = {};
+    if(req.body.name){
+      changes.name = req.body.name;
+    }
+    if(req.body.password){
+      changes.password = req.body.password;
+    }
+
+    adminUserModel.update(
+      {_id : _id },
+      {'$set' : changes},
+      {multi : false},
+      function(err, result){
+        if(!err){
+          res.json({"message" : "success"});
           return;
-        }
-        
-        if(user.role === 'admin' && req.session.role !== 'admin'){
-          //unauthorized
-          res.status(403);
-          res.json({code: 403, error : "UNAUTHORIZED", description : "only admin can delete admin account"});
         }
         else{
-          user.remove(function(err){
-            if(!err){
-              res.json({message : "success"});
-            }
-            else{
-              res.status(500);
-              res.json({code : 500, error : "DB_ERROR", description : "unable to remove user"});
-            }
-          });
+          res.status(500);
+          res.json({code : 500, error : "DB_ERROR", description : "unable to remove user", debug : err});
+          return;
         }
-      });
+      }
+    );
   }
+  else{
+    res.status(400);
+    res.json({code : 400, error : "PARAMETERS_REQUIRED", description : "required one/more of : [name, password]"});
+  }
+});
+
+router.get('/users/me', function(req, res){
+  var _id = req.session._id;
+  adminUserModel.findById(
+    _id,
+    function(err, user){
+      if(err){
+        console.log("%j", err);
+        res.status(500);
+        res.json({code : 500, error : "DB_ERROR", description : "unable to find user", debug : err});
+        return;
+      }
+      if(!user){
+        //email doesnot exist
+        res.status(404);
+        res.json({code : 404, error : "NOT_FOUND", description : "user not found in db"});
+        return;
+      }
+      else{
+        //all ok
+        var newUser = {};
+        newUser.email = user.email;
+        newUser._id = user._id;
+        newUser.role = user.role;
+        newUser.name = user.name;
+        newUser.createdAt = user.createdAt;
+        res.json(newUser);
+        return;
+      }
+    }
+  );
 });
 
 module.exports.adminRouter = router;

@@ -7,3 +7,4 @@
 - use validators : how to interpret ValidationError object
 - how mongod connection errors handled automatically
 - how to use systemd to restart the server on crash
+- how to use encapsulate frequently used methods (use promises - yes/no)
