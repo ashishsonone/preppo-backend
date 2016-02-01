@@ -1,13 +1,13 @@
 - keep constant strings such as 'admin', 'editor', 'uploader', at one place in variables
-- make an error factory and define errors properly
+[*] make an error factory and define errors properly (almost done)
 [*] cluster nodejs
 - logs (loggly, morgan, etc)
 - Schema : required fields specify
 [*] authentication middleware instead of checking session existence in every function
 - use validators : how to interpret ValidationError object
-- how mongod connection errors handled automatically
+- how mongod connection errors handled automatically (understood on dummy server, just need to implement in the server)
 [*] how to use systemd to restart the server on crash
 - how to use encapsulate frequently used methods (use promises - yes/no)
-- DON'T : print using console.log for debugging and commenting them out on production
+- DON'T : print using console.log for debugging because then need to comment them out on production
   use https://www.npmjs.com/package/debug
--
+- index mongodb collections based on queries later on 

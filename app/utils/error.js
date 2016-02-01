@@ -28,6 +28,15 @@ var errors = {
   NOT_FOUND : "NOT_FOUND"
 };
 
+function ErrorObject(error, description, debug){
+  return {
+    error : error,
+    description : description,
+    debug : debug
+  }
+}
+
 module.exports = {
-  errors : errors
+  errors : errors,
+  ErrorObject : ErrorObject
 };

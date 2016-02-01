@@ -5,7 +5,7 @@ var adminUserModel = require('../models/admin_user.js');
 var router = express.Router();
 var mongoose = require('mongoose');
 var mailer = require('../utils/mailer');
-var errorUtils = require('../utils/error');
+var errUtils = require('../utils/error');
 
 /*
   response codes : 
@@ -69,31 +69,31 @@ router.get('/', function(req, res){
     ],
     errors : [
       {
-        "error" : errorUtils.errors.UNAUTHENTICATED,
+        "error" : errUtils.errors.UNAUTHENTICATED,
         "info" : "not logged in and accessing a api endpoint which requires session"
       },
       {
-        "error" : errorUtils.errors.UNAUTHORIZED,
+        "error" : errUtils.errors.UNAUTHORIZED,
         "info" : "not authorized to perform that action"
       },
       {
-        "error" : errorUtils.errors.DB_ERROR,
+        "error" : errUtils.errors.DB_ERROR,
         "info" : "unknown error on part of the server. client should fail gracefully"
       },
       {
-        "error" : errorUtils.errors.INVALID_CREDENTIALS,
+        "error" : errUtils.errors.INVALID_CREDENTIALS,
         "info" : "during login, if provided with invalid email password combo"
       },
       {
-        "error" : errorUtils.errors.INVALID_OBJECT_ID,
+        "error" : errUtils.errors.INVALID_OBJECT_ID,
         "info" : "while operating on a particular resource, the object id is given invalid. e.g when DELETE /users/<user_id>"
       },
       {
-        "error" : errorUtils.errors.PARAMS_REQUIRED,
+        "error" : errUtils.errors.PARAMS_REQUIRED,
         "info" : "insufficient data or parameters provided"
       },
       {
-        "error" : errorUtils.errors.NOT_FOUND,
+        "error" : errUtils.errors.NOT_FOUND,
         "info" : "resouce requested not found. e.g accesing GET /users/me when you have been deleted from system"
       }
     ]
@@ -107,7 +107,7 @@ router.post('/login', function(req, res){
   //console.log("/login post header:%j \nbody:%j \nquery:%j", req.headers, req.body, req.query);
   if(!email || !password){
     res.status(400);
-    res.json({code : 400, error : errorUtils.errors.PARAMS_REQUIRED, description : "required post parameters : 'email', 'password'"});
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required post parameters : 'email', 'password'"));
     return;
   }
   else{
@@ -117,19 +117,19 @@ router.post('/login', function(req, res){
         if(err){
           console.log("%j", err);
           res.status(500);
-          res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to find user", debug : err});
+          res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to find user", err));
           return;
         }
         if(!user){
           //email doesnot exist
           res.status(401);
-          res.json({code : 401, error : errorUtils.errors.INVALID_CREDENTIALS, description : "user not found in db"});
+          res.json(errUtils.ErrorObject(errUtils.errors.INVALID_CREDENTIALS, "user not found in db"));
           return;
         }
         else if(user.password != password){
           //password doesnot match
           res.status(401);
-          res.json({code : 401, error : errorUtils.errors.INVALID_CREDENTIALS, description : "wrong password"});
+          res.json(errUtils.ErrorObject(errUtils.errors.INVALID_CREDENTIALS, "wrong password"));
           return;
         }
         else{
@@ -156,7 +156,7 @@ router.get('/logout', function(req, res){
     req.session.destroy(function(err){
       if(err){
         res.status(500);
-        res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to destroy session", debug : err});
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to destroy session", err));
         return;
       }
       else{
@@ -181,7 +181,7 @@ router.use(function(req, res, next){
   if(!req.session.email){
     console.log("authentication middleware : no session found");
     res.status(401);
-    res.json({code : 401, error : errorUtils.errors.UNAUTHENTICATED, description : "login is required to access this end point"});
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHENTICATED, "login is required to access this end point"));
     return;
   }
   else{
@@ -193,7 +193,7 @@ router.use(function(req, res, next){
 router.get('/users', function(req, res){
   if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
-    res.json({code : 403, error : errorUtils.errors.UNAUTHORIZED, description : "you are not authorized - admin/editor only"});
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
   }
 
@@ -225,7 +225,7 @@ router.get('/users', function(req, res){
       }
       else{
         res.status(500);
-        res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to remove user", debug : err});
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to remove user", err));
         return;
       }
     });
@@ -236,13 +236,13 @@ router.post('/users', function(req, res){
 
   if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
-    res.json({code : 403, error : errorUtils.errors.UNAUTHORIZED, description : "you are not authorized - admin/editor only"});
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
   }
 
   if(req.session.role === 'editor' && ['admin', 'editor'].indexOf(req.body.role) > 0 ){
     res.status(403);
-    res.json({code : 403, error : errorUtils.errors.UNAUTHORIZED, description : "editor can't create admin or editor user"});
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "editor can't create admin or editor user"));
     return;
   }
 
@@ -272,13 +272,13 @@ router.post('/users', function(req, res){
       else{
         console.log("create user %j", err);
         res.status(500);
-        res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to create user", debug : err});
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to create user", err));
         return;
       }
     });
   }
   else{
-    res.json({code : 400, error : errorUtils.errors.PARAMS_REQUIRED, description : "required : 'email', 'password', 'name', 'role'"});
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : 'email', 'password', 'name', 'role'"));
     return;
   }
 });
@@ -288,7 +288,7 @@ router.delete('/users/:id', function(req, res){
 
   if(['admin', 'editor'].indexOf(req.session.role) < 0){
     res.status(403);
-    res.json({code : 403, error : errorUtils.errors.UNAUTHORIZED, description : "you are not authorized - admin/editor only"});
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
   }
 
@@ -296,7 +296,7 @@ router.delete('/users/:id', function(req, res){
   
   if(!mongoose.Types.ObjectId.isValid(id)){
     res.status(400);
-    res.json({code : 400, error : errorUtils.errors.INVALID_OBJECT_ID, description : "object id provided is invalid format"});
+    res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
     return;
   }
 
@@ -306,7 +306,7 @@ router.delete('/users/:id', function(req, res){
       if(err){
         console.log("%j", err);
         res.status(500);
-        res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to remove user", debug : err});
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to remove user", err));
         return;
       }
 
@@ -319,7 +319,7 @@ router.delete('/users/:id', function(req, res){
       if(['admin', 'editor'].indexOf(user.role) > 0 && req.session.role !== 'admin'){
         //unauthorized
         res.status(403);
-        res.json({code: 403, error : errorUtils.errors.UNAUTHORIZED, description : "only admin can delete admin/editor accounts"});
+        res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "only admin can delete admin/editor accounts"));
         return;
       }
       else{
@@ -330,7 +330,7 @@ router.delete('/users/:id', function(req, res){
           }
           else{
             res.status(500);
-            res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to remove user", debug : err});
+            res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to remove user", err));
             return;
           }
         });
@@ -363,7 +363,7 @@ router.patch('/users/me', function(req, res){
         }
         else{
           res.status(500);
-          res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to remove user", debug : err});
+          res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to remove user", err));
           return;
         }
       }
@@ -371,7 +371,7 @@ router.patch('/users/me', function(req, res){
   }
   else{
     res.status(400);
-    res.json({code : 400, error : errorUtils.errors.PARAMS_REQUIRED, description : "required one/more of : [name, password]"});
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required one/more of : [name, password]"));
   }
 });
 
@@ -383,13 +383,13 @@ router.get('/users/me', function(req, res){
       if(err){
         console.log("%j", err);
         res.status(500);
-        res.json({code : 500, error : errorUtils.errors.DB_ERROR, description : "unable to find user", debug : err});
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to find user", err));
         return;
       }
       if(!user){
         //email doesnot exist
         res.status(404);
-        res.json({code : 404, error : errorUtils.errors.NOT_FOUND, description : "user not found in db"});
+        res.json(errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "user not found in db"));
         return;
       }
       else{
