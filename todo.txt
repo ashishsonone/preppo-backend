@@ -1,10 +1,13 @@
 - keep constant strings such as 'admin', 'editor', 'uploader', at one place in variables
 - make an error factory and define errors properly
 [*] cluster nodejs
-- logs
+- logs (loggly, morgan, etc)
 - Schema : required fields specify
 [*] authentication middleware instead of checking session existence in every function
 - use validators : how to interpret ValidationError object
 - how mongod connection errors handled automatically
-- how to use systemd to restart the server on crash
+[*] how to use systemd to restart the server on crash
 - how to use encapsulate frequently used methods (use promises - yes/no)
+- DON'T : print using console.log for debugging and commenting them out on production
+  use https://www.npmjs.com/package/debug
+-
