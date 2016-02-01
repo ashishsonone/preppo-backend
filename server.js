@@ -1,6 +1,6 @@
 var cluster = require('cluster');
 
-console.log("spawning with cluster.isMaster" + cluster.isMaster);
+console.log("spawning with cluster.isMaster=" + cluster.isMaster);
 
 if(cluster.isMaster){
   //Master node server
@@ -40,6 +40,8 @@ if(cluster.isMaster){
 }
 else{
   //worker threads doing the actual work of api server
+
+  //import
   var express = require('express');
   var bodyParser = require('body-parser');
   var mongoose = require('mongoose');
@@ -48,22 +50,15 @@ else{
   var session = require('express-session');
   var MongoStore = require('connect-mongo')(session);
 
-
+  var appConfig = require('./config/app')
   var mongoConfig = require('./config/mongo');
   var sessionConfig = require('./config/session');
-  var sessionOptions = {
-    secret : sessionConfig.secret,
-    resave : false, //force save back to session store on every request even when not modified
-    saveUninitialized : false, //save session into store even if not initialized(e.g not logged in)
-    store : new MongoStore({
-      url : mongoConfig.url
-    }),
-    cookie: {httpOnly: false, expires: new Date(253402300000000)}
-  };
-
   var routes = require('./app/routes/admin_routes');
 
   var app = express();
+
+  //connect to mongo db
+  mongoose.connect(mongoConfig.url);
 
   //enable CORS
   app.all('*', function(req, res, next) {
@@ -75,6 +70,15 @@ else{
   });
 
   //enable session
+  var sessionOptions = {
+    secret : sessionConfig.secret,
+    resave : false, //force save back to session store on every request even when not modified
+    saveUninitialized : false, //save session into store even if not initialized(e.g not logged in)
+    store : new MongoStore({
+      mongooseConnection: mongoose.connection //reuse the mongoose connection
+    }),
+    cookie: {httpOnly: false, expires: new Date(253402300000000)}
+  };
   app.use(session(sessionOptions));
 
   //enable console logging using morgan
@@ -82,14 +86,13 @@ else{
   var morganFormat = morgan('#:id :method :url :status :response-time ms - :res[content-length]'); //define the new format
   app.use(morganFormat); //use the new format
 
-  //for post parameters
+  //for extracting post parameters
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({extended : true}));
 
-  //connect to mongo db
-  mongoose.connect(mongoConfig.url);
-
+  //the admin api
   app.use('/v1/admin', routes.adminRouter);
 
-  app.listen(8002);
+  //listen to port
+  app.listen(appConfig.port || 8003);
 }
