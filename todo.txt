@@ -1,4 +1,4 @@
-- keep constant strings such as 'admin', 'editor', 'uploader', at one place in variables
+[*] keep constant strings such as 'admin', 'editor', 'uploader', at one place in variables
 [*] make an error factory and define errors properly (almost done)
 [*] cluster nodejs
 - logs (loggly, morgan, etc)

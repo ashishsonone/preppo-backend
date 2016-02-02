@@ -7,6 +7,12 @@ var mongoose = require('mongoose');
 var mailer = require('../utils/mailer');
 var errUtils = require('../utils/error');
 
+var roles = {
+  ADMIN : 'admin',
+  UPLOADER : 'uploader',
+  EDITOR : 'editor'
+};
+
 /*
   response codes : 
   2xx
@@ -160,12 +166,14 @@ router.get('/logout', function(req, res){
         return;
       }
       else{
+        res.clearCookie('connect.sid');
         res.json({ message : "log out success"});
         return;
       }
     });
   }
   else{
+    res.clearCookie('connect.sid');
     res.json({ message : "already logged out"});
     return;
   }
@@ -191,7 +199,7 @@ router.use(function(req, res, next){
 });
 
 router.get('/users', function(req, res){
-  if(['admin', 'editor'].indexOf(req.session.role) < 0){
+  if([roles.ADMIN, roles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
@@ -210,8 +218,8 @@ router.get('/users', function(req, res){
     query = { role : role };
   }
 
-  if(req.session.role === 'editor'){
-    query = { role :  {'$ne' : 'admin'}};
+  if(req.session.role === roles.EDITOR){
+    query = { role :  {'$ne' : roles.ADMIN}};
   }
   //check if authorized (role=[admin, publisher])
   adminUserModel.
@@ -234,13 +242,13 @@ router.get('/users', function(req, res){
 router.post('/users', function(req, res){
   //check if authorized (role = [admin])
 
-  if(['admin', 'editor'].indexOf(req.session.role) < 0){
+  if([roles.ADMIN, roles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
   }
 
-  if(req.session.role === 'editor' && ['admin', 'editor'].indexOf(req.body.role) > 0 ){
+  if(req.session.role === roles.EDITOR && [roles.ADMIN, roles.EDITOR].indexOf(req.body.role) > 0 ){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "editor can't create admin or editor user"));
     return;
@@ -286,7 +294,7 @@ router.post('/users', function(req, res){
 router.delete('/users/:id', function(req, res){
   //check if authorized (role = [admin, editor])
 
-  if(['admin', 'editor'].indexOf(req.session.role) < 0){
+  if([roles.ADMIN, roles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
@@ -316,7 +324,7 @@ router.delete('/users/:id', function(req, res){
         return;
       }
       
-      if(['admin', 'editor'].indexOf(user.role) > 0 && req.session.role !== 'admin'){
+      if([roles.ADMIN, roles.EDITOR].indexOf(user.role) > 0 && req.session.role !== roles.ADMIN){
         //unauthorized
         res.status(403);
         res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "only admin can delete admin/editor accounts"));
