@@ -44,7 +44,7 @@ else{
   //import
   var express = require('express');
   var bodyParser = require('body-parser');
-  var mongoose = require('mongoose');
+  var mongoose = require('./app/utils/mongoose_robust');
   var morgan = require('morgan');
 
   var session = require('express-session');
@@ -58,7 +58,7 @@ else{
   var app = express();
 
   //connect to mongo db
-  mongoose.connect(mongoConfig.url);
+  mongoose.connectWithRetry(mongoConfig.url);
 
   //enable CORS
   app.all('*', function(req, res, next) {
