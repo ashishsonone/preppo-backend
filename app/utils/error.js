@@ -25,7 +25,8 @@ var errors = {
   INVALID_OBJECT_ID : "INVALID_OBJECT_ID",
 
   PARAMS_REQUIRED : "PARAMS_REQUIRED",
-  NOT_FOUND : "NOT_FOUND"
+  NOT_FOUND : "NOT_FOUND",
+  DUPLICATE : "DUPLICATE"
 };
 
 function ErrorObject(error, description, debug){

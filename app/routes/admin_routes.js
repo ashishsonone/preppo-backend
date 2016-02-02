@@ -101,6 +101,10 @@ router.get('/', function(req, res){
       {
         "error" : errUtils.errors.NOT_FOUND,
         "info" : "resouce requested not found. e.g accesing GET /users/me when you have been deleted from system"
+      },
+      {
+        "error" : errUtils.errors.DUPLICATE,
+        "info" : "when unique index on a key(say email) and try to insert an entity with duplicate key(same email)"
       }
     ]
   });
@@ -277,10 +281,16 @@ router.post('/users', function(req, res){
         res.json(result);
         return;
       }
-      else{
+      else if(err.code == 11000){ //duplicate key error
+        console.log("create user duplicate email err.code=%j", err.code);
+        res.status(400);
+        res.json(errUtils.ErrorObject(errUtils.errors.DUPLICATE, "email already exists"));
+        return;
+      }
+      else{ //duplicate key error
         console.log("create user %j", err);
         res.status(500);
-        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to create user", err));
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "error create user", err));
         return;
       }
     });
