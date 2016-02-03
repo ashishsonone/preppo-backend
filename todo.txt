@@ -12,4 +12,8 @@
 - DON'T : print using console.log for debugging because then need to comment them out on production
   use https://www.npmjs.com/package/debug
 - index mongodb collections based on queries later on 
-- mongod starting as daemon (http://stackoverflow.com/questions/9884233/mongodb-service-is-not-starting-up)
+[*] mongod starting as daemon (http://stackoverflow.com/questions/9884233/mongodb-service-is-not-starting-up)
+- use async module - parallel | waterfall
+- understand boot.js for zero downtime server updates
+  > http://blog.carbonfive.com/2014/06/02/node-js-in-production/
+  > Ansible

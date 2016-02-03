@@ -53,7 +53,7 @@ else{
   var appConfig = require('./config/app')
   var mongoConfig = require('./config/mongo');
   var sessionConfig = require('./config/session');
-  var routes = require('./app/routes/admin_routes');
+  var adminApi = require('./app/routes/admin');
 
   var app = express();
 
@@ -91,7 +91,7 @@ else{
   app.use(bodyParser.urlencoded({extended : true}));
 
   //the admin api
-  app.use('/v1/admin', routes.adminRouter);
+  app.use('/v1/admin', adminApi.router);
 
   //listen to port
   app.listen(appConfig.port || 8003);

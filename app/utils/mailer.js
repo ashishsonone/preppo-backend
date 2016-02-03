@@ -6,7 +6,8 @@ var mailerConfig = require('../../config/mailer');
 var transportURL = mailerConfig.protocol + "://" + mailerConfig.email 
   + ":" + mailerConfig.password + "@" + mailerConfig.smtp_server;
 
-console.log(transportURL);
+//console.log(transportURL);
+
 // create reusable transporter object using the default SMTP transport
 var transporter = nodemailer.createTransport('smtps://ashish@trumplab.com:trumplab%400@smtp.gmail.com');
 
@@ -31,4 +32,4 @@ function sendMail(to, subject, text){// setup e-mail data with unicode symbols
 
 module.exports = {
   sendMail : sendMail
-}
+};

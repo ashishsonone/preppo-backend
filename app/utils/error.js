@@ -1,6 +1,22 @@
 "use strict"
 
 /*
+  response codes : 
+  2xx
+    200 : OK
+    201 : created
+
+  4xx
+    400 : bad request
+    401 : unauthenticated
+    403 : unauthorized
+    404 : not found
+
+  5xx
+    500 : internal server error
+*/
+
+/*
   custom error strings 'error' in response json data
 
   UNAUTHENTICATED
