@@ -1,7 +1,7 @@
 'use strict'
 
 var express = require('express');
-var adminUserModel = require('../models/admin_user.js');
+var AdminUserModel = require('../models/admin_user.js');
 var router = express.Router();
 var mongoose = require('mongoose');
 var mailer = require('../utils/mailer');
@@ -36,7 +36,7 @@ router.get('/', function(req, res){
     query = { role :  {'$ne' : roles.ADMIN}};
   }
   //check if authorized (role=[admin, publisher])
-  adminUserModel.
+  AdminUserModel.
     find(query).
     select(projection).
     limit(limit).
@@ -69,7 +69,7 @@ router.post('/', function(req, res){
   }
 
   if(req.body.email && req.body.name && req.body.role && req.body.password){
-    var newUser = new adminUserModel();
+    var newUser = new AdminUserModel();
     newUser.email = req.body.email;
     newUser.name = req.body.name;
     newUser.role = req.body.role;
@@ -128,7 +128,7 @@ router.delete('/:id', function(req, res){
     return;
   }
 
-  adminUserModel.findOne(
+  AdminUserModel.findOne(
     {_id : id},
     function(err, user){
       if(err){
@@ -180,7 +180,7 @@ router.patch('/me', function(req, res){
       changes.password = req.body.password;
     }
 
-    adminUserModel.update(
+    AdminUserModel.update(
       {_id : _id },
       {'$set' : changes},
       {multi : false},
@@ -205,7 +205,7 @@ router.patch('/me', function(req, res){
 
 router.get('/me', function(req, res){
   var _id = req.session._id;
-  adminUserModel.findById(
+  AdminUserModel.findById(
     _id,
     function(err, user){
       if(err){

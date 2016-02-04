@@ -1,0 +1,53 @@
+- try to understand indexes in mongodb by creating demo collection of news items with following schema
+  {
+    title,
+    approved, //true/false
+    approvedBy, 
+    approvedAt, //when last approved
+    date, //news publish date
+    createdAt, //when created
+    createdBy
+  }
+
+=================
+ANALYSIS 1:
+-----------------
+
+DB under consideration:
+  created news entries ~160 distributed across 10 weeks
+  approved vs non-apporved ration 3:1
+SCRIPT:
+  https://github.com/ashishsonone/learn-backend/tree/master/mongodb_insert
+
+QUERIES LIKE:
+  db.News.find({approved : true}).sort({date : 1}).limit(10);
+
+WITHOUT INDEX:
+  need to scan all for any such query
+
+SIMPLE INDEX on {date : 1}
+  why : since we will want the results to be sorted by 'date' key
+  db.News.find({approved : true}).sort({date : -1}).limit(20).explain("executionStats")
+    returned : 20
+    examined : 24
+    it will go through the 'date' index and since mostly {approved : true} documents, it needs to examine only few extra false positives
+
+  db.News.find({approved : false}).sort({date : -1}).limit(20).explain("executionStats")
+    returned : 20
+    examined : 85
+    it will go through the 'date' index but only will find few {approved : false} documents. Hence need to examine a lot more to find those 20 documents
+
+COMPOUND INDEX on {approved : 1, date : 1}: 'approved' key first
+  why : since most of the queries will explicitly specify whether they want approved docs or not hence it makes sense to make approved first key for the compound index
+  db.News.find({approved : true}).sort({date : -1}).limit(20).explain("executionStats")
+    returned : 20
+    examined : 20
+    the compound index makes it more easier(earlier it had to examine a few false positives also)
+
+  db.News.find({approved : false}).sort({date : -1}).limit(20).explain("executionStats")
+    returned : 20
+    examined : 20
+    now using the compound index, it will only go through the non-approved documents in date order way
+
+-----------------
+=================

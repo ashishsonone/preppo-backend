@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 
-var adminUserSchema = mongoose.Schema({
+var AdminUserSchema = mongoose.Schema({
   email : String,
   name : String,
   password: String,
@@ -8,4 +8,4 @@ var adminUserSchema = mongoose.Schema({
   createdAt : {type: Date, default: Date.now}
 });
 
-module.exports = mongoose.model('AdminUser', adminUserSchema);
+module.exports = mongoose.model('AdminUser', AdminUserSchema, 'adminuser');

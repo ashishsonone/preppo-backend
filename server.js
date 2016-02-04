@@ -40,8 +40,7 @@ if(cluster.isMaster){
 }
 else{
   //worker threads doing the actual work of api server
-
-  //import
+  //all import at one place
   var express = require('express');
   var bodyParser = require('body-parser');
   var mongoose = require('./app/utils/mongoose_robust');
@@ -69,18 +68,6 @@ else{
     next();
   });
 
-  //enable session
-  var sessionOptions = {
-    secret : sessionConfig.secret,
-    resave : false, //force save back to session store on every request even when not modified
-    saveUninitialized : false, //save session into store even if not initialized(e.g not logged in)
-    store : new MongoStore({
-      mongooseConnection: mongoose.connection //reuse the mongoose connection
-    }),
-    cookie: {httpOnly: false, expires: new Date(253402300000000)}
-  };
-  app.use(session(sessionOptions));
-
   //enable console logging using morgan
   morgan.token('id', function(req, res){ return cluster.worker.id; }); //define a new token to log worker id also
   var morganFormat = morgan('#:id :method :url :status :response-time ms - :res[content-length]'); //define the new format
@@ -91,8 +78,21 @@ else{
   app.use(bodyParser.urlencoded({extended : true}));
 
   //the admin api
+  //enable express-session only for the admin api
+  var sessionOptions = {
+    secret : sessionConfig.secret,
+    resave : false, //force save back to session store on every request even when not modified
+    saveUninitialized : false, //save session into store even if not initialized(e.g not logged in)
+    store : new MongoStore({
+      mongooseConnection: mongoose.connection //reuse the mongoose connection
+    }),
+    cookie: {httpOnly: false, expires: new Date(253402300000000)}
+  };
+  app.use('/v1/admin', session(sessionOptions));
   app.use('/v1/admin', adminApi.router);
 
+  app.get('/', function(req, res){ res.json({message : "welcome to the unauthenticated api endpoint"})});
+  
   //listen to port
-  app.listen(appConfig.port || 8003);
+  app.listen(appConfig.port);
 }

@@ -1,7 +1,7 @@
 'use strict'
 
 var express = require('express');
-var adminUserModel = require('../models/admin_user.js');
+var AdminUserModel = require('../models/admin_user.js');
 var router = express.Router();
 var mongoose = require('mongoose');
 var mailer = require('../utils/mailer');
@@ -9,6 +9,7 @@ var errUtils = require('../utils/error');
 var constants = require('../utils/constants');
 
 var usersApi = require('./users');
+var newsApi = require('./news');
 
 var roles = constants.roles;
 
@@ -106,7 +107,7 @@ router.post('/login', function(req, res){
     return;
   }
   else{
-    adminUserModel.findOne(
+    AdminUserModel.findOne(
       {email : email}, 
       function(err, user){
         if(err){
@@ -188,6 +189,9 @@ router.use(function(req, res, next){
   }
 });
 
+// users administration
 router.use('/users', usersApi.router);
 
+// news item administration
+router.use('/news', newsApi.router);
 module.exports.router = router;

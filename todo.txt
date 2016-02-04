@@ -17,3 +17,11 @@
 - understand boot.js for zero downtime server updates
   > http://blog.carbonfive.com/2014/06/02/node-js-in-production/
   > Ansible
+- day bucket instead of variable time stamps for the day ISODate('2013-05-06')
+- index mongodb : compound index, index on boolean, Index intersection
+  > https://docs.mongodb.org/manual/core/index-compound/
+  > https://docs.mongodb.org/manual/core/index-intersection/#index-intersection-compound-indexes
+  > https://docs.mongodb.org/v3.0/tutorial/measure-index-use/#indexes-measuring-use
+[*] seperate login/session management for admin api and product api
+- use short ids with mongoose
+- https://artillery.io/
