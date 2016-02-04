@@ -19,13 +19,13 @@ var NewsSchema = mongoose.Schema({
   tags : [String],
 
   //admin
-  status : {type : String, default : enumStatus.uploaded},
-  approvedBy : String, //email
-  approvedAt : Date,
+  status : {type : String, default : enumStatus.UPLOADED},
+  editedBy : String, //email
+  editedAt : Date,
 
   //always
   uploadedBy : String, //email
-  createdAt : {type : Date, default : Date.now}
+  uploadedAt : {type : Date, default : Date.now}
 });
 
 //Mongoose#model(name, [schema], [collection], [skipInit])

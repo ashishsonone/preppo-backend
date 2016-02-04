@@ -49,7 +49,7 @@ router.get('/', function(req, res){
       }
       else{
         res.status(500);
-        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to remove user", err));
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable fetch users", err));
         return;
       }
     });
@@ -99,7 +99,7 @@ router.post('/', function(req, res){
         res.json(errUtils.ErrorObject(errUtils.errors.DUPLICATE, "email already exists"));
         return;
       }
-      else{ //duplicate key error
+      else{
         console.log("create user %j", err);
         res.status(500);
         res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "error create user", err));

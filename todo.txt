@@ -24,4 +24,12 @@
   > https://docs.mongodb.org/v3.0/tutorial/measure-index-use/#indexes-measuring-use
 [*] seperate login/session management for admin api and product api
 [-] DONT DO IT : use short ids with mongoose: can't insert using mongoshell : as it creates ObjectId() as _id by default 
-- https://artillery.io/
+- https ://artillery.io/
+- use moment for date parsing ???
+- parameter check utility:
+    required : it must be there and of correct type/format
+    optional : either its not there, if it is there then must be of correct type/format
+
+    call like 
+    check(req.body, { "req" : { "heading" : "string", "publishDate", "date"}
+                      "opt" : {"tags" : "array"}})
