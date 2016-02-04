@@ -1,18 +1,18 @@
 'use strict'
 
 var express = require('express');
-var AdminUserModel = require('../models/admin_user.js');
-var router = express.Router();
 var mongoose = require('mongoose');
+
+var AdminUser = require('../models/admin_user');
 var mailer = require('../utils/mailer');
 var errUtils = require('../utils/error');
-var constants = require('../utils/constants');
 
 var usersApi = require('./users');
 var newsApi = require('./news');
 
-var roles = constants.roles;
+var AdminUserModel = AdminUser.model;
 
+var router = express.Router();
 //start ENDPOINT /v1/admin/
 
 router.get('/', function(req, res){

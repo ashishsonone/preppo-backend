@@ -1,19 +1,21 @@
 'use strict'
 
 var express = require('express');
-var AdminUserModel = require('../models/admin_user.js');
-var router = express.Router();
 var mongoose = require('mongoose');
+
 var mailer = require('../utils/mailer');
 var errUtils = require('../utils/error');
-var constants = require('../utils/constants');
+var AdminUser = require('../models/admin_user');
 
-var roles = constants.roles;
+var AdminUserModel = AdminUser.model;
+var enumRoles = AdminUser.enumRoles;
+
+var router = express.Router();
 
 //start ENDPOINT /v1/admin/users/
 
 router.get('/', function(req, res){
-  if([roles.ADMIN, roles.EDITOR].indexOf(req.session.role) < 0){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
@@ -24,7 +26,7 @@ router.get('/', function(req, res){
       password: false,
   };
 
-  var limit = req.query.limit || 50; //default limit is 50
+  var limit = parseInt(req.query.limit) || 50; //default limit is 50
 
   var role = req.query.role;
   var query = {};
@@ -32,8 +34,8 @@ router.get('/', function(req, res){
     query = { role : role };
   }
 
-  if(req.session.role === roles.EDITOR){
-    query = { role :  {'$ne' : roles.ADMIN}};
+  if(req.session.role === enumRoles.EDITOR){
+    query = { role :  {'$ne' : enumRoles.ADMIN}};
   }
   //check if authorized (role=[admin, publisher])
   AdminUserModel.
@@ -56,13 +58,13 @@ router.get('/', function(req, res){
 router.post('/', function(req, res){
   //check if authorized (role = [admin])
 
-  if([roles.ADMIN, roles.EDITOR].indexOf(req.session.role) < 0){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
   }
 
-  if(req.session.role === roles.EDITOR && [roles.ADMIN, roles.EDITOR].indexOf(req.body.role) > 0 ){
+  if(req.session.role === enumRoles.EDITOR && [enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.body.role) > 0 ){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "editor can't create admin or editor user"));
     return;
@@ -106,6 +108,7 @@ router.post('/', function(req, res){
     });
   }
   else{
+    res.status(400);
     res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : 'email', 'password', 'name', 'role'"));
     return;
   }
@@ -114,7 +117,7 @@ router.post('/', function(req, res){
 router.delete('/:id', function(req, res){
   //check if authorized (role = [admin, editor])
 
-  if([roles.ADMIN, roles.EDITOR].indexOf(req.session.role) < 0){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
@@ -144,7 +147,7 @@ router.delete('/:id', function(req, res){
         return;
       }
       
-      if([roles.ADMIN, roles.EDITOR].indexOf(user.role) > 0 && req.session.role !== roles.ADMIN){
+      if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(user.role) > 0 && req.session.role !== enumRoles.ADMIN){
         //unauthorized
         res.status(403);
         res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "only admin can delete admin/editor accounts"));

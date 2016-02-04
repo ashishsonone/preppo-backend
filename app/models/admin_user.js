@@ -8,4 +8,13 @@ var AdminUserSchema = mongoose.Schema({
   createdAt : {type: Date, default: Date.now}
 });
 
-module.exports = mongoose.model('AdminUser', AdminUserSchema, 'adminuser');
+var enumRoles = {
+  ADMIN : 'admin',
+  UPLOADER : 'uploader',
+  EDITOR : 'editor'
+};
+
+module.exports = {
+  model : mongoose.model('AdminUser', AdminUserSchema, 'adminuser'),
+  enumRoles : enumRoles
+};

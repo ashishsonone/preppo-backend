@@ -1,28 +1,35 @@
 var mongoose = require('mongoose');
 
-var NewsSchema = mongoose.Schema(
-  {
-    //main content
-    heading : String,
-    points : [String],
-    language : String, //hindi, english
-    imageUrl : String,
+var enumStatus = {
+  UPLOADED : 'uploaded',
+  APPROVED : 'approved',
+  PUBLISHED : 'published'
+};
 
-    //metadata
-    publishDate : Date,
-    categories : [String],
-    tags : [String],
+var NewsSchema = mongoose.Schema({
+  //main content
+  heading : String,
+  points : [String],
+  language : String, //hindi, english
+  imageUrl : String,
 
-    //admin
-    approved : {type : Boolean, default : false},
-    approvedBy : String, //email
-    approvedAt : Date,
+  //metadata
+  publishDate : Date,
+  categories : [String],
+  tags : [String],
 
-    //always
-    uploadedBy : String, //email
-    createdAt : {type : Date, default : Date.now}
-  }
-);
+  //admin
+  status : {type : String, default : enumStatus.uploaded},
+  approvedBy : String, //email
+  approvedAt : Date,
+
+  //always
+  uploadedBy : String, //email
+  createdAt : {type : Date, default : Date.now}
+});
 
 //Mongoose#model(name, [schema], [collection], [skipInit])
-module.exports = mongoose.model('News', adminUserSchema, 'news');
+module.exports = {
+  model : mongoose.model('News', NewsSchema, 'news'),
+  enumStatus : enumStatus
+};
