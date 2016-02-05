@@ -33,3 +33,5 @@
     call like 
     check(req.body, { "req" : { "heading" : "string", "publishDate", "date"}
                       "opt" : {"tags" : "array"}})
+
+- IMPORTANT https://docs.mongodb.org/manual/tutorial/transparent-huge-pages/#transparent-huge-pages-thp-settings                      

@@ -10,10 +10,10 @@ var NewsSchema = mongoose.Schema({
   //main content
   heading : String,
   points : [String],
-  language : String, //hindi, english
   imageUrl : String,
 
   //metadata
+  language : String, //hindi, english
   publishDate : Date,
   categories : [String],
   tags : [String],
