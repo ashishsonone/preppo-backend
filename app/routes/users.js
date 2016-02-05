@@ -13,7 +13,6 @@ var enumRoles = AdminUser.enumRoles;
 var router = express.Router();
 
 //start ENDPOINT /v1/admin/users/
-
 router.get('/', function(req, res){
   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);

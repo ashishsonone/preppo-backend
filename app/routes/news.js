@@ -100,7 +100,6 @@ router.get('/', function(req, res){
     });
 });
 
-
 /*
   create a new news item
   post params:
@@ -133,7 +132,7 @@ router.post('/', function(req, res){
   var points = req.body.points;
   var language = req.body.language;
   var publishDate = req.body.publishDate;
-  
+
   var imageUrl = req.body.imageUrl;
   var categories = req.body.categories;
   var tags = req.body.tags;
