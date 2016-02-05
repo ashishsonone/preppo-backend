@@ -169,7 +169,7 @@ router.delete('/:id', function(req, res){
     });
 });
 
-router.patch('/me', function(req, res){
+router.put('/me', function(req, res){
   //only can change own [password, name]
   console.log("/users/me : req.body : %j", req.body);
   if(req.body.name || req.body.password){

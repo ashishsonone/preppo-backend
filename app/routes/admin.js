@@ -55,7 +55,7 @@ router.get('/', function(req, res){
       },
       {
         "info" : "update name and/or password of logged-in user",
-        "endpont" : "PATCH /v1/admin/users/me",
+        "endpont" : "PUT /v1/admin/users/me",
         "required" : "one of [name, password] like POST body"
       }
     ],

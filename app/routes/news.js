@@ -123,60 +123,20 @@ router.get('/', function(req, res){
     editedAt
 */
 router.post('/', function(req, res){
-/*
-  //sanity check for required parms and their type
-  var sane = true;
-  var heading = checker.isString(req.body.heading);
-  var points = checker.isArray(req.body.points);
-  var language = checker.isString(req.body.language);
-  var publishDate = checker.isDateString(req.body.publishDate);
-
-  if(!(heading && points && language && publishDate)){
-    sane = false;
-  }
-
-  if(!sane){
-    res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [heading, points, language, publishDate]"));
-    return;
-  }
-
-  //till here sane = true
-  //now optional params and their type
-  if(req.body.imageUrl){
-    var imageUrl = checker.isString(req.body.imageUrl);
-    if(!imageUrl){
-      sane = false;
-    }
-  }
-
-  if(sane && req.body.categories){
-    var categories = checker.isArray(req.body.categories);
-    if(!categories){
-      sane = false;
-    }
-  } 
-
-  if(sane && req.body.tags){
-    var tags = checker.isArray(req.body.tags);
-    if(!tags){
-      sane = false;
-    }
-  }
-
-  if(!sane){
-    res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, 
-      "invalid optional parameters : [imageUrl, categories, tags]"));
-    return;
-  }
-*/
-
   if(!(req.body.heading && req.body.points && req.body.language && req.body.publishDate)){
     res.status(400);
     res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [heading, points, language, publishDate]"));
     return;
   }
+
+  var heading = req.body.heading;
+  var points = req.body.points;
+  var language = req.body.language;
+  var publishDate = req.body.publishDate;
+  
+  var imageUrl = req.body.imageUrl;
+  var categories = req.body.categories;
+  var tags = req.body.tags;
 
   var newsItem = new NewsModel();
   //set required
@@ -231,81 +191,13 @@ router.post('/', function(req, res){
     uploadedBy
     uploadedAt
 */
-router.patch('/:id', function(req, res){
+router.put('/:id', function(req, res){
   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
   }
 
-/*
-  var sane = true;
-  //data fields - heading, points, imageUrl
-  if(req.body.heading){
-    var heading = checker.isString(req.body.heading);
-    if(!heading){
-      sane = false;
-    }
-  }
-
-  if(req.body.points){
-    var points = checker.isArray(req.body.points);
-    if(!points){
-      sane = false;
-    }
-  }
-
-  if(req.body.imageUrl){
-    var imageUrl = checker.isString(req.body.imageUrl);
-    if(!imageUrl){
-      sane = false;
-    }
-  }
-
-  //metadata fields - language, publishDate, categories, tags
-  if(req.body.language){
-    var language = checker.isString(req.body.language);
-    if(!language){
-      sane = false;
-    }
-  }
-
-  if(sane && req.body.publishDate){
-    var publishDate = checker.isDateString(req.body.publishDate);
-    if(!publishDate){
-      sane = false;
-    }
-  }
-
-  if(sane && req.body.categories){
-    var categories = checker.isArray(req.body.categories);
-    if(!categories){
-      sane = false;
-    }
-  }
-
-  if(sane && req.body.tags){
-    var tags = checker.isArray(req.body.tags);
-    if(!tags){
-      sane = false;
-    }
-  }
-
-  //admin fields - status
-  if(req.body.status){
-    var status = checker.isString(req.body.status);
-    if(!status){
-      sane = false;
-    }
-  }
-
-  if(!sane){
-    res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "invalid optional parameters"));
-    return;
-  }
-
-*/
   var id = req.params.id;
   
   if(!mongoose.Types.ObjectId.isValid(id)){
