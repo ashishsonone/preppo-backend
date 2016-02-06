@@ -1,14 +1,23 @@
 //configuration either as a worker or standalone server
+//special setup for mongoose disconnect
 var cluster = require('cluster');
+var mongoose = require('./app/utils/mongoose_robust');
+
 var myId = 'S'; //by default standalone
 if(cluster.isWorker){
   myId = cluster.worker.id; //if worker then, give its worker id
+
+  cluster.worker.on('disconnect', function(message){
+    mongoose.suicide = true; //so that it doesnot try to reconnect on connection close
+    mongoose.connection.close(); //important to stop the node event loop and thereby exit
+    //process.exit(); //no need, as master will kill if worker doesnot exit within timeout period
+    console.log("#" + cluster.worker.id + ": disconnect");
+  });
 }
 
 //Actual Server code
 var express = require('express');
 var bodyParser = require('body-parser');
-var mongoose = require('./app/utils/mongoose_robust');
 var morgan = require('morgan');
 
 var session = require('express-session');

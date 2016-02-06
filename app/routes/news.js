@@ -46,7 +46,7 @@ router.get('/', function(req, res){
   var gt = req.query.gt; //mongoose will cast date string to date object
   var lt = req.query.lt;
 
-  console.log(gt + ", " + lt);
+  //console.log(gt + ", " + lt);
 
   var query = null;
   var sortBy = null;

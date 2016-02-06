@@ -6,7 +6,16 @@
 var mongoose = require('mongoose');
 var attempting = true; //if attempting to connect, dont connectWithRetry on disconnect event
 
-mongoose.connectWithRetry = function connectWithRetry(url){
+mongoose.suicide = false; //used when upgrading, we dont want to trigger connectWithRetry
+                          //if we are ourselves calling mongoose.connection.close()
+                          //in worker's 'disconnect' event set this to true
+
+function connectWithRetry(url){
+  if(mongoose.suicide){
+    console.log("connectWithRetry suicide=" + mongoose.suicide);
+    return; //we are suiciding. So just return
+  }
+
   if(url){
     mongoose.url = url;
   }
@@ -29,6 +38,7 @@ mongoose.connectWithRetry = function connectWithRetry(url){
   );
 }
 
+mongoose.connectWithRetry = connectWithRetry;
 
 /*
  * mongoose.connection.readyState
@@ -58,7 +68,8 @@ db.on('disconnecting', function() {
 });
 
 db.on('disconnected', function() {
-  console.log("db disconnected readyState=" + db.readyState);
+  console.log("db disconnected attempting=" + attempting);
+
   if(!attempting){
       connectWithRetry();
   }
