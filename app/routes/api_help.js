@@ -154,7 +154,7 @@ router.get('/news/help', function(req, res){
           "endpoint" : "GET /v1/admin/news",
           "return" : "array of news items",
           "required" : "[status]",
-          "optional" : "[gt, lt] - corresponds to greater-than/less-than date",
+          "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
           "detail" : "if status=uploaded, return latest news items sorted by 'uploadedAt' time; otherwise return items sorted by 'editedAt' time"
         },
         {
