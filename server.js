@@ -60,4 +60,4 @@ app.get('/', function(req, res){ res.json({message : "welcome to the unauthentic
 
 //listen to port
 app.listen(appConfig.port);
-console.log("#" + myId + " listening on " + appConfig.port);
+console.log("#" + myId + " pid=" + process.pid + " listening on port=" + appConfig.port);
