@@ -1,0 +1,54 @@
+get mongodb for ubuntu 14.04
+  visit : https://www.mongodb.org/downloads#production
+  wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1404-3.2.1.tgz
+
+-------------------
+
+install
+  extract to ~/Downloads/mongodb (say)
+  sudo mkdir /opt/mongodb
+  sudo cp ~/Downloads/mongodb/* /opt/mongodb
+  in ~/.bashrc add line
+    export PATH=$PATH:/opt/mongodb/bin
+  source ~/.bashrc
+
+-------------------
+
+pre-setup
+  create a new mongodb user
+    sudo adduser mongodb (with password mongodb)
+  create and own data directory for db
+    sudo sudo mkdir /data/db
+    sudo chown -R mongodb:mongodb /data/db/
+  create and own data directory for log
+    sudo mkdir -p /var/log/mongodb
+    sudo chown -R mongodb:mongodb /var/log/mongodb
+
+-------------------
+
+install supervisor:
+  sudo apt-get install supervisor
+
+create new conf file : /etc/supervisor/conf.d/mongodb.conf
+  with following content
+
+[program:mongodb]
+command=/opt/mongodb/bin/mongod --dbpath /data/db --logpath /var/log/mongodb/mongodb.log
+directory=/opt/mongodb/bin
+autostart=true
+autorestart=true
+startretries=3
+stderr_logfile=/tmp/mongodb.err.log
+stdout_logfile=/tmp/mongodb.out.log
+user=mongodb
+environment=SECRET_PASSPHRASE='this is secret',SECRET_TWO='another secret'
+
+------------------
+
+first time run
+sudo supervisorctl
+  > reload
+  > update
+  > status
+  mongodb                          RUNNING    pid 2275, uptime 0:00:36
+
