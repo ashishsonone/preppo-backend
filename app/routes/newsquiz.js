@@ -4,17 +4,17 @@ var express = require('express');
 var mongoose = require('mongoose');
 var errUtils = require('../utils/error');
 var AdminUser = require('../models/adminuser');
-var News = require('../models/news');
+var NewsQuiz = require('../models/newsquiz');
 
-var NewsModel = News.model;
+var NewsQuizModel = NewsQuiz.model;
 
 var enumRoles = AdminUser.enumRoles;
-var enumStatus = News.enumStatus;
+var enumStatus = NewsQuiz.enumStatus;
 
 var router = express.Router();
 //start ENDPOINT /v1/admin/news/
 
-/*get all news items
+/*get all quiz items
   get parameters: 
     status (required)
 
@@ -22,8 +22,8 @@ var router = express.Router();
     gt : <date>(optional)
     lt : <date>(optional)
 
-  if status='uploaded' then return latest uploaded news using 'uploadedAt' date
-  otherwise use 'editedAt' date field to return documents for 'approved' & 'published' news
+  if status='uploaded' then return latest uploaded quiz using 'uploadedAt' date
+  otherwise use 'editedAt' date field to return documents for 'approved' & 'published' quiz
 */
 
 router.get('/', function(req, res){
@@ -83,34 +83,31 @@ router.get('/', function(req, res){
     return;
   }
 
-  NewsModel
+  NewsQuizModel
     .find(query)
     .sort(sortBy)
     .limit(limit)
-    .exec(function (err, newsItems){
+    .exec(function (err, newsQuizItems){
       if(!err){
-        res.json(newsItems);
+        res.json(newsQuizItems);
         return;
       }
       else{
         res.status(500);
-        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to fetch news items", err));
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to fetch quiz items", err));
         return;
       }
     });
 });
 
 /*
-  create a new news item
+  create a new quiz item
   post params:
-    heading (required)
-    points (required) - array
-    language (required)
+    type (required)
+    content (required) - array of QuestionSchema
     publishDate (required) - date string
 
-    imageUrl (optional)
-    categories (optional) - array
-    tags (optional) - array
+    level (optional)
     
   auto filled:
     uploadedAt //default value Date.now()
@@ -122,63 +119,61 @@ router.get('/', function(req, res){
     editedAt
 */
 router.post('/', function(req, res){
-  if(!(req.body.heading && req.body.points && req.body.language && req.body.publishDate)){
+  // var hindiQuestion = newsQuizItem.content.create();
+  // hindiQuestion.language = "hindi",
+  // hindiQuestion.question = "Kaun banega crorepati ?";
+  // newsQuizItem.content.push(hindiQuestion);
+
+  if(!(req.body.type && req.body.content && req.body.publishDate)){
     res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [heading, points, language, publishDate]"));
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [type, content, publishDate]"));
     return;
   }
 
-  var heading = req.body.heading;
-  var points = req.body.points;
-  var language = req.body.language;
+  var content = req.body.content;
+  var type = req.body.type;
   var publishDate = req.body.publishDate;
 
-  var imageUrl = req.body.imageUrl;
-  var categories = req.body.categories;
-  var tags = req.body.tags;
+  var level = req.body.level;
 
-  var newsItem = new NewsModel();
+  var quizItem = new NewsQuizModel();
   //set required
-  newsItem.heading = heading;
-  newsItem.points = points;
-  newsItem.language = language;
-  newsItem.publishDate = publishDate; //mongoose will cast it into date
-
-  newsItem.imageUrl = imageUrl;
-  newsItem.categories = categories ? categories : [];
-  newsItem.tags = tags ? tags : [];
+  quizItem.type = type;
+  quizItem.publishDate = publishDate;
+  quizItem.content = content;
+  
+  if(level){
+    quizItem.level = level;
+  }
 
   //auto fill (uploadedAt, status set by mongoose)
-  newsItem.uploadedBy = req.session.email;
+  quizItem.uploadedBy = req.session.email;
 
-  newsItem.save(function(err, newNewsItem){
+  quizItem.save(function(err, newItem){
     if(!err){
-      res.json(newNewsItem);
+      res.json(newItem);
       return;
     }
     else{
       res.status(500);
-      res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "error create news item", err));
+      res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "error create quiz item", err));
       return;
     }
   });
 });
 
 /*
-  update a news item : it could be 
-    edit a news item detail - (heading, points, etc)
+  update a quiz item : it could be 
+    edit a quiz item detail - (heading, points, etc)
     or approve a news
     or publish a news
 
   post parameters:
-    heading (optional)
-    points (optional)
-    imageUrl (optional)
+    content (optional)
 
-    language (optional)
+    type (optional)
     publishDate (optional)
-    categories (optional)
-    tags (optional)
+    level (optional)
 
     status (optional)(either 'approved' or 'published')
 
@@ -206,27 +201,14 @@ router.put('/:id', function(req, res){
   }
 
   var changes = {};
-  if(req.body.heading){
-    changes.heading = req.body.heading;
+  if(req.body.content){
+    changes.content = req.body.content;
   }
-  if(req.body.points){
-    changes.points = req.body.points;
+  if(req.body.type){
+    changes.type = req.body.type;
   }
-  if(req.body.imageUrl){
-    changes.imageUrl = req.body.imageUrl;
-  }
-
-  if(req.body.language){
-    changes.language = req.body.language;
-  }
-  if(req.body.publishDate){
-    changes.publishDate = req.body.publishDate;
-  }
-  if(req.body.categories){
-    changes.categories = req.body.categories;
-  }
-  if(req.body.tags){
-    changes.tags = req.body.tags;
+  if(req.body.level){
+    changes.level = req.body.level;
   }
 
   if(req.body.status){
@@ -236,7 +218,7 @@ router.put('/:id', function(req, res){
   changes.editedAt = Date.now();
   changes.editedBy = req.session.email;
 
-  NewsModel.update(
+  NewsQuizModel.update(
     {_id : id },
     {'$set' : changes},
     {multi : false},
@@ -252,6 +234,6 @@ router.put('/:id', function(req, res){
       }
     }
   );
-
 });
+
 module.exports.router = router;

@@ -3,12 +3,13 @@
 var express = require('express');
 var mongoose = require('mongoose');
 
-var AdminUser = require('../models/admin_user');
+var AdminUser = require('../models/adminuser');
 var mailer = require('../utils/mailer');
 var errUtils = require('../utils/error');
 
 var usersApi = require('./users');
 var newsApi = require('./news');
+var newsQuizApi = require('./newsquiz');
 var apiHelpApi = require('./api_help');
 
 var AdminUserModel = AdminUser.model;
@@ -118,4 +119,7 @@ router.use('/users', usersApi.router);
 
 // news item administration
 router.use('/news', newsApi.router);
+
+//news quiz item administration
+router.use('/newsquiz', newsQuizApi.router);
 module.exports.router = router;

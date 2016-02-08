@@ -101,16 +101,19 @@ router.get('/users/help', function(req, res){
       
       {
         "info" : "Delete a user. You need to be logged in as an admin or editor. admin can delete all users. editor can delete only uploader type users",
-        "endpont" : "DELETE /v1/admin/users/<userid>"
+        "endpont" : "DELETE /v1/admin/users/<userid>",
+        "return" : "200 OK"
       },
       {
         "info" : "get details of logged-in user",
-        "endpont" : "GET /v1/admin/users/me"
+        "endpont" : "GET /v1/admin/users/me",
+        "return" : "user object"
       },
       {
         "info" : "update name and/or password of logged-in user",
         "endpont" : "PUT /v1/admin/users/me",
-        "required" : "one of [name, password] like POST body"
+        "required" : "one of [name, password] like POST body",
+        "return" : "200 OK"
       }
     ]
   });
@@ -145,7 +148,7 @@ router.get('/news/help', function(req, res){
         {
           "info" : "create a news item",
           "endpoint" : "POST /v1/admin/news/",
-          "return" : "created news object",
+          "return" : "created news item",
           "required" : "[heading, points, language, publishDate]",
           "optional" : "[imageUrl, categories, tags]"
         },
@@ -160,7 +163,8 @@ router.get('/news/help', function(req, res){
         {
           "info" : "update a news item",
           "endpoint" : "PUT /v1/admin/news/<newsid>",
-          "required" : "one of [heading, points, imageUrl, language, publishDate, categories, tags, status]"
+          "required" : "one of [heading, points, imageUrl, language, publishDate, categories, tags, status]",
+          "return" : "200 OK success message"
         }
       ]
     }
