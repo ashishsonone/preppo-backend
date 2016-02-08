@@ -236,4 +236,34 @@ router.put('/:id', function(req, res){
   );
 });
 
+router.delete('/:id', function(req, res){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+    res.status(403);
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
+    return;
+  }
+
+  var id = req.params.id;
+  
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    res.status(400);
+    res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
+    return;
+  }
+
+  NewsQuizModel.remove(
+    {_id : id}, 
+    function(err, result){
+      if(!err){
+        res.json(result);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to delete news item", err));
+        return;
+      }
+    }
+  );
+});
 module.exports.router = router;
