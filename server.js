@@ -28,6 +28,8 @@ var mongoConfig = require('./config/mongo');
 var sessionConfig = require('./config/session');
 var adminApi = require('./app/routes/admin');
 
+var healthUtil = require('./app/utils/health');
+
 var app = express();
 
 //connect to mongo db
@@ -62,6 +64,23 @@ var sessionOptions = {
   }),
   cookie: {httpOnly: false, expires: new Date(253402300000000)}
 };
+
+//health endpoint for use by google load balancer to know healthy VMs
+app.get('/health',
+  function(req, res){
+    healthUtil.getHealth(function(h){
+      if(h){
+        res.status(200);
+        res.json({running : true});
+      }
+      else{
+        res.status(500);
+        res.json({running : false});
+      }
+    });
+  }
+);
+
 app.use('/v1/admin', session(sessionOptions));
 app.use('/v1/admin', adminApi.router);
 
