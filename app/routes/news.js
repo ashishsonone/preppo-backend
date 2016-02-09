@@ -236,10 +236,10 @@ router.put('/:id', function(req, res){
   changes.editedAt = Date.now();
   changes.editedBy = req.session.email;
 
-  NewsModel.update(
+  NewsModel.findOneAndUpdate(
     {_id : id },
     {'$set' : changes},
-    {multi : false},
+    {new : true}, //return modified version of document
     function(err, result){
       if(!err){
         res.json(result);

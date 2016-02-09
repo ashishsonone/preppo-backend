@@ -25,13 +25,17 @@ router.get('/help', function(req, res){
         "endpoint" : "GET /v1/admin/logout",
       },
       {
+        "info" : "See help for users api",
+        "endpoint" : "GET /v1/admin/users/help"
+      },
+      {
         "info" : "See help for news api",
         "endpoint" : "GET /v1/admin/news/help"
       },
       {
-        "info" : "See help for users api",
-        "endpoint" : "GET /v1/admin/users/help"
-      },
+        "info" : "See help for newsquiz api",
+        "endpoint" : "GET /v1/admin/newsquiz/help"
+      }
     ],
     errors : [
       {
@@ -73,7 +77,7 @@ router.get('/help', function(req, res){
 // admin/users api help
 router.get('/users/help', function(req, res){
   res.json({
-    message : "Welcome to admin/users api home page", 
+    message : "Welcome to users api home page", 
     schema : {
       "email" : "string",
       "name" : "string",
@@ -122,7 +126,7 @@ router.get('/users/help', function(req, res){
 // admin/news api help
 router.get('/news/help', function(req, res){
   res.json({
-      message : "Welcome to admin/news api home page", 
+      message : "Welcome to news api home page", 
       schema : {
         "heading" : "string",
         "points" : "[string]",
@@ -163,8 +167,65 @@ router.get('/news/help', function(req, res){
         {
           "info" : "update a news item",
           "endpoint" : "PUT /v1/admin/news/<newsid>",
-          "required" : "one of [heading, points, imageUrl, language, publishDate, categories, tags, status]",
-          "return" : "200 OK success message"
+          "optional" : "one of [heading, points, imageUrl, language, publishDate, categories, tags, status]",
+          "return" : "updated news item"
+        }
+      ]
+    }
+  );
+});
+
+router.get('/newsquiz/help', function(req, res){
+  res.json({
+      message : "Welcome to newsquiz api home page", 
+      QuestionSchema : {
+        language : "string",
+        questionString : "string",
+        options : [{optionString : "string", correct : "boolean (default false)"}]
+      },
+      NewsQuizSchema : {
+        content : ["QuestionSchema"],
+        type : "string - e.g [weekly, daily, monthly]",
+        publishDate : "date",
+        level : "number - say in range [0-10] with 10 hardest",
+
+        status : "string",
+        editedBy : "string",
+        editedAt : "date",
+
+        uploadedBy : "string",
+        uploadedAt : "date"
+      },
+      supported : [
+        {
+          "info" : "See this help page",
+          "endpoint" : "GET /v1/admin/newsquiz/help", 
+        },
+        {
+          "info" : "create a quiz item",
+          "endpoint" : "POST /v1/admin/newsquiz/",
+          "return" : "created quiz item",
+          "required" : "[type, content, publishDate]",
+          "optional" : "[level]"
+        },
+        {
+          "info" : "get quiz items",
+          "endpoint" : "GET /v1/admin/newsquiz/",
+          "return" : "array of quiz items",
+          "required" : "[status]",
+          "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
+          "detail" : "if status=uploaded, return latest quiz items sorted by 'uploadedAt' time; otherwise return items sorted by 'editedAt' time"
+        },
+        {
+          "info" : "update a quiz item",
+          "endpoint" : "PUT /v1/admin/newsquiz/<quizid>",
+          "optional" : "[content, type, publishDate, level, status]",
+          "return" : "updated quiz item"
+        },
+        {
+          "info" : "delete a quiz item",
+          "endpoint" : "DELETE /v1/admin/newsquiz/<quizid>",
+          "return" : "200 OK"
         }
       ]
     }

@@ -10,7 +10,7 @@ var errUtils = require('../utils/error');
 var usersApi = require('./users');
 var newsApi = require('./news');
 var newsQuizApi = require('./newsquiz');
-var apiHelpApi = require('./api_help');
+var helpApi = require('./help');
 
 var AdminUserModel = AdminUser.model;
 
@@ -18,7 +18,7 @@ var router = express.Router();
 //start ENDPOINT /v1/admin/
 
 //api help pages
-router.use('/', apiHelpApi.router);
+router.use('/', helpApi.router);
 
 //admin api starts here
 router.post('/login', function(req, res){
