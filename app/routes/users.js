@@ -207,15 +207,10 @@ router.put('/me', function(req, res){
 
 router.get('/me', function(req, res){
   var _id = req.session._id;
-  AdminUserModel.findById(
-    _id,
-    function(err, user){
-      if(err){
-        console.log("%j", err);
-        res.status(500);
-        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to find user", err));
-        return;
-      }
+  var userPromise = AdminUserModel.findById(_id).exec();
+
+  userPromise.then(
+    function(user){
       if(!user){
         //email doesnot exist
         res.status(404);
@@ -233,8 +228,17 @@ router.get('/me', function(req, res){
         res.json(newUser);
         return;
       }
+    },
+    function(err){
+      if(err){
+        console.log("%j", err);
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to find user", err));
+        return;
+      }
     }
   );
+
 });
 
 module.exports.router = router;
