@@ -44,6 +44,22 @@ app.all('*', function(req, res, next) {
   next();
 });
 
+//health endpoint for use by google load balancer to know healthy VMs
+app.get('/health',
+  function(req, res){
+    healthUtil.getHealth(function(h){
+      if(h){
+        res.status(200);
+        res.json({running : true});
+      }
+      else{
+        res.status(500);
+        res.json({running : false});
+      }
+    });
+  }
+);
+
 //enable console logging using morgan
 morgan.token('id', function(req, res){ return myId; }); //define a new token to log worker id also
 var morganFormat = morgan('#:id :method :url :status :response-time ms - :res[content-length]'); //define the new format
@@ -64,22 +80,6 @@ var sessionOptions = {
   }),
   cookie: {httpOnly: false, expires: new Date(253402300000000)}
 };
-
-//health endpoint for use by google load balancer to know healthy VMs
-app.get('/health',
-  function(req, res){
-    healthUtil.getHealth(function(h){
-      if(h){
-        res.status(200);
-        res.json({running : true});
-      }
-      else{
-        res.status(500);
-        res.json({running : false});
-      }
-    });
-  }
-);
 
 app.use('/v1/admin', session(sessionOptions));
 app.use('/v1/admin', adminApi.router);
