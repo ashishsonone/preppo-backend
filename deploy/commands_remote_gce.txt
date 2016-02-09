@@ -11,9 +11,23 @@ Remote setup:
 
 ---------------
 Local execution
+  aslave=ashish@107.167.179.249
 
-aslave=ashish@107.167.179.249
-
-ssh $aslave '/home/ashish/bin/scripts/node_kill.sh'
+  ssh $aslave '/home/ashish/bin/scripts/node_kill.sh'
 ---------------
 
+================
+git pull remotely script
+----------------
+
+Remote setup:
+* /home/ashish/bin/scripts/git_pull.sh : script with 755 permission
+
+  echo "pulling updates from origin master"
+  cd /home/ashish/admin-server
+  git pull origin master
+
+-----------------
+Local execution:
+  aslave=ashish@107.167.179.249
+  ssh $aslave '/home/ashish/bin/scripts/git_pull.sh'
