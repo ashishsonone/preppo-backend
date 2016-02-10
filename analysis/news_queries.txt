@@ -51,3 +51,23 @@ COMPOUND INDEX on {approved : 1, date : 1}: 'approved' key first
 
 -----------------
 =================
+
+index on {approved : 1, date :1 }
+
+get all news items for particular date sorted by (approved, date)
+  db.News.find({date : new ISODate("2015-01-01")}).sort({approved : 1, date : 1}).limit(10).explain("executionStats")
+    keys examined : 10
+
+get all news items for particular date sorted by (date) only
+  db.News.find({date : new ISODate("2015-01-01")}).sort({date : 1}).limit(10).explain("executionStats")
+    keys examinded : 0 (doesnot use the index)
+    docs examined : 86638
+
+  it doesnot use index, since index was on (approved, date) and we asked it to sort by date only. So it basically sorts all the docs in-memory and then returns the documents that matched the query.
+
+get all news items for particular date sorted by (updatedAt)
+  db.News.find({date : new ISODate("2015-01-01")}).sort({updatedAt : 1}).limit(10).explain("executionStats")
+    keys examined : 0
+    docs examined : 86638
+    returned : 10
+  again sort operation demands sorting by (updatedAt) which we don't have index for. So it sorts by scanning all documents and then picks the docs based on query
