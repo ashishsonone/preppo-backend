@@ -103,9 +103,7 @@ router.get('/', function(req, res){
 /*
   create a new news item
   post params:
-    heading (required)
-    points (required) - array
-    language (required)
+    content (required) - array of ContentSchema
     publishDate (required) - date string
 
     imageUrl (optional)
@@ -122,15 +120,13 @@ router.get('/', function(req, res){
     editedAt
 */
 router.post('/', function(req, res){
-  if(!(req.body.heading && req.body.points && req.body.language && req.body.publishDate)){
+  if(!(req.body.content && req.body.publishDate)){
     res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [heading, points, language, publishDate]"));
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [content, publishDate]"));
     return;
   }
 
-  var heading = req.body.heading;
-  var points = req.body.points;
-  var language = req.body.language;
+  var content = req.body.content;
   var publishDate = req.body.publishDate;
 
   var imageUrl = req.body.imageUrl;
@@ -139,9 +135,7 @@ router.post('/', function(req, res){
 
   var newsItem = new NewsModel();
   //set required
-  newsItem.heading = heading;
-  newsItem.points = points;
-  newsItem.language = language;
+  newsItem.content = content;
   newsItem.publishDate = publishDate; //mongoose will cast it into date
 
   newsItem.imageUrl = imageUrl;
@@ -166,16 +160,13 @@ router.post('/', function(req, res){
 
 /*
   update a news item : it could be 
-    edit a news item detail - (heading, points, etc)
-    or approve a news
-    or publish a news
+    edit a news item detail - (content, imageUrl, publishDate, tags, categories)
+    or approve/publish a news by setting 'status'
 
   post parameters:
-    heading (optional)
-    points (optional)
+    content (optional)
     imageUrl (optional)
 
-    language (optional)
     publishDate (optional)
     categories (optional)
     tags (optional)
@@ -206,19 +197,13 @@ router.put('/:id', function(req, res){
   }
 
   var changes = {};
-  if(req.body.heading){
-    changes.heading = req.body.heading;
-  }
-  if(req.body.points){
-    changes.points = req.body.points;
+  if(req.body.content){
+    changes.content = req.body.content;
   }
   if(req.body.imageUrl){
     changes.imageUrl = req.body.imageUrl;
   }
 
-  if(req.body.language){
-    changes.language = req.body.language;
-  }
   if(req.body.publishDate){
     changes.publishDate = req.body.publishDate;
   }
@@ -254,4 +239,36 @@ router.put('/:id', function(req, res){
   );
 
 });
+
+router.delete('/:id', function(req, res){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+    res.status(403);
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
+    return;
+  }
+
+  var id = req.params.id;
+  
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    res.status(400);
+    res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
+    return;
+  }
+
+  NewsModel.remove(
+    {_id : id}, 
+    function(err, result){
+      if(!err){
+        res.json(result);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to delete news item", err));
+        return;
+      }
+    }
+  );
+});
+
 module.exports.router = router;

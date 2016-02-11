@@ -9,7 +9,7 @@ var errUtils = require('../utils/error');
 router.get('/help', function(req, res){
   res.json({
     message : "Welcome to admin api home page", 
-    supported : [
+    api : [
       {
         "info" : "See this help page",
         "endpoint" : "GET /v1/admin/help", 
@@ -85,7 +85,7 @@ router.get('/users/help', function(req, res){
       "role" : "string",
       "createdAt" : "date"
     },
-    supported : [
+    api : [
       {
         "info" : "See this help page",
         "endpoint" : "GET /v1/admin/users/help", 
@@ -127,12 +127,15 @@ router.get('/users/help', function(req, res){
 router.get('/news/help', function(req, res){
   res.json({
       message : "Welcome to news api home page", 
-      schema : {
+      ContentSchema : {
+        "language" : "string",
         "heading" : "string",
-        "points" : "[string]",
+        "points" : ["string"]
+      },
+      NewsSchema : {
+        "content" : ["ContentSchema"],
         "imageUrl" : "string",
 
-        "language" : "string",
         "publishDate" : "date",
         "categories" : "[string]",
         "tags" : "[string]",
@@ -144,7 +147,7 @@ router.get('/news/help', function(req, res){
         "uploadedBy" : "string",
         "uploadedAt" : "date"
       },
-      supported : [
+      api : [
         {
           "info" : "See this help page",
           "endpoint" : "GET /v1/admin/news/help", 
@@ -153,7 +156,7 @@ router.get('/news/help', function(req, res){
           "info" : "create a news item",
           "endpoint" : "POST /v1/admin/news/",
           "return" : "created news item",
-          "required" : "[heading, points, language, publishDate]",
+          "required" : "[content, publishDate]",
           "optional" : "[imageUrl, categories, tags]"
         },
         {
@@ -167,9 +170,14 @@ router.get('/news/help', function(req, res){
         {
           "info" : "update a news item",
           "endpoint" : "PUT /v1/admin/news/<newsid>",
-          "optional" : "one of [heading, points, imageUrl, language, publishDate, categories, tags, status]",
+          "optional" : "[content, imageUrl, publishDate, categories, tags, status]",
           "return" : "updated news item"
-        }
+        },
+        {
+          "info" : "delete a news item",
+          "endpoint" : "DELETE /v1/admin/news/<newsid>",
+          "return" : "200 OK"
+        },
       ]
     }
   );
@@ -177,7 +185,7 @@ router.get('/news/help', function(req, res){
 
 router.get('/newsquiz/help', function(req, res){
   res.json({
-      message : "Welcome to newsquiz api home page", 
+      message : "DEPRECIATED - NEW NOT IMPLEMENTED- Welcome to newsquiz api home page", 
       QuestionSchema : {
         language : "string",
         questionString : "string",
@@ -196,7 +204,7 @@ router.get('/newsquiz/help', function(req, res){
         uploadedBy : "string",
         uploadedAt : "date"
       },
-      supported : [
+      api : [
         {
           "info" : "See this help page",
           "endpoint" : "GET /v1/admin/newsquiz/help", 

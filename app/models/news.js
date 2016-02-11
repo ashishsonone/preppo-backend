@@ -6,14 +6,19 @@ var enumStatus = {
   PUBLISHED : 'published'
 };
 
+var ContentSchema = mongoose.Schema({
+  _id : false,
+  language : String,
+  heading : String,
+  points : [String]
+});
+
 var NewsSchema = mongoose.Schema({
   //main content
-  heading : String,
-  points : [String],
+  content : [ContentSchema],
   imageUrl : String,
 
   //metadata
-  language : String, //hindi, english
   publishDate : Date,
   categories : [String],
   tags : [String],
