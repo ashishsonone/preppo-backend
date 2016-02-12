@@ -128,12 +128,14 @@ router.get('/news/help', function(req, res){
   res.json({
       message : "Welcome to news api home page", 
       ContentSchema : {
-        "language" : "string",
         "heading" : "string",
         "points" : ["string"]
       },
       NewsSchema : {
-        "content" : ["ContentSchema"],
+        "content" : {
+          "english" : "ContentSchema",
+          "hindi" : "ContentSchema"
+        },
         "imageUrl" : "string",
 
         "publishDate" : "date",
@@ -163,9 +165,13 @@ router.get('/news/help', function(req, res){
           "info" : "get news items",
           "endpoint" : "GET /v1/admin/news",
           "return" : "array of news items",
-          "required" : "[status]",
+          "required" : "status or date",
           "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
-          "detail" : "if status=uploaded, return latest news items sorted by 'uploadedAt' time; otherwise return items sorted by 'editedAt' time"
+          "details" : [
+            "if status=uploaded, return latest 'uploaded' news items sorted by 'uploadedAt' time",
+            "if status=approved or published return 'approved' or 'published' items sorted by 'editedAt' time",
+            "if status param missing but date given, return all news items(with all 3 status) for that publish date"
+          ]
         },
         {
           "info" : "update a news item",

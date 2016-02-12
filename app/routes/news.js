@@ -14,32 +14,9 @@ var enumStatus = News.enumStatus;
 var router = express.Router();
 //start ENDPOINT /v1/admin/news/
 
-/*get all news items
-  get parameters: 
-    status (required)
 
-    limit : <integer> (optional)
-    gt : <date>(optional)
-    lt : <date>(optional)
 
-  if status='uploaded' then return latest uploaded news using 'uploadedAt' date
-  otherwise use 'editedAt' date field to return documents for 'approved' & 'published' news
-*/
-
-router.get('/', function(req, res){
-  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
-    res.status(403);
-    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
-    return;
-  }
-
-  //required
-  if(!req.query.status){
-    res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : ['status']"));
-    return;
-  }
-
+function helperGetByStatus(req, res){
   var status = req.query.status;
   //optional gt, lt, limit
   var limit = parseInt(req.query.limit) || 15; //default limit of 15
@@ -98,6 +75,68 @@ router.get('/', function(req, res){
         return;
       }
     });
+}
+
+function helperGetByDate(req, res){
+  var date = req.query.date;
+  var limit = 100; //return all items for the date
+
+  var query = {
+    status : { '$in' : 
+      [enumStatus.UPLOADED, enumStatus.APPROVED, enumStatus.PUBLISHED]
+    },
+    publishDate : date
+  };
+
+  NewsModel
+    .find(query)
+    .limit(limit)
+    .exec(function (err, newsItems){
+      if(!err){
+        res.json(newsItems);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to fetch news items", err));
+        return;
+      }
+    });
+}
+
+/*get all news items
+  get parameters: 
+    status (required)
+
+    limit : <integer> (optional)
+    gt : <date>(optional)
+    lt : <date>(optional)
+
+  if status='uploaded' then return latest uploaded news using 'uploadedAt' date
+  otherwise use 'editedAt' date field to return documents for 'approved' & 'published' news
+*/
+router.get('/', function(req, res){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+    res.status(403);
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
+    return;
+  }
+
+  //required one of status, date
+  if(!(req.query.status || req.query.date)){
+    res.status(400);
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : 'status' or 'date'"));
+    return;
+  }
+
+  if(req.query.status){
+    helperGetByStatus(req, res);
+  }
+
+  if(req.query.date){
+    helperGetByDate(req, res);
+  }
+  
 });
 
 /*
