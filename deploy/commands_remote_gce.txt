@@ -4,8 +4,12 @@ roll update to remote server. provide code has pulled there locally
 Remote setup:
 * /home/ashish/bin/scripts/node_kill.sh : script content with 755 permission
 
-  echo "rolling update to node process by kill -1 <node_pid>"
-  kill -1  `sudo supervisorctl status | grep node | awk -F' ' '{print $4}' | sed -e 's/,$//' | paste -sd' '`
+echo "rolling update to node process by kill -1 <node_pid>"
+echo $PATH
+cd ~/admin-server
+pwd
+/home/ashish/bin/node-v5.5.0/bin/npm install
+kill -1  `sudo supervisorctl status | grep node | awk -F' ' '{print $4}' | sed -e 's/,$//' | paste -sd' '`
 
 * In remote, the node process runs cluster moduleand is started with supervisor with hook named 'node'. It waits for '-1' kill signal to restart the worker processes one by one
 
@@ -23,9 +27,9 @@ git pull remotely script
 Remote setup:
 * /home/ashish/bin/scripts/git_pull.sh : script with 755 permission
 
-  echo "pulling updates from origin master"
-  cd /home/ashish/admin-server
-  git pull origin master
+echo "pulling updates from origin master"
+cd /home/ashish/admin-server
+git pull origin master
 
 -----------------
 Local execution:
