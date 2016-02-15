@@ -17,7 +17,7 @@ var router = express.Router();
 //start ENDPOINT /v1/admin/news/quizquestion
 
 /*
-  create a new quiz item
+  create a new quiz question
   query params:
     quizId : (optional) - if want to add it to the quiz also
     
@@ -51,7 +51,7 @@ router.post('/', function(req, res){
 
   //set required
   quizQuestion.content = content;
-  quizQuestion.level = level;
+  quizQuestion.level = parseInt(level) || 0; //default 0 (invalid)
 
   //auto fill (uploadedAt, status, count set by mongoose)
   quizQuestion.uploadedBy = req.session.email;
@@ -87,13 +87,12 @@ router.post('/', function(req, res){
 });
 
 /*
-  update a quiz item
+  update a quiz question
 
   post parameters:
-    type (optional)
-    publishDate (optional)
-    nickname (optional)
-
+    content (optional)
+    level (optional)
+    
     status (optional) - either approved, uploaded
 
   auto set:
@@ -104,85 +103,52 @@ router.post('/', function(req, res){
     uploadedBy
     uploadedAt
 */
-// router.put('/:id', function(req, res){
-//   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
-//     res.status(403);
-//     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
-//     return;
-//   }
+router.put('/:id', function(req, res){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+    res.status(403);
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
+    return;
+  }
 
-//   var id = req.params.id;
+  var id = req.params.id;
   
-//   if(!mongoose.Types.ObjectId.isValid(id)){
-//     res.status(400);
-//     res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
-//     return;
-//   }
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    res.status(400);
+    res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
+    return;
+  }
 
-//   var changes = {};
-//   if(req.body.nickname){
-//     changes.nickname = req.body.nickname;
-//   }
-//   if(req.body.type){
-//     changes.type = req.body.type;
-//   }
-//   if(req.body.publishDate){
-//     changes.publishDate = req.body.publishDate;
-//   }
+  var changes = {};
+  if(req.body.content){
+    changes.content = req.body.content;
+  }
+  if(req.body.level){
+    changes.level = parseInt(req.body.level) || 0; //default 0
+  }
 
-//   if(req.body.status){
-//     changes.status = req.body.status;
-//   }
+  if(req.body.status){
+    changes.status = req.body.status;
+  }
 
-//   changes.editedAt = Date.now();
-//   changes.editedBy = req.session.email;
+  changes.editedAt = Date.now();
+  changes.editedBy = req.session.email;
 
-//   NewsQuizModel.findOneAndUpdate(
-//     {_id : id },
-//     {'$set' : changes},
-//     {new : true},
-//     function(err, result){
-//       if(!err){
-//         res.json(result);
-//         return;
-//       }
-//       else{
-//         res.status(500);
-//         res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to update news item", err));
-//         return;
-//       }
-//     }
-//   );
-// });
+  NewsQuizQuestionModel.findOneAndUpdate(
+    {_id : id },
+    {'$set' : changes},
+    {new : true},
+    function(err, result){
+      if(!err){
+        res.json(result);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to update question item", err));
+        return;
+      }
+    }
+  );
+});
 
-// router.delete('/:id', function(req, res){
-//   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
-//     res.status(403);
-//     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
-//     return;
-//   }
-
-//   var id = req.params.id;
-  
-//   if(!mongoose.Types.ObjectId.isValid(id)){
-//     res.status(400);
-//     res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
-//     return;
-//   }
-
-//   NewsQuizModel.remove(
-//     {_id : id}, 
-//     function(err, result){
-//       if(!err){
-//         res.json(result);
-//         return;
-//       }
-//       else{
-//         res.status(500);
-//         res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to delete quiz item", err));
-//         return;
-//       }
-//     }
-//   );
-// });
 module.exports.router = router;

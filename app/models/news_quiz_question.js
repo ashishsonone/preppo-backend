@@ -20,7 +20,7 @@ var NewsQuizQuestionSchema = mongoose.Schema({
   },
 
   //metadata
-  level : String,
+  level : Number,
   count : {type : Number, default : 0}, //approximate number of times it has been used in quiz
 
   //admin

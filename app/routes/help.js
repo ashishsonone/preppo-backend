@@ -34,7 +34,7 @@ router.get('/help', function(req, res){
       },
       {
         "info" : "See help for newsquiz api",
-        "endpoint" : "GET /v1/admin/newsquiz/help"
+        "endpoint" : "GET /v1/admin/news/quiz/help"
       }
     ],
     errors : [
@@ -189,19 +189,14 @@ router.get('/news/help', function(req, res){
   );
 });
 
-router.get('/newsquiz/help', function(req, res){
+router.get('/news/quiz/help', function(req, res){
   res.json({
-      message : "DEPRECIATED - NEW NOT IMPLEMENTED- Welcome to newsquiz api home page", 
-      QuestionSchema : {
-        language : "string",
-        questionString : "string",
-        options : [{optionString : "string", correct : "boolean (default false)"}]
-      },
+      message : "Welcome to news-quiz api home page", 
       NewsQuizSchema : {
-        content : ["QuestionSchema"],
+        questionIdList : ["string"],
         type : "string - e.g [weekly, daily, monthly]",
         publishDate : "date",
-        level : "number - say in range [0-10] with 10 hardest",
+        nickname : "string - e.g weekly-week-1-march, daily-2016-02-23",
 
         status : "string",
         editedBy : "string",
@@ -213,33 +208,74 @@ router.get('/newsquiz/help', function(req, res){
       api : [
         {
           "info" : "See this help page",
-          "endpoint" : "GET /v1/admin/newsquiz/help", 
+          "endpoint" : "GET /v1/admin/news/quiz/help", 
         },
         {
           "info" : "create a quiz item",
-          "endpoint" : "POST /v1/admin/newsquiz/",
+          "endpoint" : "POST /v1/admin/news/quiz/",
           "return" : "created quiz item",
-          "required" : "[type, content, publishDate]",
-          "optional" : "[level]"
+          "required" : "[type, nickname, publishDate]",
         },
         {
           "info" : "get quiz items",
-          "endpoint" : "GET /v1/admin/newsquiz/",
+          "endpoint" : "GET /v1/admin/news/quiz/",
           "return" : "array of quiz items",
-          "required" : "[status]",
           "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
-          "detail" : "if status=uploaded, return latest quiz items sorted by 'uploadedAt' time; otherwise return items sorted by 'editedAt' time"
+          "detail" : "return quiz entities ordered by editedAt timestamp"
         },
         {
           "info" : "update a quiz item",
-          "endpoint" : "PUT /v1/admin/newsquiz/<quizid>",
-          "optional" : "[content, type, publishDate, level, status]",
+          "endpoint" : "PUT /v1/admin/news/quiz/<quizid>",
+          "optional" : "[nickname, type, publishDate, status]",
           "return" : "updated quiz item"
         },
         {
           "info" : "delete a quiz item",
-          "endpoint" : "DELETE /v1/admin/newsquiz/<quizid>",
+          "endpoint" : "DELETE /v1/admin/news/quiz/<quizid>",
           "return" : "200 OK"
+        }
+      ]
+    }
+  );
+});
+
+router.get('/news/quizquestion/help', function(req, res){
+  res.json({
+      message : "Welcome to news-quiz-question api home page", 
+      OptionSchema : {
+        optionString : "string",
+        correct : "boolean"
+      },
+      QuestionSchema : {
+        questionString : "string",
+        options : ["OptionSchema"]
+      },
+      NewsQuizQuestionSchema : {
+        content : {
+          english : "QuestionSchema",
+          hindi : "QuestionSchema"
+        },
+        level : "number",
+        count : "number - of times used in quiz",
+
+        status : "string",
+        editedBy : "string",
+        editedAt : "date",
+
+        uploadedBy : "string",
+        uploadedAt : "date"
+      },
+      api : [
+        {
+          "info" : "See this help page",
+          "endpoint" : "GET /v1/admin/news/quiz/help", 
+        },
+        {
+          "info" : "create a question entry",
+          "endpoint" : "POST /v1/admin/news/quizquestion",
+          "return" : "created question item",
+          "required" : "[content, level]",
+          "optional Query params" : "quizId - to add this question to this quiz"
         }
       ]
     }
