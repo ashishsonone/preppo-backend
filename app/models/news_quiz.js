@@ -1,30 +1,20 @@
 var mongoose = require('mongoose');
+var enumStatus = require('../utils/constants').enumStatus;
 
-var enumStatus = {
-  UPLOADED : 'uploaded',
-  APPROVED : 'approved',
-  PUBLISHED : 'published'
-};
-
-var QuestionSchema = mongoose.Schema({
-  language : String,
-  questionString : String,
-  options : [{_id : false, optionString : String, correct : {type : Boolean, default : false}}]
-}, {_id : false});
 
 var NewsQuizSchema = mongoose.Schema({
   //main content
-  content : [QuestionSchema],
+  questionIdList : [mongoose.Schema.ObjectId],
 
   //metadata
   type : String,
   publishDate : Date,
-  level : Number,
+  nickname : String, //e.g "weekly-week-1-jun-2016"
 
   //admin
   status : {type : String, default : enumStatus.UPLOADED},
   editedBy : String, //email
-  editedAt : Date,
+  editedAt : Date, //force to be equal to uploadedAt on creation
 
   //always
   uploadedBy : String, //email
@@ -33,6 +23,6 @@ var NewsQuizSchema = mongoose.Schema({
 
 //Mongoose#model(name, [schema], [collection], [skipInit])
 module.exports = {
-  model : mongoose.model('NewsQuiz', NewsQuizSchema, 'newsquiz'),
+  model : mongoose.model('NewsQuiz', NewsQuizSchema, 'news_quiz'),
   enumStatus : enumStatus
 };

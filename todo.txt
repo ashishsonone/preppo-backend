@@ -14,16 +14,16 @@
 - index mongodb collections based on queries later on 
 [*] mongod starting as daemon (http://stackoverflow.com/questions/9884233/mongodb-service-is-not-starting-up)
 - use async module - parallel | waterfall
-- understand boot.js for zero downtime server updates
+[*] understand boot.js for zero downtime server updates
   > http://blog.carbonfive.com/2014/06/02/node-js-in-production/
   > Ansible
-- day bucket instead of variable time stamps for the day ISODate('2013-05-06')
+[*] day bucket instead of variable time stamps for the day ISODate('2013-05-06')
 - index mongodb : compound index, index on boolean, Index intersection
   > https://docs.mongodb.org/manual/core/index-compound/
   > https://docs.mongodb.org/manual/core/index-intersection/#index-intersection-compound-indexes
   > https://docs.mongodb.org/v3.0/tutorial/measure-index-use/#indexes-measuring-use
 [*] seperate login/session management for admin api and product api
-[-] DONT DO IT : use short ids with mongoose: can't insert using mongoshell : as it creates ObjectId() as _id by default 
+[*] DONT DO IT : use short ids with mongoose: can't insert using mongoshell : as it creates ObjectId() as _id by default 
 - https ://artillery.io/
 - use moment for date parsing ???
 - parameter check utility:
@@ -35,4 +35,26 @@
                       "opt" : {"tags" : "array"}})
 
 - IMPORTANT https://docs.mongodb.org/manual/tutorial/transparent-huge-pages/#transparent-huge-pages-thp-settings                      
-- dummy
+- use mandrill to send mail
+- https://www.npmjs.com/package/request
+- gce disk snapshot for use in restoring mongodb
+- query :
+  optimize for client queries
+- NewsQuestionSchema : add explanation schema
+                           categories
+
+
+- set up redis cache
+  http://blog.sensible.io/2013/08/20/setting-up-redis-for-production-environment.html
+  http://redis.io/topics/lru-cache
+
+- WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot.
+
+
+- GCS sign url: 
+  https://www.npmjs.com/package/gcs-signed-urls
+  https://cloud.google.com/storage/docs/access-control#signing-code-python
+  http://stackoverflow.com/questions/20754279/creating-signed-urls-for-google-cloud-storage-using-nodejs
+
+  = understand how to create signed urls using crypto libs
+  = how to use the nodejs as middleman to upload files to gce in-memory as given in the gcloud example

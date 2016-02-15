@@ -4,6 +4,9 @@
 
 "use strict"
 var mongoose = require('mongoose');
+var rsvp = require('rsvp').Promise;
+mongoose.Promise = rsvp;
+
 var attempting = true; //if attempting to connect, dont connectWithRetry on disconnect event
 
 mongoose.suicide = false; //used when upgrading, we dont want to trigger connectWithRetry

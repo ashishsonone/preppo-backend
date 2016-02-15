@@ -3,13 +3,14 @@
 var express = require('express');
 var mongoose = require('mongoose');
 
-var AdminUser = require('../models/adminuser');
+var AdminUser = require('../models/admin_user');
 var mailer = require('../utils/mailer');
 var errUtils = require('../utils/error');
 
 var usersApi = require('./users');
 var newsApi = require('./news');
-var newsQuizApi = require('./newsquiz');
+var newsQuizApi = require('./news_quiz');
+var newsQuizQuestionApi = require('./news_quiz_question');
 var helpApi = require('./help');
 
 var AdminUserModel = AdminUser.model;
@@ -117,9 +118,15 @@ router.use(function(req, res, next){
 // users administration
 router.use('/users', usersApi.router);
 
+// news quiz item administration, 
+// should come before /news to not confuse with '/news/<news_id>' endpoint
+router.use('/news/quiz', newsQuizApi.router);
+
+// news quiz item administration, 
+// should come before /news to not confuse with '/news/<news_id>' endpoint
+router.use('/news/quizquestion', newsQuizQuestionApi.router);
+
 // news item administration
 router.use('/news', newsApi.router);
 
-//news quiz item administration
-router.use('/newsquiz', newsQuizApi.router);
 module.exports.router = router;

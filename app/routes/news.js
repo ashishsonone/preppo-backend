@@ -3,13 +3,13 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var errUtils = require('../utils/error');
-var AdminUser = require('../models/adminuser');
+var AdminUser = require('../models/admin_user');
 var News = require('../models/news');
+var enumStatus = require('../utils/constants').enumStatus;
 
 var NewsModel = News.model;
 
 var enumRoles = AdminUser.enumRoles;
-var enumStatus = News.enumStatus;
 
 var router = express.Router();
 //start ENDPOINT /v1/admin/news/

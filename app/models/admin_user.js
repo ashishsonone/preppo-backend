@@ -15,6 +15,6 @@ var enumRoles = {
 };
 
 module.exports = {
-  model : mongoose.model('AdminUser', AdminUserSchema, 'adminuser'),
+  model : mongoose.model('AdminUser', AdminUserSchema, 'admin_user'),
   enumRoles : enumRoles
 };

@@ -3,27 +3,24 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var errUtils = require('../utils/error');
-var AdminUser = require('../models/adminuser');
-var NewsQuiz = require('../models/newsquiz');
+var AdminUser = require('../models/admin_user');
+var NewsQuiz = require('../models/news_quiz');
+var enumStatus = require('../utils/constants').enumStatus;
 
 var NewsQuizModel = NewsQuiz.model;
 
 var enumRoles = AdminUser.enumRoles;
-var enumStatus = NewsQuiz.enumStatus;
 
 var router = express.Router();
-//start ENDPOINT /v1/admin/news/
+//start ENDPOINT /v1/admin/news/quiz
 
 /*get all quiz items
   get parameters: 
-    status (required)
-
     limit : <integer> (optional)
     gt : <date>(optional)
     lt : <date>(optional)
 
-  if status='uploaded' then return latest uploaded quiz using 'uploadedAt' date
-  otherwise use 'editedAt' date field to return documents for 'approved' & 'published' quiz
+    editedAt field is used for sorting results and filtering for gt, lt
 */
 
 router.get('/', function(req, res){
@@ -33,55 +30,30 @@ router.get('/', function(req, res){
     return;
   }
 
-  //required
-  if(!req.query.status){
-    res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : ['status']"));
-    return;
-  }
-
-  var status = req.query.status;
   //optional gt, lt, limit
   var limit = parseInt(req.query.limit) || 15; //default limit of 15
   var gt = req.query.gt; //mongoose will cast date string to date object
   var lt = req.query.lt;
 
-  //console.log(gt + ", " + lt);
-
   var query = null;
   var sortBy = null;
   var projection = null;
 
-  if(status === enumStatus.UPLOADED){
-    query = {};
-    query.status = status;
-    if(gt){
-      query.uploadedAt = {'$gt' : gt};
-      limit = 100; //get all updated since last fetched (max 100)
+  var query = {
+    status : { '$in' : 
+      [enumStatus.UPLOADED, enumStatus.APPROVED, enumStatus.PUBLISHED]
     }
-    else if(lt){
-      query.uploadedAt = {'$lt' : lt};
-    }
+  };
 
-    sortBy = {uploadedAt : -1}; //-1 means decreasing order
+  if(gt){
+    query.editedAt = {'$gt' : gt};
+    limit = 100; //get all updated since last fetched (max 100)
   }
-  else if(status === enumStatus.APPROVED || status === enumStatus.PUBLISHED){
-    query = {};
-    query.status = status;
-    if(gt){
-      query.editedAt = {'$gt' : gt};
-      limit = 100;
-    }
-    else if(lt){
-      query.editedAt = {'$lt' : lt};
-    }
+  else if(lt){
+    query.editedAt = {'$lt' : lt};
+  }
 
-    sortBy = {editedAt : -1};
-  }
-  else{
-    res.json({message : "Not yet implemented"});
-    return;
-  }
+  sortBy = {editedAt : -1}; //-1 means decreasing order
 
   NewsQuizModel
     .find(query)
@@ -104,50 +76,38 @@ router.get('/', function(req, res){
   create a new quiz item
   post params:
     type (required)
-    content (required) - array of QuestionSchema
     publishDate (required) - date string
-
-    level (optional)
+    nickname : (required)
     
   auto filled:
     uploadedAt //default value Date.now()
     uploadedBy //to current user email
     status //default value 'uploaded'
+    editedAt //equal to uploadedAt
 
   not set: //since status is 'uploaded'
     editedBy
-    editedAt
 */
 router.post('/', function(req, res){
-  // var hindiQuestion = newsQuizItem.content.create();
-  // hindiQuestion.language = "hindi",
-  // hindiQuestion.question = "Kaun banega crorepati ?";
-  // newsQuizItem.content.push(hindiQuestion);
-
-  if(!(req.body.type && req.body.content && req.body.publishDate)){
+  if(!(req.body.type && req.body.publishDate) && req.body.nickname){
     res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [type, content, publishDate]"));
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [type, nickname, publishDate]"));
     return;
   }
 
-  var content = req.body.content;
+  var nickname = req.body.nickname;
   var type = req.body.type;
   var publishDate = req.body.publishDate;
-
-  var level = req.body.level;
 
   var quizItem = new NewsQuizModel();
   //set required
   quizItem.type = type;
   quizItem.publishDate = publishDate;
-  quizItem.content = content;
-  
-  if(level){
-    quizItem.level = level;
-  }
+  quizItem.nickname = nickname;
 
   //auto fill (uploadedAt, status set by mongoose)
   quizItem.uploadedBy = req.session.email;
+  quizItem.editedAt = quizItem.uploadedAt;
 
   quizItem.save(function(err, newItem){
     if(!err){
@@ -163,19 +123,14 @@ router.post('/', function(req, res){
 });
 
 /*
-  update a quiz item : it could be 
-    edit a quiz item detail - (heading, points, etc)
-    or approve a news
-    or publish a news
+  update a quiz item
 
   post parameters:
-    content (optional)
-
     type (optional)
     publishDate (optional)
-    level (optional)
+    nickname (optional)
 
-    status (optional)(either 'approved' or 'published')
+    status (optional) - either approved, uploaded
 
   auto set:
     editedBy (to current user email)
@@ -201,14 +156,14 @@ router.put('/:id', function(req, res){
   }
 
   var changes = {};
-  if(req.body.content){
-    changes.content = req.body.content;
+  if(req.body.nickname){
+    changes.nickname = req.body.nickname;
   }
   if(req.body.type){
     changes.type = req.body.type;
   }
-  if(req.body.level){
-    changes.level = req.body.level;
+  if(req.body.publishDate){
+    changes.publishDate = req.body.publishDate;
   }
 
   if(req.body.status){
@@ -260,10 +215,29 @@ router.delete('/:id', function(req, res){
       }
       else{
         res.status(500);
-        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to delete news item", err));
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to delete quiz item", err));
         return;
       }
     }
   );
 });
+
+//helper exports
+function pushQuestion(quizId, questionId){
+  var query = NewsQuizModel.findOneAndUpdate(
+    {
+      _id : quizId
+    },
+    {
+      '$addToSet' : { questionIdList : questionId }
+    },
+    {
+      new : true
+    }
+  );
+  var promise = query.exec(); 
+  return promise;
+}
+
 module.exports.router = router;
+module.exports.pushQuestion = pushQuestion;

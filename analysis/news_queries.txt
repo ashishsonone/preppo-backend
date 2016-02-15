@@ -58,6 +58,21 @@ get all news items for particular date sorted by (approved, date)
   db.News.find({date : new ISODate("2015-01-01")}).sort({approved : 1, date : 1}).limit(10).explain("executionStats")
     keys examined : 10
 
+  Above query - appears to be good but its not acutually, since during execution it uses pipe from scan stage (the index forward) to filter stage(on date equal). Since the given date happens to be first date, it finds those 10 documents pretty quickly as they come.
+
+  Look at this second query for actual performance in worst scenario - date we ask is the last date in the index.
+
+  db.News.find({date : new ISODate("2015-12-24")}).sort({approved : 1, date : 1}).limit(10).explain("executionStats")
+    returned : 10
+    examined : 21332
+
+  and if we want all the documents for that date - it had literally scans all the documents in the collection
+  db.News.find({date : new ISODate("2015-12-24")}).sort({approved : 1, date : 1}).explain("executionStats")
+    returned : 1631
+    examined : 86638
+
+  So in this case though it is using the index, it is bad in general since index scan is not using any filter
+
 get all news items for particular date sorted by (date) only
   db.News.find({date : new ISODate("2015-01-01")}).sort({date : 1}).limit(10).explain("executionStats")
     keys examinded : 0 (doesnot use the index)
@@ -71,3 +86,36 @@ get all news items for particular date sorted by (updatedAt)
     docs examined : 86638
     returned : 10
   again sort operation demands sorting by (updatedAt) which we don't have index for. So it sorts by scanning all documents and then picks the docs based on query
+
+=================
+index on {approved : 1, date : 1}
+need : get all news (both approved = true and false) for a date
+
+BAD : db.News.find({date : ISODate("2015-01-01T00:00:00Z")}).explain("executionStats")
+
+GOOD only to fetch approved=true : db.News.find({approved : true, date : ISODate("2015-01-01T00:00:00Z")}).explain("executionStats")
+
+GOOD SOLUTION: db.News.find({approved : {'$in' : [true, false]}, date : ISODate("2015-01-01T00:00:00Z")}).explain("executionStats")
+ It makes use of the indexes during scan as follows - 2 limits for approved column:
+ "indexBounds" : {
+    "approved" : [
+      "[false, false]",
+      "[true, true]"
+    ],
+    "date" : [
+      "[new Date(1420070400000), new Date(1420070400000)]"
+    ]
+  }
+
+GOOD SOLUTION WITH SORT : (forward or backward index scan - required if need in reverse order only. otherwise with specifying - scan will returned alread sorted by the index)
+  db.News.find({approved : {'$in' : [true, false]}, date : ISODate("2015-01-01T00:00:00Z")}).sort({approved : -1, date : -1}).explain("executionStats")
+    or
+  db.News.find({approved : {'$in' : [true, false]}, date : ISODate("2015-01-01T00:00:00Z")}).sort({approved : 1, date : 1}).explain("executionStats")
+    or 
+  db.News.find({approved : {'$in' : [true, false]}, date : ISODate("2015-01-01T00:00:00Z")}).sort({approved : 1}).explain("executionStats")
+
+BAD : db.News.find({date : ISODate("2015-01-01T00:00:00Z")}).sort({date : 1, approved :1}).limit(100).explain("executionStats")
+  since the index scan can not use the filter which is on date only
+
+BAD : db.News.find({date : ISODate("2015-12-24T00:00:00Z")}).sort({date : 1, approved :1}).limit(100).explain("executionStats")
+  since the index scan can not use the filter which is on date only

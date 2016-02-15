@@ -1,10 +1,5 @@
 var mongoose = require('mongoose');
-
-var enumStatus = {
-  UPLOADED : 'uploaded',
-  APPROVED : 'approved',
-  PUBLISHED : 'published'
-};
+var enumStatus = require('../utils/constants').enumStatus;
 
 var ContentSchema = mongoose.Schema({
   _id : false,
