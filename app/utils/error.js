@@ -45,11 +45,12 @@ var errors = {
   DUPLICATE : "DUPLICATE"
 };
 
-function ErrorObject(error, description, debug){
+function ErrorObject(error, description, debug, resStatus){
   return {
     error : error,
     description : description,
-    debug : debug
+    debug : debug,
+    resStatus : resStatus
   }
 }
 

@@ -6,6 +6,9 @@ var errUtils = require('../utils/error');
 var AdminUser = require('../models/admin_user');
 var NewsQuiz = require('../models/news_quiz');
 var enumStatus = require('../utils/constants').enumStatus;
+var RSVP = require('rsvp');
+
+var NewsQuizQuestionRoute = require('./news_quiz_question');
 
 var NewsQuizModel = NewsQuiz.model;
 
@@ -222,6 +225,58 @@ router.delete('/:id', function(req, res){
   );
 });
 
+router.get('/:id', function(req, res){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+    res.status(403);
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
+    return;
+  }
+
+  var id = req.params.id;
+  
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    res.status(400);
+    res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
+    return;
+  }
+
+  var promise = NewsQuizModel.findOne(
+    {_id : id }
+  ).exec();
+
+  var resultQuiz = null;
+  promise = promise.then(function(quiz){
+    resultQuiz = quiz;
+    if(!resultQuiz){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "quiz not found", null, 404);
+      return;
+    }
+
+    var p = NewsQuizQuestionRoute.fetchQuestions(quiz.questionIdList);
+    return p;
+  });
+
+  promise = promise.then(function(questionList){
+    //no error means resultQuiz is non null
+    var result = {};
+    result.quiz = resultQuiz;
+    result.questionList = questionList;
+    res.json(result);
+    return RSVP.resolve(true);
+  });
+
+  promise.catch(function(err){
+    if(err.resStatus){
+      res.status(err.resStatus);
+      res.json(err);
+    }
+    else{
+      res.status(500);
+      res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to fetch questions", err));  
+    }
+  });
+
+});
 //helper exports
 function pushQuestion(quizId, questionId){
   var query = NewsQuizModel.findOneAndUpdate(

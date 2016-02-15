@@ -230,6 +230,11 @@ router.get('/news/quiz/help', function(req, res){
           "return" : "updated quiz item"
         },
         {
+          "info" : "get a quiz item with all its questions",
+          "endpoint" : "GET /v1/admin/news/quiz/<quizid>",
+          "return" : { quiz : "<Quiz>", questionList : ["<QuizQuestion>"]}
+        },
+        {
           "info" : "delete a quiz item",
           "endpoint" : "DELETE /v1/admin/news/quiz/<quizid>",
           "return" : "200 OK"
@@ -276,6 +281,12 @@ router.get('/news/quizquestion/help', function(req, res){
           "return" : "created question item",
           "required" : "[content, level]",
           "optional Query params" : "quizId - to add this question to this quiz"
+        },
+        {
+          "info" : "update a question entry",
+          "endpoint" : "PUT /v1/admin/news/quizquestion",
+          "return" : "updated question item",
+          "optional" : "[content, level, status]",
         }
       ]
     }

@@ -36,7 +36,7 @@ var router = express.Router();
     editedBy
 */
 router.post('/', function(req, res){
-  if(!(req.body.content && req.body.level)){
+  if(!req.body.content || req.body.level === undefined){
     res.status(400);
     res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [content, level]"));
     return;
@@ -151,4 +151,17 @@ router.put('/:id', function(req, res){
   );
 });
 
+function fetchQuestions(questionIdList){
+  var promise = NewsQuizQuestionModel.find({
+    '_id' : {
+      '$in' : questionIdList
+    }
+  })
+  .limit(100)
+  .exec();
+
+  return promise;
+}
+
 module.exports.router = router;
+module.exports.fetchQuestions = fetchQuestions;
