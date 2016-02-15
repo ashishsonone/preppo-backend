@@ -44,11 +44,23 @@ user=mongodb
 environment=SECRET_PASSPHRASE='this is secret',SECRET_TWO='another secret'
 
 ------------------
-
 first time run
 sudo supervisorctl
   > reload
   > update
   > status
   mongodb                          RUNNING    pid 2275, uptime 0:00:36
+
+------------------
+
+disable transparent hugepages
+https://docs.mongodb.org/manual/tutorial/transparent-huge-pages/#transparent-huge-pages-thp-settings
+
+restart
+now supervisor should automatically start the mongod process
+check if transparent hugepages disabled - 
+
+cat /sys/kernel/mm/transparent_hugepage/enabled
+cat /sys/kernel/mm/transparent_hugepage/defrag
+------------------
 
