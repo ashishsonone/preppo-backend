@@ -38,17 +38,22 @@ cluster.on('disconnect', (worker) => {
 });
 
 cluster.on('exit', (worker, code, signal) => {
+  // set timeout of 1 sec so that if some error occurs,
+  // it doesnot hog the cpu due to very frequent exit and fork events
+  setTimeout(function(){
     if(worker.suicide == true){
-        console.log("#M suidice by #" + worker.id + ", code=" + code + ", signal=" + signal + ". spawning upgraded worker");
-        console.log("#M : for #" + worker.id + " exitPending=" + exitPending[worker.id]);
-        delete exitPending[worker.id];
-        cluster.fork();
+      console.log("#M suidice by #" + worker.id + ", code=" + code + ", signal=" + signal + ". spawning upgraded worker");
+      console.log("#M : for #" + worker.id + " exitPending=" + exitPending[worker.id]);
+      delete exitPending[worker.id];
+      cluster.fork();
     }
     else{
-        console.log("#M murder of #" + worker.id + ", code=" + code + ", signal=" + signal);
-        console.log("#M spawning another worker");
-        cluster.fork();
+      console.log("#M murder of #" + worker.id + ", code=" + code + ", signal=" + signal);
+      console.log("#M spawning another worker");
+      cluster.fork();
     }
+  },
+  1000);
 });
 
 function forkInit(){
