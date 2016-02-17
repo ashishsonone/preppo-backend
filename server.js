@@ -23,9 +23,10 @@ var morgan = require('morgan');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 
-var appConfig = require('./config/app')
-var mongoConfig = require('./config/mongo');
-var sessionConfig = require('./config/session');
+var appConfig = require('./config/config').app;
+var mongoConfig = require('./config/config').mongo;
+var sessionConfig = require('./config/config').session;
+
 var adminApi = require('./app/routes/admin');
 
 var healthUtil = require('./app/utils/health');

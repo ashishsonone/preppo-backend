@@ -6,7 +6,7 @@
     - any pending requests inside a worker will be completed before it disconnects
         and exits after which a new worker process is spawned
 */
-var clusterConfig = require('./config/cluster');
+var clusterConfig = require('./config/config').cluster;
 const cluster = require('cluster');
 
 const numCPUs = clusterConfig.numCPUs;
