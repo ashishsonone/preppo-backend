@@ -33,7 +33,7 @@ var healthUtil = require('./app/utils/health');
 var app = express();
 
 //connect to mongo db
-mongoose.connectWithRetry(mongoConfig.url);
+mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
 
 //enable CORS
 app.all('*', function(req, res, next) {

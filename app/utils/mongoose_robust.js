@@ -13,7 +13,7 @@ mongoose.suicide = false; //used when upgrading, we dont want to trigger connect
                           //if we are ourselves calling mongoose.connection.close()
                           //in worker's 'disconnect' event set this to true
 
-function connectWithRetry(url){
+function connectWithRetry(url, poolSize){
   if(mongoose.suicide){
     console.log("connectWithRetry suicide=" + mongoose.suicide);
     return; //we are suiciding. So just return
@@ -22,12 +22,17 @@ function connectWithRetry(url){
   if(url){
     mongoose.url = url;
   }
+  if(poolSize){
+    mongoose.poolSize = poolSize;
+  }
+
   attempting = true;
   mongoose.connect(
     mongoose.url, 
     {
       server:{
         auto_reconnect:false, 
+        poolSize : mongoose.poolSize
         //socketOptions: {connectTimeoutMS: 30000, socketTimeouMS : 15000} 
         //Need to understand how to actually set timetouts
       }
