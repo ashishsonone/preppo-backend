@@ -28,7 +28,7 @@ mkdir -p $WORK_DIR
 #create supervisor conf file for redis
 cat > /etc/supervisor/conf.d/redis.conf << EOF
 [program:redis]
-command=redis-server --save "" --maxmemory 100000001 --maxmemory-policy volatile-ttl
+command=redis-server --save "" --maxmemory 100000001 --maxmemory-policy volatile-ttl --bind 0.0.0.0
 directory=/home/ashish/redis
 autostart=true
 autorestart=true
