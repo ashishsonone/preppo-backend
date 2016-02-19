@@ -19,6 +19,7 @@ var router = express.Router();
 
 /*get all quiz items
   get parameters: 
+    status (required)
     limit : <integer> (optional)
     gt : <date>(optional)
     lt : <date>(optional)
@@ -33,6 +34,14 @@ router.get('/', function(req, res){
     return;
   }
 
+  if(!req.query.status){
+    res.status(400);
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : 'status'"));
+    return;
+  }
+
+  //required
+  var status = req.query.status;
   //optional gt, lt, limit
   var limit = parseInt(req.query.limit) || 15; //default limit of 15
   var gt = req.query.gt; //mongoose will cast date string to date object
@@ -43,9 +52,7 @@ router.get('/', function(req, res){
   var projection = null;
 
   var query = {
-    status : { '$in' : 
-      [enumStatus.UPLOADED, enumStatus.APPROVED, enumStatus.PUBLISHED]
-    }
+    status : status
   };
 
   if(gt){

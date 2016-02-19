@@ -220,6 +220,7 @@ router.get('/news/quiz/help', function(req, res){
           "info" : "get quiz items",
           "endpoint" : "GET /v1/admin/news/quiz/",
           "return" : "array of quiz items",
+          "required" : "status"
           "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
           "detail" : "return quiz entities ordered by editedAt timestamp"
         },
@@ -273,7 +274,7 @@ router.get('/news/quizquestion/help', function(req, res){
       api : [
         {
           "info" : "See this help page",
-          "endpoint" : "GET /v1/admin/news/quiz/help", 
+          "endpoint" : "GET /v1/admin/news/quizquestion/help", 
         },
         {
           "info" : "create a question entry",
@@ -284,7 +285,7 @@ router.get('/news/quizquestion/help', function(req, res){
         },
         {
           "info" : "update a question entry",
-          "endpoint" : "PUT /v1/admin/news/quizquestion",
+          "endpoint" : "PUT /v1/admin/news/quizquestion/<questionid>",
           "return" : "updated question item",
           "optional" : "[content, level, status]",
         }
