@@ -220,7 +220,7 @@ router.get('/news/quiz/help', function(req, res){
           "info" : "get quiz items",
           "endpoint" : "GET /v1/admin/news/quiz/",
           "return" : "array of quiz items",
-          "required" : "status"
+          "required" : "status",
           "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
           "detail" : "return quiz entities ordered by editedAt timestamp"
         },
