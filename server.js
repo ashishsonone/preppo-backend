@@ -21,7 +21,7 @@ var bodyParser = require('body-parser');
 var morgan = require('morgan');
 
 var session = require('express-session');
-var MongoStore = require('connect-mongo')(session);
+var GooseSession = require('goose-session');
 
 var appConfig = require('./config/config').app;
 var mongoConfig = require('./config/config').mongo;
@@ -61,6 +61,18 @@ app.get('/health',
   }
 );
 
+app.get('/health-db',
+  function(req, res){
+    var promise = require('./app/routes/users').getAdminUserCount();
+    promise.then(function(result){
+      res.json(result);
+    });
+    promise.catch(function(err){
+      res.json(err);
+    });
+  }
+);
+
 //enable console logging using morgan
 morgan.token('id', function(req, res){ return myId; }); //define a new token to log worker id also
 var morganFormat = morgan('#:id :method :url :status :response-time ms - :res[content-length]'); //define the new format
@@ -71,14 +83,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
 
 //the admin api
+var gooseStore = GooseSession(mongoose, {
+  collection : 'sessions'
+});
+
 //enable express-session only for the admin api
 var sessionOptions = {
+  store : gooseStore,
   secret : sessionConfig.secret,
   resave : false, //force save back to session store on every request even when not modified
   saveUninitialized : false, //save session into store even if not initialized(e.g not logged in)
-  store : new MongoStore({
-    mongooseConnection: mongoose.connection //reuse the mongoose connection
-  }),
   cookie: {httpOnly: false, expires: new Date(253402300000000)}
 };
 

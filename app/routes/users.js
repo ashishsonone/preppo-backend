@@ -241,4 +241,9 @@ router.get('/me', function(req, res){
 
 });
 
+function getAdminUserCount(){
+  return AdminUserModel.count({}).exec();
+}
+
 module.exports.router = router;
+module.exports.getAdminUserCount = getAdminUserCount;
