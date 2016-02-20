@@ -3,9 +3,9 @@
 var express = require('express');
 var mongoose = require('mongoose');
 
-var mailer = require('../utils/mailer');
-var errUtils = require('../utils/error');
-var AdminUser = require('../models/admin_user');
+var mailer = require('../../utils/mailer');
+var errUtils = require('../../utils/error');
+var AdminUser = require('../../models/admin_user');
 
 var AdminUserModel = AdminUser.model;
 var enumRoles = AdminUser.enumRoles;

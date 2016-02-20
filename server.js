@@ -27,7 +27,7 @@ var appConfig = require('./config/config').app;
 var mongoConfig = require('./config/config').mongo;
 var sessionConfig = require('./config/config').session;
 
-var adminApi = require('./app/routes/admin');
+var adminApi = require('./app/routes/admin/admin');
 
 var healthUtil = require('./app/utils/health');
 
@@ -42,7 +42,18 @@ app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS, PATCH, PUT'); //type of methods allowed
   res.header('Access-Control-Allow-Headers', 'Content-Type'); //allow headers starting with
   res.header('Access-Control-Allow-Credentials', true); //allow cookie to be sent
-  next();
+
+  if(req.method && req.method.toUpperCase() === 'OPTIONS'){
+    res.json({});
+  }
+  else{
+    next();
+  }
+});
+
+//root end point
+app.get('/', function(req, res){
+  res.json({message : "welcome to the unauthenticated root api endpoint"});
 });
 
 //health endpoint for use by google load balancer to know healthy VMs
@@ -63,7 +74,7 @@ app.get('/health',
 
 app.get('/health-db',
   function(req, res){
-    var promise = require('./app/routes/users').getAdminUserCount();
+    var promise = require('./app/routes/admin/users').getAdminUserCount();
     promise.then(function(result){
       res.json(result);
     });
@@ -82,6 +93,7 @@ app.use(morganFormat); //use the new format
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
 
+//--------------------------------
 //the admin api
 var gooseStore = GooseSession(mongoose, {
   collection : 'sessions'
@@ -96,10 +108,14 @@ var sessionOptions = {
   cookie: {httpOnly: false, expires: new Date(253402300000000)}
 };
 
-app.use('/v1/admin', session(sessionOptions));
-app.use('/v1/admin', adminApi.router);
+var adminSesionMiddleWare = session(sessionOptions);
+app.use('/v1/admin', adminApi.router(adminSesionMiddleWare));
 
-app.get('/', function(req, res){ res.json({message : "welcome to the unauthenticated api endpoint"})});
+//---------------------------------
+//product api
+app.use('/v1/product/', function(req, res){
+  res.json({"message" : "Under Construction :)"});
+});
 
 //listen to port
 app.listen(appConfig.port);

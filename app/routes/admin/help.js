@@ -2,7 +2,7 @@
 
 var express = require('express');
 var router = express.Router();
-var errUtils = require('../utils/error');
+var errUtils = require('../../utils/error');
 //start ENDPOINT /v1/admin/
 
 // main admin help

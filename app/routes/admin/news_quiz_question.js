@@ -2,10 +2,10 @@
 
 var express = require('express');
 var mongoose = require('mongoose');
-var errUtils = require('../utils/error');
-var AdminUser = require('../models/admin_user');
-var NewsQuizQuestion = require('../models/news_quiz_question');
-var enumStatus = require('../utils/constants').enumStatus;
+var errUtils = require('../../utils/error');
+var AdminUser = require('../../models/admin_user');
+var NewsQuizQuestion = require('../../models/news_quiz_question');
+var enumStatus = require('../../utils/constants').enumStatus;
 
 var NewsQuizRoute = require('./news_quiz');
 
