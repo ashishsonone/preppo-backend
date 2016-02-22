@@ -281,6 +281,7 @@ router.get('/news/quizquestion/help', function(req, res){
           "endpoint" : "POST /v1/admin/news/quizquestion",
           "return" : "created question item",
           "required" : "[content, level]",
+          "optional" :  "[category]",
           "optional Query params" : "quizId - to add this question to this quiz"
         },
         {

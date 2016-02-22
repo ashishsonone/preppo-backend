@@ -24,6 +24,7 @@ var router = express.Router();
   post params:
     content (required)
     level (required)
+    category (optional)
     
   auto filled:
     count //default value=0 (if no quizId param), o/w value=1
@@ -46,12 +47,17 @@ router.post('/', function(req, res){
 
   var content = req.body.content;
   var level = req.body.level;
+  var category = req.body.category;
 
   var quizQuestion = new NewsQuizQuestionModel();
 
   //set required
   quizQuestion.content = content;
   quizQuestion.level = parseInt(level) || 0; //default 0 (invalid)
+  
+  if(category){
+    quizQuestion.category = category;
+  }
 
   //auto fill (uploadedAt, status, count set by mongoose)
   quizQuestion.uploadedBy = req.session.email;
@@ -92,6 +98,7 @@ router.post('/', function(req, res){
   post parameters:
     content (optional)
     level (optional)
+    category (optional)
     
     status (optional) - either approved, uploaded
 
@@ -124,6 +131,9 @@ router.put('/:id', function(req, res){
   }
   if(req.body.level){
     changes.level = parseInt(req.body.level) || 0; //default 0
+  }
+  if(req.body.category){
+    changes.category = req.body.category;
   }
 
   if(req.body.status){

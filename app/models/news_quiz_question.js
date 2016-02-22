@@ -22,6 +22,7 @@ var NewsQuizQuestionSchema = mongoose.Schema({
   //metadata
   level : Number,
   count : {type : Number, default : 0}, //approximate number of times it has been used in quiz
+  category : String,
 
   //admin
   status : {type : String, default : enumStatus.UPLOADED},
