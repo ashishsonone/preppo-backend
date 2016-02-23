@@ -10,7 +10,8 @@ var OptionSchema = {
 var QuestionSchema = {
   _id : false,
   questionString : String,
-  options : [OptionSchema]
+  options : [OptionSchema],
+  solution : String
 };
 
 var NewsQuizQuestionSchema = mongoose.Schema({

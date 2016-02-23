@@ -26,7 +26,7 @@ module.exports.router = function(){
   //other routes
   router.get('/news', function(req, res){
     if(!(req.session && req.session.username)){
-      res.status(200);
+      res.status(401);
       return res.json({message : "unauthenticated"});
     }
 

@@ -254,6 +254,7 @@ router.get('/news/quizquestion/help', function(req, res){
       },
       QuestionSchema : {
         questionString : "string",
+        solution : "string",
         options : ["OptionSchema"]
       },
       NewsQuizQuestionSchema : {
