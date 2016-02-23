@@ -1,5 +1,5 @@
 var request = require('request');
-var gupshupConfig = require('../../config/gupshup.js');
+var gupshupConfig = require('../../config/common.js').gupshup;
 var RSVP = require('rsvp');
 var errUtils = require('./error');
 

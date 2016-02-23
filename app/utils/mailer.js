@@ -1,7 +1,7 @@
 'use strict'
 
 var nodemailer = require('nodemailer');
-var mailerConfig = require('../../config/mailer');
+var mailerConfig = require('../../config/common').mailer;
 
 var transportURL = mailerConfig.protocol + "://" + mailerConfig.email 
   + ":" + mailerConfig.password + "@" + mailerConfig.smtp_server;

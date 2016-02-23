@@ -16,6 +16,15 @@ router.get('/help', function(req, res){
         "endpoint" : "GET /v1/app/auth/help",
       }
     ],
+    errorObject : {
+      "info" : "if the response is 2xx, then the api call was success. Otherwise if the error was caught on server-side, then there will be a error object in the body of response. Error object will be a JSON. Its structure will be as follows:",
+      "errorSchema" : {
+        "error" : "string - e.g 'USER_NOT_FOUND' - like a code to identify the error in client code",
+        "description" : "string - human readable description of what went wrong",
+        "debug": "JSON : in case the error was unknown like some unexpected database error, or gupshup api call error or some other, this will be set for debugging purpose",
+        "resStatus" : "number(integer) : used internally in the server side code"
+      }
+    },
     errors : [
       {
         "error" : errUtils.errors.UNAUTHENTICATED,
@@ -51,7 +60,7 @@ router.get('/help', function(req, res){
       },
       {
         "error" : errUtils.errors.INVALID_TOKEN,
-        "info" : "fb & google login/signup : invalid token - can't verify"
+        "info" : "fb & google login/signup : invalid token - e.g expired token"
       }
     ]
   });
@@ -61,13 +70,17 @@ router.get('/auth/help', function(req, res){
   res.json({
     message : "Welcome to auth api home page", 
     UserSchema : {
+      "_id" : "string : mongodb object id",
       "username" : "string : could be phone number, fb id, google id",
       "name" : "string",
-      "password" : "string",
+      "password" : "string : only in case of phone login",
       "photo" : "string : url",
-      "email" : "String",
-      "phone" : "String : 10 digit number",
-      "location" : "String : city"
+      "email" : "string",
+      "phone" : "string : 10 digit number",
+      "location" : "string : city - optional",
+
+      "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
+      "updatedAt" : "string : date in iso 8601 format"
     },
     api : [
       {
