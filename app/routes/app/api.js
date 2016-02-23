@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 
 var helpApi = require('./help');
 var authApi = require('./auth');
+var usersApi = require('./users');
 
 module.exports.router = function(){
   var router = express.Router();
@@ -23,6 +24,8 @@ module.exports.router = function(){
   //logout endpoint
   router.get('/auth/logout', authApi.logout);
 
+  router.use('/users', usersApi.router);
+
   //other routes
   router.get('/news', function(req, res){
     if(!(req.session && req.session.username)){
@@ -32,5 +35,6 @@ module.exports.router = function(){
 
     res.json({message : "Not yet implemented"});
   });
+
   return router;
 }

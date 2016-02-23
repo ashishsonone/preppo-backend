@@ -17,9 +17,6 @@ var socialUtils = require('../../utils/social');
 var router = express.Router();
 
 //start ENDPOINT /v1/app/auth
-router.get('/', function(req, res){
-  return res.json({message : "/v1/app/auth : Under construction ! :)"});
-});
 
 /*generate otp
   post body: 
@@ -120,7 +117,7 @@ function generateToken(userObject){
 }
 
 function findToken(token){
-  console.log("findToken with token=%j", token);
+  //console.log("findToken with token=%j", token);
   var promise = TokenModel.findOne(
     {_id : token}
   ).exec();
@@ -392,7 +389,7 @@ router.post('/login', function(req, res){
 });
 
 /*
-  function to verify the token.
+  middleware function to verify the token.
   Sets if all ok
     req.session.token
     req.session.username
@@ -402,7 +399,6 @@ router.post('/login', function(req, res){
 */
 
 function findTokenAndSetSession(req, res, next){
-  console.log("verifyTokenMiddleware : headers=%j", req.headers);
   var token = req.headers['x-session-token'];
   var unauthenticatedError = errUtils.ErrorObject(errUtils.errors.UNAUTHENTICATED, "login is required to access this end point");
   
@@ -433,6 +429,19 @@ function findTokenAndSetSession(req, res, next){
   });
 }
 
+/* middleware function to check if req.session.username is present
+  if yes : do next()
+  otherwise : respond with UNAUTHENTICATED error
+*/
+function loginRequiredMiddleware(req, res, next){
+  if(req.session && req.session.username){
+    return next();
+  }
+
+  res.status(401);
+  return res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHENTICATED, "login is required to access this end point"));
+}
+
 /*
   Deletes the session(if any)
 */
@@ -457,4 +466,5 @@ function logout(req, res){
 
 module.exports.router = router;
 module.exports.findTokenAndSetSession = findTokenAndSetSession;
+module.exports.loginRequiredMiddleware = loginRequiredMiddleware;
 module.exports.logout = logout;

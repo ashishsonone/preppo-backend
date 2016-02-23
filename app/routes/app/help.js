@@ -8,12 +8,16 @@ router.get('/help', function(req, res){
     message : "Welcome to app api home page", 
     api : [
       {
-        "info" : "See this help page",
         "endpoint" : "GET /v1/app/help", 
+        "info" : "See this help page",
       },
       {
-        "info" : "help page for auth api - login, logout, otp, signup",
         "endpoint" : "GET /v1/app/auth/help",
+        "info" : "help page for auth api - login, logout, otp, signup",
+      },
+      {
+        "endpoint" : "GET /v1/app/users/help",
+        "info" : "help page for users api - get user info, update user info, etc",
       }
     ],
     errorObject : {
@@ -47,6 +51,10 @@ router.get('/help', function(req, res){
         "info" : "general error : unknown unexpected error - handle gracefully client side"
       },
       {
+        "error" : errUtils.errors.NOT_FOUND,
+        "info" : "general error : resource not found"
+      },
+      {
         "error" : errUtils.errors.USER_NOT_FOUND,
         "info" : "during login : no such user not found"
       },
@@ -66,29 +74,32 @@ router.get('/help', function(req, res){
   });
 });
 
+
+var uSchema = {
+  "_id" : "string : mongodb object id",
+  "username" : "string : could be phone number, fb id, google id",
+  "name" : "string",
+  "password" : "string : only in case of phone login",
+  "photo" : "string : url",
+  "email" : "string",
+  "phone" : "string : 10 digit number",
+  "location" : "string : city - optional",
+
+  "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
+  "updatedAt" : "string : date in iso 8601 format"
+};
+
 router.get('/auth/help', function(req, res){
   res.json({
     message : "Welcome to auth api home page", 
-    UserSchema : {
-      "_id" : "string : mongodb object id",
-      "username" : "string : could be phone number, fb id, google id",
-      "name" : "string",
-      "password" : "string : only in case of phone login",
-      "photo" : "string : url",
-      "email" : "string",
-      "phone" : "string : 10 digit number",
-      "location" : "string : city - optional",
-
-      "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
-      "updatedAt" : "string : date in iso 8601 format"
-    },
+    UserSchema : uSchema,
     api : [
       {
         "endpoint" : "GET /v1/app/auth/help", 
         "info" : "See this help page",
       },
       {
-        "endpoint" : "POST /v1/auth/signup", 
+        "endpoint" : "POST /v1/app/auth/signup", 
         "info" : "User signup",
         "return" : {"user" : "<user object>", "x-session-token" : "<session token>(string)"},
         "required" : [
@@ -125,9 +136,32 @@ router.get('/auth/help', function(req, res){
         "return" : "200 OK",
         "headers required" : {
           "x-session-token" : "<session token string> recieved during login or signup"
-        },
+        }
       },
     ]
   });
 });
+
+router.get('/users/help', function(req, res){
+  res.json({
+    message : "Welcome to users api home page", 
+    UserSchema : uSchema,
+    api : [
+      {
+        "endpoint" : "GET /v1/app/users/help", 
+        "info" : "See this help page",
+      },
+      {
+        "endpoint" : "GET /v1/app/users/me", 
+        "info" : "(login required) Get info of current logged in user",
+        "return" : "<user object>",
+        "headers required" : {
+          "x-session-token" : "<session token string> recieved during login or signup"
+        },
+        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      }
+    ]
+  });
+});
+
 module.exports.router = router;
