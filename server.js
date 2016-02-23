@@ -28,6 +28,7 @@ var mongoConfig = require('./config/config').mongo;
 var sessionConfig = require('./config/config').session;
 
 var adminApi = require('./app/routes/admin/admin');
+var appApi = require('./app/routes/app/api');
 
 var healthUtil = require('./app/utils/health');
 
@@ -40,7 +41,7 @@ mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin); //origins allowed for request, dynamically set to request's origin
   res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS, PATCH, PUT'); //type of methods allowed
-  res.header('Access-Control-Allow-Headers', 'Content-Type'); //allow headers starting with
+  res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-token'); //allow headers starting with
   res.header('Access-Control-Allow-Credentials', true); //allow cookie to be sent
 
   if(req.method && req.method.toUpperCase() === 'OPTIONS'){
@@ -113,9 +114,7 @@ app.use('/v1/admin', adminApi.router(adminSesionMiddleWare));
 
 //---------------------------------
 //product api
-app.use('/v1/product/', function(req, res){
-  res.json({"message" : "Under Construction :)"});
-});
+app.use('/v1/app/', appApi.router());
 
 //listen to port
 app.listen(appConfig.port);

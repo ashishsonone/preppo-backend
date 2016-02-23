@@ -42,7 +42,17 @@ var errors = {
 
   PARAMS_REQUIRED : "PARAMS_REQUIRED",
   NOT_FOUND : "NOT_FOUND",
-  DUPLICATE : "DUPLICATE"
+  DUPLICATE : "DUPLICATE",
+
+  //new general errors for app api
+  THIRD_PARTY : "THIRD_PARTY",
+  UNKNOWN : "UNKNOWN",
+
+  //login related errors
+  INVALID_OTP : "INVALID_OTP",
+  USER_ALREADY_EXISTS : "USER_ALREADY_EXISTS",
+  USER_NOT_FOUND : "USER_NOT_FOUND",
+  INVALID_TOKEN : "INVALID_TOKEN", //for fb and google tokens
 };
 
 function ErrorObject(error, description, debug, resStatus){
