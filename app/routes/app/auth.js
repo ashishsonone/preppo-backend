@@ -82,6 +82,11 @@ function findUser(username){
   var promise = UserModel.findOne(
   {
     username : username
+  },
+  {
+    //exclude __v
+    //password field required for phone-password login
+    __v : false,
   }).exec();
   return promise;
 }
@@ -148,6 +153,8 @@ function findToken(token){
 router.post('/signup', function(req, res){
   var phone = req.body.phone;
   var googleToken = req.body.googleToken;
+  var fbToken = req.body.fbToken;
+
   var promise = RSVP.reject(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "code error /signup", null, 500));
 
   if(phone){
@@ -190,15 +197,21 @@ router.post('/signup', function(req, res){
       });
     });
   }
-  else if(googleToken){
+  else if(googleToken || fbToken){
     //optional fields
     var photo = req.body.photo;
     var location = req.body.location;
 
     //verify google token and get user details
-    promise = socialUtils.verifyGoogleToken(googleToken);
+    if(googleToken){
+      promise = socialUtils.verifyGoogleToken(googleToken);
+    }
+    else{
+      promise = socialUtils.verifyFBToken(fbToken);
+    }
+
     promise = promise.then(function(userDetails){
-      //userDetails contains username(google-id), name, email
+      //userDetails contains username(google or fb id), name, email
       //we have optional photo and location seperately. 
       //We are not filling phone; password field not required
 
@@ -213,8 +226,9 @@ router.post('/signup', function(req, res){
     });
   }
   else{
+    //parameters required
     res.status(400);
-    return res.json({message : "only phone & google login implemented"});
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "please provide appropriate signup data"));
   }
 
   //generate token
@@ -276,6 +290,7 @@ router.post('/signup', function(req, res){
 router.post('/login', function(req, res){
   var phone = req.body.phone;
   var googleToken = req.body.googleToken;
+  var fbToken = req.body.fbToken;
 
   var promise = RSVP.reject(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "code error /signup", null, 500));
 
@@ -317,16 +332,22 @@ router.post('/login', function(req, res){
       promise = findUser(phone);
     }
   }
-  else if(googleToken){
-    //verify google token and get user details
-    promise = socialUtils.verifyGoogleToken(googleToken);
+  else if(googleToken || fbToken){
+    //verify google or fb token and get user details
+    if(googleToken){
+      promise = socialUtils.verifyGoogleToken(googleToken);
+    }
+    else{
+      promise = socialUtils.verifyFBToken(fbToken);
+    }
+
     promise = promise.then(function(userDetails){
       return findUser(userDetails.username);
     });
   }
   else {
     res.status(400);
-    return res.json({message : "Only phone/google login implemented"});
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "please provide appropriate login data"));
   }
 
   //generate token

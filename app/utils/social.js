@@ -39,20 +39,20 @@ function verifyGoogleToken(googleToken){
         }
       }
 
-      return reject(errUtils.ErrorObject(errUtils.errors.INVALID_TOKEN, "invalid google token", null, 400));
+      return reject(errUtils.ErrorObject(errUtils.errors.INVALID_TOKEN, "invalid google token", res && res.body, 400));
     });
   });
 }
 
 function verifyFBToken(fbToken){
   var options = {
-    url: 'https://graph.facebook.com/me',
+    url: "https://graph.facebook.com/me",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json"
     },
-    params: {
-      'access_token': fbToken,
-      'fields': 'id,name,email'
+    qs: {
+      access_token: fbToken,
+      fields: "id,name,email"
     },
     json : true //parse response body into json
   };
@@ -72,7 +72,7 @@ function verifyFBToken(fbToken){
         return resolve(user);
       }
 
-      return reject(errUtils.ErrorObject(errUtils.errors.INVALID_TOKEN, "invalid fb token", null, 400));
+      return reject(errUtils.ErrorObject(errUtils.errors.INVALID_TOKEN, "invalid fb token", res && res.body, 400));
     });
   });
 }
