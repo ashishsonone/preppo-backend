@@ -57,6 +57,7 @@ router.get('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
     photo (optional)
     email (optional)
     location (optional)
+    language (optional)
 
   Can not update 'password' (for phone login : forgot password case)
   Use PUT /me/password instead
@@ -76,6 +77,9 @@ router.put('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
   }
   if(req.body.location){
     changes.location = req.body.location;
+  }
+  if(req.body.language){
+    changes.language = req.body.language;
   }
 
   var promise = UserModel.findOneAndUpdate(

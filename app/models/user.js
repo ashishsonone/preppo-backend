@@ -10,6 +10,7 @@ var UserSchema = mongoose.Schema({
   email : String,
   phone : String,
   location : String, //city
+  language : String //language preference hindi, english
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields

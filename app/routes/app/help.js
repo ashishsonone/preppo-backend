@@ -84,6 +84,7 @@ var uSchema = {
   "email" : "string",
   "phone" : "string : 10 digit number",
   "location" : "string : city - optional",
+  "language" : "string : language preference. e.g hindi, english",
 
   "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
   "updatedAt" : "string : date in iso 8601 format"
@@ -108,8 +109,8 @@ router.get('/auth/help', function(req, res){
           "for google : [googleToken]"
         ],
         "optional" : [
-          "for phone : [photo, email, location]",
-          "for fb & google: [photo, location]",
+          "for phone : [photo, email, location, language]",
+          "for fb & google: [photo, location, language]",
         ],
         "possible errors" : "[USER_ALREADY_EXISTS, INVALID_OTP, INVALID_TOKEN]"
       },
@@ -129,6 +130,13 @@ router.get('/auth/help', function(req, res){
           "for google : [googleToken]"
         ],
         "possible errors" : "[USER_NOT_FOUND, INVALID_OTP, INVALID_CREDENTIALS, INVALID_TOKEN]"
+      },
+      {
+        "endpoint" : "POST /v1/app/auth/passwordreset",
+        "info" : "Reset password for phone login and get session token",
+        "return" : {"user" : "<user object>", "x-session-token" : "<session token>(string)"},
+        "required" : "[phone, otp, password] - here password is new password to set",
+        "possible errors" : "[USER_NOT_FOUND, INVALID_OTP]"
       },
       {
         "endpoint" : "GET /v1/app/auth/logout",
@@ -155,6 +163,16 @@ router.get('/users/help', function(req, res){
         "endpoint" : "GET /v1/app/users/me", 
         "info" : "(login required) Get info of current logged in user",
         "return" : "<user object>",
+        "headers required" : {
+          "x-session-token" : "<session token string> recieved during login or signup"
+        },
+        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      },
+      {
+        "endpoint" : "PUT /v1/app/users/me", 
+        "info" : "(login required) Update info of current logged in user",
+        "optional" : "[name, photo, email, location, language]",
+        "return" : "updated <user object>",
         "headers required" : {
           "x-session-token" : "<session token string> recieved during login or signup"
         },

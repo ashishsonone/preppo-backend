@@ -77,6 +77,7 @@ router.post('/otp', function(req, res){
     //for all types (optional)
     photo : String,
     location : String
+    language : String
 
   For signup other than phone, we need to extract user details like name, photo, email 
   using the token given and save in the user object
@@ -98,6 +99,7 @@ router.post('/signup', function(req, res){
     var photo = req.body.photo;
     var email = req.body.email;
     var location = req.body.location;
+    var language = req.body.language;
 
     if(!(otp && name && password)){
       res.status(400);
@@ -123,6 +125,7 @@ router.post('/signup', function(req, res){
         phone : phone,
         photo : photo,
         email : email,
+        language : language,
 
         location : location
       });
@@ -132,7 +135,8 @@ router.post('/signup', function(req, res){
     //optional fields
     var photo = req.body.photo;
     var location = req.body.location;
-
+    var language = req.body.language;
+    
     //verify google token and get user details
     if(googleToken){
       promise = socialUtils.verifyGoogleToken(googleToken);
@@ -152,7 +156,8 @@ router.post('/signup', function(req, res){
         name : userDetails.name,
 
         photo : photo,
-        location : location
+        location : location,
+        language : language
       });
     });
   }
