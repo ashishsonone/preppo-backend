@@ -58,8 +58,12 @@ function createUser(data){
   if(data.password){
     data.password = passwordHash.generate(data.password);
   }
+  if(!data.language){
+    data.language = 'english'
+  }
+
   var userObject = new UserModel(data);
-  
+
   return userObject.save();
 }
 
