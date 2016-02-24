@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 
 var helpApi = require('./help');
 var authApi = require('./auth');
+var authApiHelper = require('./auth_help');
 var usersApi = require('./users');
 
 module.exports.router = function(){
@@ -19,10 +20,10 @@ module.exports.router = function(){
   router.use('/auth', authApi.router);
 
   //token verification middleware
-  router.use('/', authApi.findTokenAndSetSession);
+  router.use('/', authApiHelper.findTokenAndSetSession);
 
   //logout endpoint
-  router.get('/auth/logout', authApi.logout);
+  router.get('/auth/logout', authApiHelper.logout);
 
   router.use('/users', usersApi.router);
 

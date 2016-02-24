@@ -88,8 +88,11 @@ app.get('/health-db',
 
 //enable console logging using morgan
 morgan.token('id', function(req, res){ return myId; }); //define a new token to log worker id also
-morgan.token('ts', function(req, res){return moment().format('YY-MM-DDThh:mm:ss.SSSZ')});
-//to get back moment time from the string : parsed = moment(string, 'YY-MM-DDThh:mm:ss.SSSZ')
+
+//timestamp
+var formatString = 'YY-MM-DDTHH:mm:ss.SSSZ';
+morgan.token('ts', function(req, res){return moment().format(formatString)});
+//to get back moment time from the string : parsed = moment(string, formatString)
 var morganFormat = morgan('#:id :ts :method :url :status :response-time ms - :res[content-length]'); //define the new format
 app.use(morganFormat); //use the new format
 

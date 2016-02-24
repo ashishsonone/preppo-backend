@@ -2,7 +2,6 @@
 
 var express = require('express');
 var mongoose = require('mongoose');
-var shortid = require('shortid');
 var passwordHash = require('password-hash');
 var RSVP = require('rsvp');
 
@@ -13,6 +12,7 @@ var OTPModel = require('../../models/otp').model;
 var sms = require('../../utils/sms');
 var errUtils = require('../../utils/error');
 var socialUtils = require('../../utils/social');
+var authHelp = require('./auth_help.js');
 
 var router = express.Router();
 
@@ -59,72 +59,6 @@ router.post('/otp', function(req, res){
   });
 });
 
-function verifyOTP(otp, phone){
-  //verify otp
-  var currentTime = new Date();
-  var allowedTime = new Date(currentTime.getTime() - 5*60*1000); //5 minute
-  var promise = OTPModel
-  .findOne(
-  {
-    otp : otp,
-    phone : phone,
-    createdAt : {'$gt' : allowedTime}
-  })
-  .sort({createdAt : -1})
-  .exec();
-  return promise;
-}
-
-function findUser(username){
-  var promise = UserModel.findOne(
-  {
-    username : username
-  },
-  {
-    //exclude __v
-    //password field required for phone-password login
-    __v : false,
-  }).exec();
-  return promise;
-}
-
-function createUser(data){
-  if(data.password){
-    data.password = passwordHash.generate(data.password);
-  }
-  var userObject = new UserModel(data);
-  
-  return userObject.save();
-}
-
-function generateToken(userObject){
-  var tokenObject = new TokenModel();
-  var token = shortid.generate() + shortid.generate();
-
-  tokenObject._id = token;
-  tokenObject.userId = userObject._id;
-  tokenObject.username = userObject.username;
-
-  var promise = tokenObject.save();
-  promise = promise.then(function(savedToken){
-    return {
-      token : token,
-      user : userObject
-    }
-  });
-
-  return promise;
-}
-
-function findToken(token){
-  //console.log("findToken with token=%j", token);
-  var promise = TokenModel.findOne(
-    {_id : token}
-  ).exec();
-
-  return promise;
-}
-
 /*user signup
   post data:
     //phone only
@@ -168,10 +102,10 @@ router.post('/signup', function(req, res){
     if(!(otp && name && password)){
       res.status(400);
       return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, 
-        "required : 'phone, otp, name, password'", null, 401));
+        "required : 'phone, otp, name, password'", null, 400));
     }
 
-    promise = verifyOTP(otp, phone);
+    promise = authHelp.verifyOTP(otp, phone);
 
     //create user
     promise = promise.then(function(result){
@@ -181,7 +115,7 @@ router.post('/signup', function(req, res){
       }
 
       //console.log("generated otp = " + result.otp);
-      return createUser({
+      return authHelp.createUser({
         username : phone,
         password : password,
         name : name,
@@ -212,7 +146,7 @@ router.post('/signup', function(req, res){
       //we have optional photo and location seperately. 
       //We are not filling phone; password field not required
 
-      return createUser({
+      return authHelp.createUser({
         username : userDetails.username,
         email : userDetails.email,
         name : userDetails.name,
@@ -233,7 +167,7 @@ router.post('/signup', function(req, res){
     function(userObject){
       //console.log("got user object" + userObject);
       //generate and return token
-      return generateToken(userObject);
+      return authHelp.generateToken(userObject);
     },
     function(err){
       //check for special error
@@ -307,10 +241,9 @@ router.post('/login', function(req, res){
     }
 
     isPasswordLogin = password ? true : false;
-
     if(!isPasswordLogin){
       //otp login
-      promise = verifyOTP(otp, phone);
+      promise = authHelp.verifyOTP(otp, phone);
       //find user
       promise = promise.then(
         function(result){
@@ -320,13 +253,13 @@ router.post('/login', function(req, res){
           }
 
           //find user
-          return findUser(phone);
+          return authHelp.findUser(phone);
         }
       );
     }
     else{
       //password login, just find the user using phone number and check password provided
-      promise = findUser(phone);
+      promise = authHelp.findUser(phone);
     }
   }
   else if(googleToken || fbToken){
@@ -339,7 +272,7 @@ router.post('/login', function(req, res){
     }
 
     promise = promise.then(function(userDetails){
-      return findUser(userDetails.username);
+      return authHelp.findUser(userDetails.username);
     });
   }
   else {
@@ -363,7 +296,7 @@ router.post('/login', function(req, res){
         //password verified
       }
 
-      return generateToken(userObject);
+      return authHelp.generateToken(userObject);
     }
   );
 
@@ -385,86 +318,74 @@ router.post('/login', function(req, res){
       return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to signup", err));  
     }
   });
+});
+
+/*reset password for phone login (forgot password case) and generates session token
+  post params:
+    phone (required)
+    password (required)
+    otp (required)
+
+  returns: {
+    user : <user object>
+    'x-session-token' : "token string"
+  }
+*/
+
+router.post('/passwordreset', function(req, res){
+  var phone = req.body.phone;
+  var password = req.body.password;
+  var otp = req.body.otp;
+
+  if(!(phone && otp && password)) {
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, 
+      "required : '[phone, otp, password]'", null, 400));
+  }
+
+  var promise = authHelp.verifyOTP(otp, phone);
+  promise = promise.then(
+    function(result){
+      if(!result){
+        //console.log("error invalid otp");
+        throw errUtils.ErrorObject(errUtils.errors.INVALID_OTP, "invalid otp for " + phone, null, 400); 
+      }
+
+      //update user's password
+      return authHelp.updateUserPassword(phone, password);
+    }
+  );
+
+  //generate token
+  promise = promise.then(
+    function(userObject){
+      if(!userObject){
+        throw errUtils.ErrorObject(errUtils.errors.USER_NOT_FOUND, "user not found in db", null, 400);
+      }
+
+      return authHelp.generateToken(userObject);
+    }
+  );
+
+  promise = promise.then(
+    function(result){
+      return res.json({'x-session-token' : result.token, user : result.user});
+    }
+  );
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error change password", err));  
+    }
+  });
 
 });
 
-/*
-  middleware function to verify the token.
-  Sets if all ok
-    req.session.token
-    req.session.username
-    req.session.userId
-  Always goes next()
-  Only If some unexpected error occurs, return UNKNOWN error
-*/
-
-function findTokenAndSetSession(req, res, next){
-  var token = req.headers['x-session-token'];
-  var unauthenticatedError = errUtils.ErrorObject(errUtils.errors.UNAUTHENTICATED, "login is required to access this end point");
-  
-  if(!token){
-    return next();
-  }
-
-  var promise = findToken(token);
-  promise = promise.then(function(tokenObject){
-    //token not found. Just do next() without setting req.session fields
-    if(!tokenObject){
-      return next();
-    }
-
-    //valid token, set req.session fields
-    req.session = {}; //initialize
-    req.session.token = tokenObject._id;
-    req.session.username = tokenObject.username;
-    req.session.userId = tokenObject.userId;
-
-    return next();
-  });
-
-  promise.catch(function(err){
-    //unknown error, return response
-    res.status(500);
-    return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to verify session token", err));
-  });
-}
-
-/* middleware function to check if req.session.username is present
-  if yes : do next()
-  otherwise : respond with UNAUTHENTICATED error
-*/
-function loginRequiredMiddleware(req, res, next){
-  if(req.session && req.session.username){
-    return next();
-  }
-
-  res.status(401);
-  return res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHENTICATED, "login is required to access this end point"));
-}
-
-/*
-  Deletes the session(if any)
-*/
-function logout(req, res){
-  if(req.session && req.session.token){
-    var promise = TokenModel
-    .remove({_id : req.session.token})
-    .exec();
-    promise = promise.then(function(result){
-      return res.json({ message : "log out success"});
-    });
-
-    promise.catch(function(err){
-      res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to logout", err));
-    });
-  }
-  else{
-    return res.json({message : "already logged out"});
-  }
-}
-
 module.exports.router = router;
-module.exports.findTokenAndSetSession = findTokenAndSetSession;
-module.exports.loginRequiredMiddleware = loginRequiredMiddleware;
-module.exports.logout = logout;
