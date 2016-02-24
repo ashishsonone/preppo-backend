@@ -19,6 +19,7 @@ if(cluster.isWorker){
 var express = require('express');
 var bodyParser = require('body-parser');
 var morgan = require('morgan');
+var moment = require('moment');
 
 var session = require('express-session');
 var GooseSession = require('goose-session');
@@ -87,7 +88,9 @@ app.get('/health-db',
 
 //enable console logging using morgan
 morgan.token('id', function(req, res){ return myId; }); //define a new token to log worker id also
-var morganFormat = morgan('#:id :method :url :status :response-time ms - :res[content-length]'); //define the new format
+morgan.token('ts', function(req, res){return moment().format('YY-MM-DDThh:mm:ss.SSSZ')});
+//to get back moment time from the string : parsed = moment(string, 'YY-MM-DDThh:mm:ss.SSSZ')
+var morganFormat = morgan('#:id :ts :method :url :status :response-time ms - :res[content-length]'); //define the new format
 app.use(morganFormat); //use the new format
 
 //for extracting post parameters
