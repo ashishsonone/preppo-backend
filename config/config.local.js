@@ -17,6 +17,13 @@ var mongo = {
   poolSize : 10
 };
 
+var redis = {
+  host : "localhost",
+  port : "6379",
+  db : 0,
+  expiry : 60, //seconds
+};
+
 var session = {
   secret : "hoohqwertykilometer"
 };
@@ -25,5 +32,6 @@ module.exports = {
   app : app,
   cluster : cluster,
   mongo : mongo,
+  redis : redis,
   session : session
 }

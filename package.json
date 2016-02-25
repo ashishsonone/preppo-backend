@@ -14,6 +14,7 @@
     "express": "^4.13.4",
     "express-session": "^1.13.0",
     "goose-session": "^1.0.0",
+    "ioredis": "^1.15.1",
     "moment": "^2.11.2",
     "mongoose": "4.3.7",
     "morgan": "^1.6.1",

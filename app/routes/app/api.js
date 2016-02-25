@@ -4,8 +4,11 @@ var express = require('express');
 var mongoose = require('mongoose');
 
 var helpApi = require('./help');
+
 var authApi = require('./auth');
 var authApiHelper = require('./auth_help');
+
+var newsApi = require('./news');
 var usersApi = require('./users');
 
 module.exports.router = function(){
@@ -28,14 +31,7 @@ module.exports.router = function(){
   router.use('/users', usersApi.router);
 
   //other routes
-  router.get('/news', function(req, res){
-    if(!(req.session && req.session.username)){
-      res.status(401);
-      return res.json({message : "unauthenticated"});
-    }
-
-    res.json({message : "Not yet implemented"});
-  });
+  router.use('/news', newsApi.router);
 
   return router;
 }
