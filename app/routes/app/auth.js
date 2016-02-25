@@ -83,6 +83,7 @@ router.post('/otp', function(req, res){
   using the token given and save in the user object
 */
 router.post('/signup', function(req, res){
+  //console.log("------>SIGNUP %j", req.body);
   var phone = req.body.phone;
   var googleToken = req.body.googleToken;
   var fbToken = req.body.fbToken;

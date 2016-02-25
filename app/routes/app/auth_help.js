@@ -88,8 +88,9 @@ function generateToken(userObject){
 
 function findToken(token){
   //console.log("findToken with token=%j", token);
-  var promise = TokenModel.findOne(
-    {_id : token}
+  var promise = TokenModel.findOneAndUpdate(
+    {_id : token},
+    {'$set' : {touch : true}}
   ).exec();
 
   return promise;
