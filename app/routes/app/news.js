@@ -37,6 +37,7 @@ router.get('/', function(req, res){
   promise = promise.then(null, function(err){
     cached = false;
     console.log("GET /app/news cache error -----> %j", err);
+    //use index on news {status:1, publishDate:1}
     return NewsModel
       .find({
         status : enumStatus.PUBLISHED,
@@ -45,15 +46,14 @@ router.get('/', function(req, res){
       .sort({
         status : 1,
         publishDate : 1,
-        editedAt : 1
       })
       .select({
         content : true,
-        imageUrl : true,
+        imageWeb : true,
+        imageMobile : true,
         publishDate : true,
-        categories : true,
-        tags : true
       })
+      .limit(30) //assuming max 30 news items for the date
       .exec();
   });
 

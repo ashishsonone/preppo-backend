@@ -74,7 +74,6 @@ router.get('/help', function(req, res){
   });
 });
 
-
 var uSchema = {
   "_id" : "string : mongodb object id",
   "username" : "string : could be phone number, fb id, google id",
@@ -177,6 +176,43 @@ router.get('/users/help', function(req, res){
           "x-session-token" : "<session token string> recieved during login or signup"
         },
         "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      }
+    ]
+  });
+});
+
+var ContentSchema = {
+  "heading" : "string",
+  "points" : "[string]"
+};
+
+var NewsSchema = {
+  "content" : {
+    "english" : "ContentSchema",
+    "hindi" : "ContentSchema"
+  },
+  "imageMobile" : "string",
+  "imageWeb" : "string",
+
+  "publishDate" : "date",
+};
+
+router.get('/news/help', function(req, res){
+  res.json({
+    message : "Welcome to news api home page", 
+    ContentSchema : ContentSchema,
+    NewsSchema : NewsSchema,
+    api : [
+      {
+        "endpoint" : "GET /v1/app/news/help", 
+        "info" : "See this help page",
+      },
+      {
+        "endpoint" : "GET /v1/app/news", 
+        "info" : "(login NOT required) Get published news items for given date",
+        "required query params" : "[date] - date will be of form 2016-02-27 (i.e. YYYY-MM-DD)",
+        "return" : "array of news items",
+        "possible errors" : "[]"
       }
     ]
   });

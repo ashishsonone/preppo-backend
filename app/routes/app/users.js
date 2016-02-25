@@ -1,7 +1,6 @@
 'use strict'
 
 var express = require('express');
-var mongoose = require('mongoose');
 
 var authApi = require('./auth');
 var authApiHelper = require('./auth_help');

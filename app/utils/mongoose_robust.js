@@ -4,6 +4,9 @@
 
 "use strict"
 var mongoose = require('mongoose');
+
+//mongoose.set('debug', true);
+
 var rsvp = require('rsvp').Promise;
 mongoose.Promise = rsvp;
 

@@ -1,7 +1,6 @@
 'use strict'
 
 var express = require('express');
-var mongoose = require('mongoose');
 
 var AdminUser = require('../../models/admin_user');
 var mailer = require('../../utils/mailer');

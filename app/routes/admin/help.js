@@ -136,7 +136,8 @@ router.get('/news/help', function(req, res){
           "english" : "ContentSchema",
           "hindi" : "ContentSchema"
         },
-        "imageUrl" : "string",
+        "imageMobile" : "string",
+        "imageWeb" : "string",
 
         "publishDate" : "date",
         "categories" : "[string]",
@@ -159,7 +160,7 @@ router.get('/news/help', function(req, res){
           "endpoint" : "POST /v1/admin/news/",
           "return" : "created news item",
           "required" : "[content, publishDate]",
-          "optional" : "[imageUrl, categories, tags]"
+          "optional" : "[imageWeb, imageMobile, categories, tags]"
         },
         {
           "info" : "get news items",
@@ -176,7 +177,7 @@ router.get('/news/help', function(req, res){
         {
           "info" : "update a news item",
           "endpoint" : "PUT /v1/admin/news/<newsid>",
-          "optional" : "[content, imageUrl, publishDate, categories, tags, status]",
+          "optional" : "[content, imageWeb, imageMobile, publishDate, categories, tags, status]",
           "return" : "updated news item"
         },
         {

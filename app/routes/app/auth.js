@@ -1,7 +1,6 @@
 'use strict'
 
 var express = require('express');
-var mongoose = require('mongoose');
 var passwordHash = require('password-hash');
 var RSVP = require('rsvp');
 

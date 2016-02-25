@@ -14,7 +14,8 @@ var NewsSchema = mongoose.Schema({
     hindi : ContentSchema
   },
 
-  imageUrl : String,
+  imageWeb : String,
+  imageMobile : String,
 
   //metadata
   publishDate : Date,

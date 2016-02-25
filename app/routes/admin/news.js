@@ -145,7 +145,9 @@ router.get('/', function(req, res){
     content (required) - array of ContentSchema
     publishDate (required) - date string
 
-    imageUrl (optional)
+    imageWeb (optional)
+    imageMobile (optional)
+
     categories (optional) - array
     tags (optional) - array
     
@@ -168,7 +170,8 @@ router.post('/', function(req, res){
   var content = req.body.content;
   var publishDate = req.body.publishDate;
 
-  var imageUrl = req.body.imageUrl;
+  var imageMobile = req.body.imageMobile;
+  var imageWeb = req.body.imageWeb;
   var categories = req.body.categories;
   var tags = req.body.tags;
 
@@ -177,7 +180,9 @@ router.post('/', function(req, res){
   newsItem.content = content;
   newsItem.publishDate = publishDate; //mongoose will cast it into date
 
-  newsItem.imageUrl = imageUrl;
+  //set optional
+  newsItem.imageMobile = imageMobile;
+  newsItem.imageWeb = imageWeb;
   newsItem.categories = categories ? categories : [];
   newsItem.tags = tags ? tags : [];
 
@@ -199,12 +204,13 @@ router.post('/', function(req, res){
 
 /*
   update a news item : it could be 
-    edit a news item detail - (content, imageUrl, publishDate, tags, categories)
+    edit a news item detail - (content, imageWeb, imageMobile, publishDate, tags, categories)
     or approve/publish a news by setting 'status'
 
   post parameters:
     content (optional)
-    imageUrl (optional)
+    imageWeb (optional)
+    imageMobile (optional)
 
     publishDate (optional)
     categories (optional)
@@ -239,8 +245,11 @@ router.put('/:id', function(req, res){
   if(req.body.content){
     changes.content = req.body.content;
   }
-  if(req.body.imageUrl){
-    changes.imageUrl = req.body.imageUrl;
+  if(req.body.imageMobile){
+    changes.imageMobile = req.body.imageMobile;
+  }
+  if(req.body.imageWeb){
+    changes.imageWeb = req.body.imageWeb;
   }
 
   if(req.body.publishDate){
