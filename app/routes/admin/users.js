@@ -85,6 +85,7 @@ router.post('/', function(req, res){
             "\npassword : " + user.password);
         var result = {};
         result.createdAt = user.createdAt;
+        result.updatedAt = user.updatedAt;
         result.email = user.email;
         result._id = user._id;
         result.role = user.role;
@@ -225,6 +226,7 @@ router.get('/me', function(req, res){
         newUser.role = user.role;
         newUser.name = user.name;
         newUser.createdAt = user.createdAt;
+        newUser.updatedAt = user.updatedAt;
         res.json(newUser);
         return;
       }

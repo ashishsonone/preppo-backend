@@ -24,7 +24,7 @@ var router = express.Router();
     gt : <date>(optional)
     lt : <date>(optional)
 
-    editedAt field is used for sorting results and filtering for gt, lt
+    updatedAt field is used for sorting results and filtering for gt, lt
 */
 
 router.get('/', function(req, res){
@@ -56,14 +56,14 @@ router.get('/', function(req, res){
   };
 
   if(gt){
-    query.editedAt = {'$gt' : gt};
+    query.updatedAt = {'$gt' : gt};
     limit = 100; //get all updated since last fetched (max 100)
   }
   else if(lt){
-    query.editedAt = {'$lt' : lt};
+    query.updatedAt = {'$lt' : lt};
   }
 
-  sortBy = {editedAt : -1}; //-1 means decreasing order
+  sortBy = {updatedAt : -1}; //-1 means decreasing order
 
   NewsQuizModel
     .find(query)
@@ -90,10 +90,8 @@ router.get('/', function(req, res){
     nickname : (required)
     
   auto filled:
-    uploadedAt //default value Date.now()
     uploadedBy //to current user email
     status //default value 'uploaded'
-    editedAt //equal to uploadedAt
 
   not set: //since status is 'uploaded'
     editedBy
@@ -115,9 +113,8 @@ router.post('/', function(req, res){
   quizItem.publishDate = publishDate;
   quizItem.nickname = nickname;
 
-  //auto fill (uploadedAt, status set by mongoose)
+  //auto fill (status set by mongoose)
   quizItem.uploadedBy = req.session.email;
-  quizItem.editedAt = quizItem.uploadedAt;
 
   quizItem.save(function(err, newItem){
     if(!err){
@@ -144,11 +141,9 @@ router.post('/', function(req, res){
 
   auto set:
     editedBy (to current user email)
-    editedAt (to current time)
 
   can not be changed:
     uploadedBy
-    uploadedAt
 */
 router.put('/:id', function(req, res){
   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
@@ -180,7 +175,6 @@ router.put('/:id', function(req, res){
     changes.status = req.body.status;
   }
 
-  changes.editedAt = Date.now();
   changes.editedBy = req.session.email;
 
   NewsQuizModel.findOneAndUpdate(

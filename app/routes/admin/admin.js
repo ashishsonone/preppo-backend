@@ -69,6 +69,7 @@ module.exports.router = function(sessionMiddleWare){
             newUser.role = user.role;
             newUser.name = user.name;
             newUser.createdAt = user.createdAt;
+            newUser.updatedAt = user.updatedAt;
             res.json(newUser);
             return;
           }

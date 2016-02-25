@@ -14,11 +14,12 @@ var NewsQuizSchema = mongoose.Schema({
   //admin
   status : {type : String, default : enumStatus.UPLOADED},
   editedBy : String, //email
-  editedAt : Date, //force to be equal to uploadedAt on creation
 
   //always
   uploadedBy : String, //email
-  uploadedAt : {type : Date, default : Date.now}
+},
+{
+  timestamps : {} //assigns default createdAt and updatedAt fields
 });
 
 //Mongoose#model(name, [schema], [collection], [skipInit])

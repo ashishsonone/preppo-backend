@@ -33,27 +33,27 @@ function helperGetByStatus(req, res){
     query = {};
     query.status = status;
     if(gt){
-      query.uploadedAt = {'$gt' : gt};
+      query.createdAt = {'$gt' : gt};
       limit = 100; //get all updated since last fetched (max 100)
     }
     else if(lt){
-      query.uploadedAt = {'$lt' : lt};
+      query.createdAt = {'$lt' : lt};
     }
 
-    sortBy = {uploadedAt : -1}; //-1 means decreasing order
+    sortBy = {createdAt : -1}; //-1 means decreasing order
   }
   else if(status === enumStatus.APPROVED || status === enumStatus.PUBLISHED){
     query = {};
     query.status = status;
     if(gt){
-      query.editedAt = {'$gt' : gt};
+      query.updatedAt = {'$gt' : gt};
       limit = 100;
     }
     else if(lt){
-      query.editedAt = {'$lt' : lt};
+      query.updatedAt = {'$lt' : lt};
     }
 
-    sortBy = {editedAt : -1};
+    sortBy = {updatedAt : -1};
   }
   else{
     res.json({message : "Not yet implemented"});
@@ -107,13 +107,15 @@ function helperGetByDate(req, res){
 /*get all news items
   get parameters: 
     status (required)
+    OR
+    date (required)
 
     limit : <integer> (optional)
     gt : <date>(optional)
     lt : <date>(optional)
 
-  if status='uploaded' then return latest uploaded news using 'uploadedAt' date
-  otherwise use 'editedAt' date field to return documents for 'approved' & 'published' news
+  if status='uploaded' then return latest uploaded news using 'createdAt' date
+  otherwise use 'updatedAt' date field to return documents for 'approved' & 'published' news
 */
 router.get('/', function(req, res){
   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
@@ -152,13 +154,11 @@ router.get('/', function(req, res){
     tags (optional) - array
     
   auto filled:
-    uploadedAt //default value Date.now()
     uploadedBy //to current user email
     status //default value 'uploaded'
 
   not set: //since status is 'uploaded'
     editedBy
-    editedAt
 */
 router.post('/', function(req, res){
   if(!(req.body.content && req.body.publishDate)){
@@ -186,7 +186,7 @@ router.post('/', function(req, res){
   newsItem.categories = categories ? categories : [];
   newsItem.tags = tags ? tags : [];
 
-  //auto fill (uploadedAt, status set by mongoose)
+  //auto fill (status set by mongoose)
   newsItem.uploadedBy = req.session.email;
 
   newsItem.save(function(err, newNewsItem){
@@ -220,11 +220,9 @@ router.post('/', function(req, res){
 
   auto set:
     editedBy (to current user email)
-    editedAt (to current time)
 
   can not be changed:
     uploadedBy
-    uploadedAt
 */
 router.put('/:id', function(req, res){
   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
@@ -266,7 +264,6 @@ router.put('/:id', function(req, res){
     changes.status = req.body.status;
   }
 
-  changes.editedAt = Date.now();
   changes.editedBy = req.session.email;
 
   NewsModel.findOneAndUpdate(

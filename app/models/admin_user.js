@@ -5,7 +5,9 @@ var AdminUserSchema = mongoose.Schema({
   name : String,
   password: String,
   role: String,
-  createdAt : {type: Date, default: Date.now}
+},
+{
+  timestamps : {} //assigns default createdAt and updatedAt fields
 });
 
 var enumRoles = {

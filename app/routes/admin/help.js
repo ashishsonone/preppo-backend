@@ -83,7 +83,8 @@ router.get('/users/help', function(req, res){
       "name" : "string",
       "password" : "string",
       "role" : "string",
-      "createdAt" : "date"
+      "createdAt" : "date",
+      "updatedAt" : "date"
     },
     api : [
       {
@@ -145,10 +146,10 @@ router.get('/news/help', function(req, res){
 
         "status" : "string",
         "editedBy" : "string",
-        "editedAt" : "date",
+        "updatedAt" : "date",
         
         "uploadedBy" : "string",
-        "uploadedAt" : "date"
+        "createdAt" : "date"
       },
       api : [
         {
@@ -169,8 +170,8 @@ router.get('/news/help', function(req, res){
           "required" : "status or date",
           "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
           "details" : [
-            "if status=uploaded, return latest 'uploaded' news items sorted by 'uploadedAt' time",
-            "if status=approved or published return 'approved' or 'published' items sorted by 'editedAt' time",
+            "if status=uploaded, return latest 'uploaded' news items sorted by 'createdAt' time",
+            "if status=approved or published return 'approved' or 'published' items sorted by 'updatedAt' time",
             "if status param missing but date given, return all news items(with all 3 status) for that publish date"
           ]
         },
@@ -201,10 +202,10 @@ router.get('/news/quiz/help', function(req, res){
 
         status : "string",
         editedBy : "string",
-        editedAt : "date",
+        updatedAt : "date",
 
         uploadedBy : "string",
-        uploadedAt : "date"
+        createdAt : "date"
       },
       api : [
         {
@@ -223,7 +224,7 @@ router.get('/news/quiz/help', function(req, res){
           "return" : "array of quiz items",
           "required" : "status",
           "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
-          "detail" : "return quiz entities ordered by editedAt timestamp"
+          "detail" : "return quiz entities ordered by updatedAt timestamp"
         },
         {
           "info" : "update a quiz item",
@@ -268,10 +269,10 @@ router.get('/news/quizquestion/help', function(req, res){
 
         status : "string",
         editedBy : "string",
-        editedAt : "date",
+        updatedAt : "date",
 
         uploadedBy : "string",
-        uploadedAt : "date"
+        createdAt : "date"
       },
       api : [
         {

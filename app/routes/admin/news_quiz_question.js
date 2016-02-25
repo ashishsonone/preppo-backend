@@ -28,10 +28,8 @@ var router = express.Router();
     
   auto filled:
     count //default value=0 (if no quizId param), o/w value=1
-    uploadedAt //default value Date.now()
     uploadedBy //to current user email
     status //default value 'uploaded'
-    editedAt //equal to uploadedAt
 
   not set: //since status is 'uploaded'
     editedBy
@@ -59,9 +57,8 @@ router.post('/', function(req, res){
     quizQuestion.category = category;
   }
 
-  //auto fill (uploadedAt, status, count set by mongoose)
+  //auto fill (status, count set by mongoose)
   quizQuestion.uploadedBy = req.session.email;
-  quizQuestion.editedAt = quizQuestion.uploadedAt;
 
   if(quizId){
     quizQuestion.count = 1;
@@ -104,11 +101,9 @@ router.post('/', function(req, res){
 
   auto set:
     editedBy (to current user email)
-    editedAt (to current time)
 
   can not be changed:
     uploadedBy
-    uploadedAt
 */
 router.put('/:id', function(req, res){
   if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
@@ -140,7 +135,6 @@ router.put('/:id', function(req, res){
     changes.status = req.body.status;
   }
 
-  changes.editedAt = Date.now();
   changes.editedBy = req.session.email;
 
   NewsQuizQuestionModel.findOneAndUpdate(
