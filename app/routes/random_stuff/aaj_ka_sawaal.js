@@ -155,6 +155,12 @@ router.get('/questions/', function(req, res){
 
 router.get('/questions/delete/', function(req, res){
   var publishDate = req.query.publishDate;
+  var secret = req.query.secret;
+  if(secret !== 'toofan'){
+    res.status(400);
+    return res.json({message : "Wrong secret key"});
+  }
+  
   AajKaSawaalQuestionModel.remove({publishDate : publishDate}, function(err){
     if(err){
       res.status(500);
@@ -170,14 +176,20 @@ var bulkPrefix = "Today's aajkasawaal is : ";
 router.post('/send', function(req, res){
   var content = req.body.content;
   var publishDate = req.body.publishDate;
-
-  console.log("******* aajkasawaal/send content=%s, publishDate=%s", content, publishDate);
+  var secret = req.body.secret;
+  
+  console.log("******* aajkasawaal/send content=%s, publishDate=%s, secret=%s", content, publishDate, secret);
 
   var currentISTDateString = moment().utcOffset('+0530').format('YYYY-MM-DD');
-  if(!(content && publishDate)){
+  if(!(content && publishDate && secret)){
     res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [content, publishDate]"));
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [content, publishDate, secret]"));
   };
+
+  if(secret !== 'toofaan'){
+    res.status(400);
+    return res.json({message : "Wrong secret key"});
+  }
 
   if(currentISTDateString != publishDate){
     res.status(400);
