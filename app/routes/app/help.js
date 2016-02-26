@@ -181,7 +181,7 @@ router.get('/users/help', function(req, res){
   });
 });
 
-var ContentSchema = {
+var NewsContentSchema = {
   "heading" : "string",
   "points" : "[string]"
 };
@@ -195,12 +195,14 @@ var NewsSchema = {
   "imageWeb" : "string",
 
   "publishDate" : "date",
+  "updatedAt" : "date string",
+  "createdAt" : "date string"
 };
 
 router.get('/news/help', function(req, res){
   res.json({
     message : "Welcome to news api home page", 
-    ContentSchema : ContentSchema,
+    ContentSchema : NewsContentSchema,
     NewsSchema : NewsSchema,
     api : [
       {
@@ -213,6 +215,71 @@ router.get('/news/help', function(req, res){
         "required query params" : "[date] - date will be of form 2016-02-27 (i.e. YYYY-MM-DD)",
         "return" : "array of news items",
         "possible errors" : "[]"
+      }
+    ]
+  });
+});
+
+
+var NewsQuizSchema = {
+  questionIdList : ["string"],
+  type : "string - e.g [weekly, daily, monthly]",
+  publishDate : "date string",
+  nickname : "string - e.g weekly-week-1-march, daily-2016-02-23",
+
+  updatedAt : "date string",
+  createdAt : "date string"
+};
+
+var NewsQuizQuestionOptionSchema = {
+  optionString : "string",
+  correct : "boolean"
+};
+
+var NewsQuizQuestionContentSchema = {
+  questionString : "string",
+  solution : "string",
+  options : ["NewsQuizQuestionOptionSchema"]
+};
+
+var NewsQuizQuestionSchema = {
+  content : {
+    english : "NewsQuizQuestionContentSchema",
+    hindi : "NewsQuizQuestionContentSchema"
+  },
+  level : "number",
+
+  updatedAt : "date string",
+  createdAt : "date string"
+};
+
+router.get('/news/quiz/help', function(req, res){
+  res.json({
+    message : "Welcome to news quiz api home page", 
+    NewsQuizSchema : NewsQuizSchema,
+    NewsQuizQuestionSchema : NewsQuizQuestionSchema,
+    NewsQuizQuestionContentSchema : NewsQuizQuestionContentSchema,
+    NewsQuizQuestionOptionSchema : NewsQuizQuestionOptionSchema,
+    api : [
+      {
+        "endpoint" : "GET /v1/app/news/quiz/help", 
+        "info" : "See this help page",
+      },
+      {
+        "endpoint" : "GET /v1/app/news/quiz", 
+        "info" : "(login NOT required) Get latest published quiz items. If 'lt' parameter provided, get all quiz items with publishDate<=lt",
+        "optional query params" : "[lt] - lt is date string in form YYYY-MM-DD",
+        "return" : "array of <NewsQuiz> items",
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "GET /v1/app/news/quiz/<quizid>",
+        "info" : "(login REQUIRED) get a quiz item with all its questions",
+        "return" : "[<NewsQuizQuestion>]",
+        "headers required" : {
+          "x-session-token" : "<session token string> recieved during login or signup"
+        },
+        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
       }
     ]
   });

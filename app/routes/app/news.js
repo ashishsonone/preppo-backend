@@ -43,15 +43,14 @@ router.get('/', function(req, res){
         status : enumStatus.PUBLISHED,
         publishDate : dateString, //it will get converted into date by mongoose :)
       })
-      .sort({
-        status : 1,
-        publishDate : 1,
-      })
       .select({
         content : true,
         imageWeb : true,
         imageMobile : true,
         publishDate : true,
+        
+        updatedAt : true,
+        createdAt : true
       })
       .limit(30) //assuming max 30 news items for the date
       .exec();

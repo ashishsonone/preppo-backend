@@ -8,6 +8,7 @@ var authApi = require('./auth');
 var authApiHelper = require('./auth_help');
 
 var newsApi = require('./news');
+var newsQuizApi = require('./news_quiz');
 var usersApi = require('./users');
 
 module.exports.router = function(){
@@ -31,6 +32,8 @@ module.exports.router = function(){
 
   //other routes
   router.use('/news', newsApi.router);
+
+  router.use('/news/quiz', newsQuizApi.router);
 
   return router;
 }
