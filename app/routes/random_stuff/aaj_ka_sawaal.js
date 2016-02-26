@@ -14,7 +14,8 @@ var router = express.Router();
 var AajKaSawaalQuestionSchema = mongoose.Schema({
   content : String,
   publishDate : Date,
-  sentCount : Number,
+  bulkSentCount : Number,
+  formSentCount : Number,
   bulk : Boolean
 },
 {
@@ -104,6 +105,9 @@ router.get('/zapier', function(req, res){
     }
     else{
       content = util.format(zapierContentWithQuestion, name, result.content);
+      AajKaSawaalQuestionModel.update({
+        publishDate : result.publishDate
+      }, {'$inc' : {formSentCount : 1}}).exec();
     }
 
     console.log("******* aajkasawaal/zapier %s content=%s", phone, content);
@@ -141,49 +145,71 @@ router.get('/questions/', function(req, res){
       var value = {};
       value.content = result.content;
       value.publishDate = moment(result.publishDate).format('YYYY-MM-DD');
-      value.sentCount = result.sentCount;
+      value.bulkSentCount = result.bulkSentCount;
+      value.formSentCount = result.formSentCount;
       value.bulk = result.bulk;
       res.json(value);
     }
   });
 });
 
+router.get('/questions/delete/', function(req, res){
+  var publishDate = req.query.publishDate;
+  AajKaSawaalQuestionModel.remove({publishDate : publishDate}, function(err){
+    if(err){
+      res.status(500);
+      res.json({message : "ERROR deleting question"});
+    }
+    else{
+      res.json({message : "SUCCESS deleted question"});
+    }
+  });
+});
+
+var bulkPrefix = "Today's aajkasawaal is : ";
 router.post('/send', function(req, res){
   var content = req.body.content;
   var publishDate = req.body.publishDate;
 
   console.log("******* aajkasawaal/send content=%s, publishDate=%s", content, publishDate);
 
+  var currentISTDateString = moment().utcOffset('+0530').format('YYYY-MM-DD');
   if(!(content && publishDate)){
     res.status(400);
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [content, publishDate]"));
   };
 
+  if(currentISTDateString != publishDate){
+    res.status(400);
+    return res.json({message : "Can only send today's message"});
+  }
+
   var newQuestion = new AajKaSawaalQuestionModel();
   newQuestion.content = content;
   newQuestion.publishDate = publishDate;
-  newQuestion.sentCount = 0;
+  newQuestion.bulkSentCount = 0;
+  newQuestion.formSentCount = 0;
   newQuestion.bulk = true;
 
   newQuestion.save(function(err, result){
     if(err || !result){
       res.status(500);
-      res.json({message : "FAILED TO SAVE QUESTION(may be duplicate entry)"});
+      res.json({message : "FAILED TO SAVE QUESTION(may be duplicate entry for same publishDate)"});
     }
     else{
       console.log("%j", req.body);
       var stream = AajKaSawaalUserModel.find().stream();
       var phoneList = [];
-      var batchSize = 2;
+      var batchSize = 50;
       stream.on('data', function(doc){
         phoneList.push(doc.phone);
         if(phoneList.length === batchSize){
           console.log("******* aajkasawaal/send sending next batch size=%s", phoneList.length);
-          sms.sendSingleMessage(phoneList.join(), content);
+          sms.sendSingleMessage(phoneList.join(), bulkPrefix + content);
 
           AajKaSawaalQuestionModel.update({
             publishDate : newQuestion.publishDate
-          }, {'$inc' : {sentCount : phoneList.length}}).exec();
+          }, {'$inc' : {bulkSentCount : phoneList.length}}).exec();
 
           phoneList = [];
         }
@@ -197,11 +223,11 @@ router.post('/send', function(req, res){
       stream.on('close', function () {
         if(phoneList.length > 0){
           console.log("******* aajkasawaal/send sending last remaining batch size=%s", phoneList.length);
-          sms.sendSingleMessage(phoneList.join(), content);
+          sms.sendSingleMessage(phoneList.join(), bulkPrefix + content);
 
           AajKaSawaalQuestionModel.update({
             publishDate : newQuestion.publishDate
-          }, {'$inc' : {sentCount : phoneList.length}}).exec();
+          }, {'$inc' : {bulkSentCount : phoneList.length}}).exec();
 
           phoneList = [];
         }
