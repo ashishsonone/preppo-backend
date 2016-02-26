@@ -30,6 +30,7 @@ var sessionConfig = require('./config/config').session;
 
 var adminApi = require('./app/routes/admin/admin');
 var appApi = require('./app/routes/app/api');
+var randomAajKaSawaalApi = require('./app/routes/random_stuff/aaj_ka_sawaal');
 
 var healthUtil = require('./app/utils/health');
 
@@ -91,7 +92,7 @@ morgan.token('id', function(req, res){ return myId; }); //define a new token to 
 
 //timestamp
 var formatString = 'YY-MM-DDTHH:mm:ss.SSSZ';
-morgan.token('ts', function(req, res){return moment().format(formatString)});
+morgan.token('ts', function(req, res){return moment().utcOffset('+0530').format(formatString)});
 //to get back moment time from the string : parsed = moment(string, formatString)
 var morganFormat = morgan('#:id :ts :method :url :status :response-time ms - :res[content-length]'); //define the new format
 app.use(morganFormat); //use the new format
@@ -121,6 +122,9 @@ app.use('/v1/admin', adminApi.router(adminSesionMiddleWare));
 //---------------------------------
 //product api
 app.use('/v1/app/', appApi.router());
+
+//random aaj ka sawaal api
+app.use('/v1/randomstuff/aajkasawaal', randomAajKaSawaalApi.router);
 
 //listen to port
 app.listen(appConfig.port);
