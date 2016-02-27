@@ -1,8 +1,14 @@
 "use strict"
 
 var gupshup = {
-  userid : "2000133095",
-  password : "wdq6tyUzP"
+  bulkAccount : {
+    userid : "2000133095",
+    password : "wdq6tyUzP"
+  },
+  otpAccount : {
+    userid : "2000149020",
+    password : "abc123"
+  }
 };
 
 var mailer = {

@@ -1,10 +1,22 @@
 var request = require('request');
 var gupshupConfig = require('../../config/common.js').gupshup;
+
+var otpAccountCredentails = gupshupConfig.otpAccount;
+var bulkAccountCredentails = gupshupConfig.bulkAccount;
+
 var RSVP = require('rsvp');
 var errUtils = require('./error');
 
+function sendOTP(phone, msg){
+  return sendSimpleMessage(phone, msg, otpAccountCredentails);
+}
+
+function sendBulk(phone, msg){
+  return sendSimpleMessage(phone, msg, bulkAccountCredentails);
+}
+
 //send a message to a single number
-function sendSingleMessage(phone, msg){
+function sendSimpleMessage(phone, msg, credentials){
   var options = {
     method : 'GET',
     uri : "https://enterprise.smsgupshup.com/GatewayAPI/rest",
@@ -15,8 +27,8 @@ function sendSingleMessage(phone, msg){
       msg_type : "TEXT",
 
       auth_scheme : "plain",
-      userid : gupshupConfig.userid,
-      password : gupshupConfig.password,
+      userid : credentials.userid,
+      password : credentials.password,
       
       v : "1.1",
       format : "text"      
@@ -42,5 +54,6 @@ function sendSingleMessage(phone, msg){
 }
 
 module.exports = {
-  sendSingleMessage : sendSingleMessage
+  sendOTP : sendOTP,
+  sendBulk : sendBulk,
 };

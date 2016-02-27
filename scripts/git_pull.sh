@@ -1,3 +1,3 @@
-echo "pulling updates from origin master"
+echo "fetching tags from origin master"
 cd /home/ashish/preppo-backend
-git pull origin master
+git fetch --tags
