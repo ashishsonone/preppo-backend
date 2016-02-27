@@ -39,7 +39,8 @@ var AajKaSawaalUserSchema = mongoose.Schema({
 var AajKaSawaalUserModel = mongoose.model('AajKaSawaalUser', AajKaSawaalUserSchema, 'random_aaj_ka_sawaal_user');
 
 var zapierContentWithoutQuestion = "Hi %s, welcome to aajkasawaal service. You will receive updates regularly now on your phone number";
-var zapierContentWithQuestion = "Hi %s, welcome to aajkasawaal service. Here is our picked aajkasawaal : %s";
+//var zapierContentWithQuestion = "Hi %s, welcome to aajkasawaal service. Here is our picked aajkasawaal : %s";
+var zapierContentWithQuestion = "Welcome %s. This is an INVITE ONLY community exclusive for serious banking exam aspirants. Now you will receive One Important Question Daily on your phone and email. Today's One important Question is: %s";
 var question = "Who is the railway minister of India?";
 
 function processPhoneNumber(phone){
@@ -160,7 +161,7 @@ router.get('/questions/delete/', function(req, res){
     res.status(400);
     return res.json({message : "Wrong secret key"});
   }
-  
+
   AajKaSawaalQuestionModel.remove({publishDate : publishDate}, function(err){
     if(err){
       res.status(500);
@@ -172,7 +173,7 @@ router.get('/questions/delete/', function(req, res){
   });
 });
 
-var bulkPrefix = "Today's aajkasawaal is : ";
+var bulkPrefix = "Today's One important Question is: ";
 router.post('/send', function(req, res){
   var content = req.body.content;
   var publishDate = req.body.publishDate;
