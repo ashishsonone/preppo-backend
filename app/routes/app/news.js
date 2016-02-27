@@ -14,7 +14,7 @@ var redisCache = require('../../utils/redis_cache');
 //START PATH /v1/app/news
 var router = express.Router();
 
-/*get news items for a particular date
+/*get news items for a particular date sorted by decreasing updatedAt
   required params:
     date : String (format YYYY-MM-DD)
   first look into cache, if not found then fetch from db and insert into cache
@@ -42,6 +42,9 @@ router.get('/', function(req, res){
       .find({
         status : enumStatus.PUBLISHED,
         publishDate : dateString, //it will get converted into date by mongoose :)
+      })
+      .sort({
+        updatedAt : -1
       })
       .select({
         content : true,

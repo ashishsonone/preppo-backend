@@ -41,8 +41,9 @@ router.post('/otp', function(req, res){
   //send otp
   promise = promise.then(function(result){
     console.log("otp saved in table");
-    var message = otp + " is your preppo verification code";
-    return sms.sendSingleMessage(phone, message);
+    //var message = "Your otp is " + otp;
+    var message = otp + " is your Knit verification code";
+    return sms.sendOTP(phone, message);
   });
 
   //check for result

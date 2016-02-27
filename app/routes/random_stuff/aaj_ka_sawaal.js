@@ -84,7 +84,7 @@ router.get('/zapier', function(req, res){
   var phone = req.query.phone;
   var name = req.query.name;
   var email = req.query.email;
-
+  
   phone = processPhoneNumber(phone);
 
   if(!(phone && name && email)){
@@ -112,7 +112,7 @@ router.get('/zapier', function(req, res){
     }
 
     console.log("******* aajkasawaal/zapier %s content=%s", phone, content);
-    var promise = sms.sendSingleMessage(phone, content);
+    var promise = sms.sendBulk(phone, content);
 
     promise.then(function(result){
       console.log("******* aajkasawaal/zapier %s sms result %j", phone, result);
@@ -218,7 +218,7 @@ router.post('/send', function(req, res){
         phoneList.push(doc.phone);
         if(phoneList.length === batchSize){
           console.log("******* aajkasawaal/send sending next batch size=%s", phoneList.length);
-          sms.sendSingleMessage(phoneList.join(), bulkPrefix + content);
+          sms.sendBulk(phoneList.join(), bulkPrefix + content);
 
           AajKaSawaalQuestionModel.update({
             publishDate : newQuestion.publishDate
@@ -236,7 +236,7 @@ router.post('/send', function(req, res){
       stream.on('close', function () {
         if(phoneList.length > 0){
           console.log("******* aajkasawaal/send sending last remaining batch size=%s", phoneList.length);
-          sms.sendSingleMessage(phoneList.join(), bulkPrefix + content);
+          sms.sendBulk(phoneList.join(), bulkPrefix + content);
 
           AajKaSawaalQuestionModel.update({
             publishDate : newQuestion.publishDate
