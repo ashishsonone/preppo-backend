@@ -14,6 +14,8 @@ function verifyOTP(otp, phone){
   //verify otp
   var currentTime = new Date();
   var allowedTime = new Date(currentTime.getTime() - 5*60*1000); //5 minute
+
+  //console.log(otp + " | " + phone + " | " + allowedTime.toISOString());
   var promise = OTPModel
   .findOne(
   {
@@ -21,8 +23,15 @@ function verifyOTP(otp, phone){
     phone : phone,
     createdAt : {'$gt' : allowedTime}
   })
-  .sort({createdAt : -1})
   .exec();
+
+  promise = promise.then(function(result){
+    if(!result){
+      throw errUtils.ErrorObject(errUtils.errors.INVALID_OTP, "invalid otp for " + phone, null, 400); 
+    }
+    return result; //simply pass on the result
+  });
+
   return promise;
 }
 
@@ -36,6 +45,18 @@ function findUser(username){
     //password field required for phone-password login
     __v : false,
   }).exec();
+
+  promise = promise.then(function(userObject){
+    //if user not found, throw appropriate error
+    if(!userObject){
+      throw errUtils.ErrorObject(errUtils.errors.USER_NOT_FOUND, "user not found in db", null, 400);
+      return;
+    }
+
+    //otherwise continue
+    return userObject;
+  });
+
   return promise;
 }
 
@@ -64,7 +85,19 @@ function createUser(data){
 
   var userObject = new UserModel(data);
 
-  return userObject.save();
+  var promise = userObject.save();
+  promise = promise.then(null, function(err){
+    if(err.code == 11000){
+      //console.log("catching and throwing : username duplicate err=%j", err);
+      throw errUtils.ErrorObject(errUtils.errors.USER_ALREADY_EXISTS, "username already exists", err, 400);
+      return;
+    }
+
+    //continue with error
+    throw err;
+  });
+
+  return promise;
 }
 
 function generateToken(userObject){
@@ -108,7 +141,6 @@ function findToken(token){
 
 function findTokenAndSetSession(req, res, next){
   var token = req.headers['x-session-token'];
-  var unauthenticatedError = errUtils.ErrorObject(errUtils.errors.UNAUTHENTICATED, "login is required to access this end point");
   
   if(!token){
     return next();

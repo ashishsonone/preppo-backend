@@ -59,6 +59,55 @@ router.post('/otp', function(req, res){
   });
 });
 
+/*social login/signup flow
+  verify token
+  find user
+  if user not found, create user
+
+  returns a promise with value user object
+*/
+function fbOrGoogleFlow(req){
+  var googleToken = req.body.googleToken;
+  var fbToken = req.body.fbToken;
+
+  var promise = null;
+  if(googleToken){
+    promise = socialUtils.verifyGoogleToken(googleToken);
+  }
+  else{
+    promise = socialUtils.verifyFBToken(fbToken);
+  }
+
+  var userInfo = null;
+  //non null promise
+  promise = promise.then(function(userDetails){
+    userInfo = userDetails;
+    return authHelp.findUser(userDetails.username);
+  });
+
+  promise = promise.then(null, function(err){
+    //if USER_NOT_FOUND error, then create that user
+    if(err && err.error === errUtils.errors.USER_NOT_FOUND){
+      //this means that token was verified successfully, hence userInfo would be non-null
+      return authHelp.createUser({
+        username : userInfo.username,
+        email : userInfo.email,
+        name : userInfo.name,
+
+        photo : req.body.photo,
+        location : req.body.location,
+        language : req.body.language
+      });
+    }
+
+    //continue with error
+    throw err;
+  });
+
+  //this promise would contain actual userObject on fulfill
+  return promise;
+}
+
 /*user signup
   post data:
     //phone only
@@ -88,7 +137,7 @@ router.post('/signup', function(req, res){
   var googleToken = req.body.googleToken;
   var fbToken = req.body.fbToken;
 
-  var promise = RSVP.reject(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "code error /signup", null, 500));
+  var promise = null;
 
   if(phone){
     //required
@@ -112,11 +161,6 @@ router.post('/signup', function(req, res){
 
     //create user
     promise = promise.then(function(result){
-      if(!result){
-        //console.log("error invalid otp");
-        throw errUtils.ErrorObject(errUtils.errors.INVALID_OTP, "invalid otp for " + phone, null, 400); 
-      }
-
       //console.log("generated otp = " + result.otp);
       return authHelp.createUser({
         username : phone,
@@ -133,34 +177,7 @@ router.post('/signup', function(req, res){
     });
   }
   else if(googleToken || fbToken){
-    //optional fields
-    var photo = req.body.photo;
-    var location = req.body.location;
-    var language = req.body.language;
-    
-    //verify google token and get user details
-    if(googleToken){
-      promise = socialUtils.verifyGoogleToken(googleToken);
-    }
-    else{
-      promise = socialUtils.verifyFBToken(fbToken);
-    }
-
-    promise = promise.then(function(userDetails){
-      //userDetails contains username(google or fb id), name, email
-      //we have optional photo and location seperately. 
-      //We are not filling phone; password field not required
-
-      return authHelp.createUser({
-        username : userDetails.username,
-        email : userDetails.email,
-        name : userDetails.name,
-
-        photo : photo,
-        location : location,
-        language : language
-      });
-    });
+    promise = fbOrGoogleFlow(req); //takes care of all the cases
   }
   else{
     //parameters required
@@ -174,22 +191,10 @@ router.post('/signup', function(req, res){
       //console.log("got user object" + userObject);
       //generate and return token
       return authHelp.generateToken(userObject);
-    },
-    function(err){
-      //check for special error
-      if(err.code == 11000){ //duplicate key error
-        //console.log("catching and throwing : username duplicate err=%j", err);
-        throw errUtils.ErrorObject(errUtils.errors.USER_ALREADY_EXISTS, "username already exists", err, 400);
-        return;
-      }
-
-      //console.log("propagating general error in or before createUser()")
-      //otherwise throw the same error
-      throw err; //can check if user was duplicate already exist
     }
   );
 
-  promise = promise.then(function(result){//contain both user token
+  promise = promise.then(function(result){//contain both user & token
     return res.json({'x-session-token' : result.token, user : result.user});
   });
 
@@ -229,7 +234,7 @@ router.post('/login', function(req, res){
   var googleToken = req.body.googleToken;
   var fbToken = req.body.fbToken;
 
-  var promise = RSVP.reject(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "code error /signup", null, 500));
+  var promise = null;
 
   var isPasswordLogin = false; //whether login using phone number and password
 
@@ -247,39 +252,19 @@ router.post('/login', function(req, res){
     }
 
     isPasswordLogin = password ? true : false;
+    promise = RSVP.resolve(true);
     if(!isPasswordLogin){
       //otp login
       promise = authHelp.verifyOTP(otp, phone);
-      //find user
-      promise = promise.then(
-        function(result){
-          if(!result){
-            //console.log("error invalid otp");
-            throw errUtils.ErrorObject(errUtils.errors.INVALID_OTP, "invalid otp for " + phone, null, 400); 
-          }
+    }
 
-          //find user
-          return authHelp.findUser(phone);
-        }
-      );
-    }
-    else{
-      //password login, just find the user using phone number and check password provided
-      promise = authHelp.findUser(phone);
-    }
+    //find user if all good
+    promise = promise.then(function(result){
+      return authHelp.findUser(phone);
+    });
   }
   else if(googleToken || fbToken){
-    //verify google or fb token and get user details
-    if(googleToken){
-      promise = socialUtils.verifyGoogleToken(googleToken);
-    }
-    else{
-      promise = socialUtils.verifyFBToken(fbToken);
-    }
-
-    promise = promise.then(function(userDetails){
-      return authHelp.findUser(userDetails.username);
-    });
+    promise = fbOrGoogleFlow(req);
   }
   else {
     res.status(400);
