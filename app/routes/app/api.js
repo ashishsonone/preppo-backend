@@ -9,6 +9,7 @@ var authApiHelper = require('./auth_help');
 
 var newsApi = require('./news');
 var newsQuizApi = require('./news_quiz');
+var statsNewsQuizApi = require('./stats_news_quiz');
 var usersApi = require('./users');
 
 module.exports.router = function(){
@@ -31,9 +32,10 @@ module.exports.router = function(){
   router.use('/users', usersApi.router);
 
   //other routes
-  router.use('/news', newsApi.router);
-
   router.use('/news/quiz', newsQuizApi.router);
+  router.use('/news', newsApi.router);
+  
+  router.use('/stats/news/quiz', statsNewsQuizApi.router);
 
   return router;
 }

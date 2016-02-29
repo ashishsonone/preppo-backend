@@ -350,10 +350,6 @@ router.post('/passwordreset', function(req, res){
   //generate token
   promise = promise.then(
     function(userObject){
-      if(!userObject){
-        throw errUtils.ErrorObject(errUtils.errors.USER_NOT_FOUND, "user not found in db", null, 400);
-      }
-
       return authHelp.generateToken(userObject);
     }
   );
