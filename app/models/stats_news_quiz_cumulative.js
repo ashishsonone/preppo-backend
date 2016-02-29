@@ -11,7 +11,8 @@ var StatsNewsQuizCumulativeSchema = mongoose.Schema({
   username : String, //username of user
   stats : mongoose.Schema.Types.Mixed //will look like this
   //stats : { 
-  //  politics : {attempted : 3, correct : 4}
+  //  politics : {a : 3, c : 1} //means 3 attempted, 1 correct
+  //  technology : {a : 7, c : 5}
   //}
 },
 {

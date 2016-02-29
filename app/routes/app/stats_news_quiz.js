@@ -22,7 +22,7 @@ router.get('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
     .findOne({username : username})
     .exec();
 
-  promise.then(function(result){
+  promise = promise.then(function(result){
     if(!result){
       throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "cumulative stats not found", null, 404);
       return;
@@ -30,7 +30,7 @@ router.get('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
     return res.json(result);
   });
 
-  promise.catch(function(err){
+  promise = promise.catch(function(err){
     //error caught and set earlier
     if(err.resStatus){
       res.status(err.resStatus);
@@ -49,8 +49,8 @@ router.get('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
   params required:
     statsUpdates : dictionary/map of key-values like 
       {
-        'politics' : { attempted : 3, correct : 2}.
-        'international' : {attempted :5, correct : 1}
+        'politics' : {a : 3, c : 2} //for sending 3 attempted, 2 correct
+        'international' : {a : 5, c : 1}
       }
 */
 router.put('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, res){
@@ -65,15 +65,15 @@ router.put('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
   var incrementChanges = {};
   for(var category in statsUpdates){
     stats = statsUpdates[category];
-    incrementChanges['stats.' + category + '.attempted'] = parseInt(stats['attempted']);
-    incrementChanges['stats.' + category + '.correct'] = parseInt(stats['correct']);
+    incrementChanges['stats.' + category + '.a'] = parseInt(stats.a) || 0;
+    incrementChanges['stats.' + category + '.c'] = parseInt(stats.c) || 0;
   }
 
   console.log("%j", incrementChanges);
 
   StatsNewsQuizCumulativeModel.findOneAndUpdate(
     {username :  username},
-    {'$set' : {username : username}, '$inc' : incrementChanges},
+    {'$inc' : incrementChanges},
     {new : true, upsert : true},
     function(err, result){
       if(!err && result){
@@ -90,11 +90,79 @@ router.put('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
 });
 
 router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
-  if(!req.query.month){
+  var month = req.query.month;
+  if(!month){
     return res.json({message : "params required : [month]"});
   }
-  res.json({message : "Hello " + req.session.username + ". Under construction !!"});
+
+  var username = req.session.username;
+
+  var promise = StatsNewsQuizIndividualModel
+    .findOne({username : username, month : month})
+    .exec();
+
+  promise = promise.then(function(result){
+    if(!result){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "individual monthly stats not found", null, 404);
+      return;
+    }
+    return res.json(result);
+  });
+
+  promise = promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error getting stats", err));  
+    }
+  });
 });
 
+/*update(or insert) individual quiz-wise stats bucketed monthly
+  params required:
+    month : string in for '2016-02' for feb 2016
+    quizId : object id of quiz
+    attempted : Number
+    correct : Number
+*/
+router.put('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
+  var month = req.body.month;
+  var quizId = req.body.quizId;
+  var attempted = parseInt(req.body.attempted) || 0;
+  var correct = parseInt(req.body.correct) || 0;
+
+  if(!(month && quizId && attempted && correct)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [month, quizId, attempted, correct]"));
+  }
+
+  var username = req.session.username; //from session
+
+  var setChanges = {};
+  setChanges['stats.' + quizId + '.a'] = attempted;
+  setChanges['stats.' + quizId + '.c'] = correct;
+
+  StatsNewsQuizIndividualModel.findOneAndUpdate(
+    {username :  username, month : month},
+    {'$set' : setChanges},
+    {new : true, upsert : true},
+    function(err, result){
+      if(!err && result){
+        res.json(result);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error updating individual stats", err));
+        return;
+      }
+    }
+  );
+});
 //db.cumulative.update({username : 'ashish'}, {$set : {username : 'ashish'}, $inc : {'stats.politics.attempted' :10, 'stats.politics.correct' : 7}}, {upsert : true})
 module.exports.router = router;
