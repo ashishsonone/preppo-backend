@@ -89,23 +89,31 @@ router.put('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
   );
 });
 
+/*get individual record of stats
+  params required:
+    months : command seperated e.g : ?months=2016-01,2016-02 
+*/
 router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
-  var month = req.query.month;
-  if(!month){
-    return res.json({message : "params required : [month]"});
+  var months = req.query.months;
+  if(!months){
+    return res.json({message : "params required : [months]"});
   }
+
+  var monthArray = null;
+  monthArray = months.split(',');
+  monthArray.map(function(x){return x.trim();}) //trim spaces around month values after splitting
 
   var username = req.session.username;
 
   var promise = StatsNewsQuizIndividualModel
-    .findOne({username : username, month : month})
+    .find({
+      username : username, 
+      month : {'$in' : monthArray}
+    })
+    .limit(12)
     .exec();
 
   promise = promise.then(function(result){
-    if(!result){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "individual monthly stats not found", null, 404);
-      return;
-    }
     return res.json(result);
   });
 
@@ -125,7 +133,7 @@ router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, r
 
 /*update(or insert) individual quiz-wise stats bucketed monthly
   params required:
-    month : string in for '2016-02' for feb 2016
+    month : string in form '2016-02' for feb 2016
     quizId : object id of quiz
     attempted : Number
     correct : Number
@@ -133,13 +141,15 @@ router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, r
 router.put('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
   var month = req.body.month;
   var quizId = req.body.quizId;
-  var attempted = parseInt(req.body.attempted) || 0;
-  var correct = parseInt(req.body.correct) || 0;
-
-  if(!(month && quizId && attempted && correct)){
+  var attempted = req.body.attempted;
+  var correct = req.body.correct;
+  if(!(month && quizId && attempted != undefined && correct != undefined)){
     res.status(400);
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [month, quizId, attempted, correct]"));
   }
+
+  attempted = parseInt(req.body.attempted) || 0;
+  correct = parseInt(req.body.correct) || 0;
 
   var username = req.session.username; //from session
 
@@ -164,5 +174,5 @@ router.put('/individual', authApiHelper.loginRequiredMiddleware, function(req, r
     }
   );
 });
-//db.cumulative.update({username : 'ashish'}, {$set : {username : 'ashish'}, $inc : {'stats.politics.attempted' :10, 'stats.politics.correct' : 7}}, {upsert : true})
+
 module.exports.router = router;

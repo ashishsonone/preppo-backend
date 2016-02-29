@@ -18,6 +18,10 @@ router.get('/help', function(req, res){
       {
         "endpoint" : "GET /v1/app/users/help",
         "info" : "help page for users api - get user info, update user info, etc",
+      },
+      {
+        "endpoint" : "GET /v1/app/stats/news/quiz/",
+        "info" : "help page for stats api for news quiz api - cumulative and individual",
       }
     ],
     errorObject : {
@@ -280,6 +284,76 @@ router.get('/news/quiz/help', function(req, res){
           "x-session-token" : "<session token string> recieved during login or signup"
         },
         "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      }
+    ]
+  });
+});
+
+router.get('/stats/news/quiz/help', function(req, res){
+  res.json({
+    message : "Welcome to stats api for news quiz home page", 
+    StatsNewsQuizCumulativeSchema: {
+      username : "string - username of user",
+      stats : {
+        "politics" : { "a" : "10 - number attempted", "c" : "6 - number correct"},
+        "international" : {"a" : 23, "c" : 19}
+      }
+    },
+    StatsNewsQuizIndividualSchema: {
+      username : "string - username of user",
+      month : "string in form '2016-02' for feb 2016",
+      stats : {
+        "<quizid-1>" : { "a" : "20 - number attempted", "c" : "16 - number correct"},
+        "<quizid-2>" : {"a" : 23, "c" : 19}
+      }
+    },
+    api : [
+      {
+        "endpoint" : "GET /v1/app/stats/news/quiz/help", 
+        "info" : "See this help page",
+      },
+      {
+        "endpoint" : "GET /v1/app/stats/news/quiz/cumulative", 
+        "info" : "(login required) Get your cumulative stats for news quiz",
+        "return" : "<StatsNewsQuizCumulativeSchema>",
+        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      },
+      {
+        "endpoint" : "PUT /v1/app/stats/news/quiz/cumulative", 
+        "info" : "(login required) update your cumulative stats for news quiz",
+        "required" : [
+          "statsUpdates - contains increments to be made in each category. " + 
+          "Must be a map like {'politics' : {'a' : 20, 'c' : 12}}. " + 
+          "See corresponding schema for what 'a' and 'c' means"
+          ],
+        "return" : "<StatsNewsQuizCumulativeSchema> - updated one",
+        "possible errors" : "[UNAUTHENTICATED]"
+      },
+      {
+        "endpoint" : "GET /v1/app/stats/news/quiz/individual",
+        "info" : "(login required) Get your individual quiz-wise stats for multiple given months",
+        "required params" : ["months - comma seperated month-strings. e.g ?months=2016-02,2016-01"],
+        "return" : "[<StatsNewsQuizCumulativeSchema>] - array - could be empty if not found",
+        "possible errors" : "[UNAUTHENTICATED]"
+      },
+      // {
+      //   "endpoint" : "GET /v1/app/stats/news/quiz/individual",
+      //   "info" : "(login required) Get your individual quiz-wise stats for the given month",
+      //   "required params" : ["month - e.g ?month=2016-02"],
+      //   "return" : "<StatsNewsQuizCumulativeSchema>",
+      //   "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      // },
+      {
+        "endpoint" : "PUT /v1/app/stats/news/quiz/individual", 
+        "info" : "(login required) update your individual stats for news quiz",
+        "required" : [
+          "month - string like 2016-02",
+          "quizId - object id of quiz",
+          "attempted - number",
+          "correct - number"
+          ],
+        "return" : "<StatsNewsQuizCumulativeSchema> - updated one",
+        "possible errors" : "[UNAUTHENTICATED]"
       }
     ]
   });
