@@ -7,6 +7,7 @@ var authApiHelper = require('./auth_help');
 
 var StatsNewsQuizCumulativeModel = require('../../models/stats_news_quiz_cumulative').model;
 var StatsNewsQuizIndividualModel = require('../../models/stats_news_quiz_individual').model;
+var StatsNewsQuizSingleModel = require('../../models/stats_news_quiz_single').model;
 
 var errUtils = require('../../utils/error');
 
@@ -169,6 +170,102 @@ router.put('/individual', authApiHelper.loginRequiredMiddleware, function(req, r
       else{
         res.status(500);
         res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error updating individual stats", err));
+        return;
+      }
+    }
+  );
+});
+
+/*get individual record of stats
+  params (optional):
+    lt : string - publishDate of quiz //default latest according to publishDate
+    limit : number //default 20 entries
+    miminal : number 0 or 1, //if not specified default is 0 (i.e all fields returned)
+*/
+router.get('/single', authApiHelper.loginRequiredMiddleware, function(req, res){
+  var username = req.session.username;
+  var ltDateString = req.query.lt;
+
+  console.log("%j", req.query);
+  var limit = parseInt(req.query.limit) || 20;
+  var minimal = parseInt(req.query.minimal) || 0;
+  var findQuery = {username : username};
+  if(ltDateString){
+    findQuery.publishDate = { '$lte' : ltDateString};
+  }
+
+  var selectFields = null;
+
+  //if minimal desired, select fields like quizId, attempted, correct
+  if(minimal === 1){
+    selectFields = {
+      quizId : true,
+      attempted : true,
+      correct : true
+    }
+  }
+
+  var promise = StatsNewsQuizSingleModel
+    .find(findQuery)
+    .sort({
+      publishDate : -1
+    })
+    .select(selectFields)
+    .limit(limit)
+    .exec();
+
+  promise = promise.then(function(result){
+    return res.json(result);
+  });
+
+  promise = promise.catch(function(err){
+    //uncaught error
+    res.status(500);
+    return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error getting stats", err));  
+  });
+});
+
+/*update(or insert) individual quiz-wise stats
+  params required:
+    publishDate : of quiz
+    quizId : object id of quiz
+    attempted : Number
+    correct : Number
+*/
+router.put('/single', authApiHelper.loginRequiredMiddleware, function(req, res){
+  var publishDate = req.body.publishDate;
+  var quizId = req.body.quizId;
+  var attempted = req.body.attempted;
+  var correct = req.body.correct;
+
+  if(!(publishDate && quizId && attempted != undefined && correct != undefined)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [publishDate, quizId, attempted, correct]"));
+  }
+
+  attempted = parseInt(req.body.attempted) || 0;
+  correct = parseInt(req.body.correct) || 0;
+
+  var username = req.session.username; //from session
+
+  var setChanges = {
+    publishDate : publishDate,
+    attempted : attempted,
+    correct : correct
+  };
+
+  StatsNewsQuizSingleModel.findOneAndUpdate(
+    {username :  username, quizId : quizId},
+    {'$set' : setChanges},
+    {new : true, upsert : true},
+    function(err, result){
+      if(!err && result){
+        res.json(result);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error updating single stats", err));
         return;
       }
     }
