@@ -28,10 +28,17 @@ var session = {
   secret : "hoohqwertykilometerprod"
 };
 
+var onesignal = {
+  //preppo-DEV
+  app_id : "fa97c8fe-2a0b-498e-ac4c-73a444ad0ceb",
+  rest_api_key : "YWJkMmI1MWUtMGI0Mi00NWVlLWI5NWQtZThlODAwNmJjNGQy"
+};
+
 module.exports = {
   app : app,
   cluster : cluster,
   mongo : mongo,
   session : session,
-  redis : redis
-}
+  redis : redis,
+  onesignal : onesignal
+};

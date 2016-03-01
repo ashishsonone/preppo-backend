@@ -39,10 +39,10 @@ function sendSimpleMessage(phone, msg, credentials){
 
   return new RSVP.Promise(function(resolve, reject){
     request(options, function(err, res, body){
-      console.log(res.statusCode + " " + res.body);
       if(err){
         return reject(errUtils.ErrorObject(errUtils.errors.THIRD_PARTY, "unknown error", err));
       }
+      console.log(res.statusCode + " " + res.body);
       if(!err && res && res.body && res.body.trim().substr(0,7) === 'success'){
         return resolve(res.body);
       }

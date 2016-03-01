@@ -103,4 +103,29 @@ router.put('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
   );
 });
 
+/*delete a given user
+  ENDPOINT EXISTS ONLY if server's process.env.ENV is 'local' or 'dev'
+  REQUIRED query param 'password'
+*/
+if(process.env.ENV === 'local' || process.env.ENV === 'dev'){
+  router.get('/:username/delete', function(req, res){
+    var p = req.query.password;
+    if(p !== "kitneaadmithe"){
+      return res.json({message : "wrong password"});
+    }
+
+    UserModel.remove(
+      {username : req.params.username}, 
+      function(err, result){
+        if(err){
+          res.status(500);
+          res.json(err);
+        }
+        else{
+          res.json(result);
+        }
+      }
+    );
+  });
+}
 module.exports.router = router;
