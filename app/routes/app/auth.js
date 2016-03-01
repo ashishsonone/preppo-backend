@@ -94,7 +94,7 @@ function fbOrGoogleFlow(req){
         email : userInfo.email,
         name : userInfo.name,
 
-        photo : req.body.photo,
+        photo : req.body.photo || userInfo.photo,
         location : req.body.location,
         language : req.body.language
       });

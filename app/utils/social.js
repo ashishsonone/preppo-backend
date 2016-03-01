@@ -35,6 +35,7 @@ function verifyGoogleToken(googleToken){
           user.name = result.name;
           user.email = result.email;
           user.username = result.sub;
+          user.photo = result.picture;
           return resolve(user);
         }
       }
@@ -52,7 +53,7 @@ function verifyFBToken(fbToken){
     },
     qs: {
       access_token: fbToken,
-      fields: "id,name,email"
+      fields: "id,name,email,picture"
     },
     json : true //parse response body into json
   };
@@ -69,6 +70,7 @@ function verifyFBToken(fbToken){
         user.name = result.name;
         user.email = result.email;
         user.username = result.id;
+        user.photo = result.picture && result.picture.data && result.picture.data.url;
         return resolve(user);
       }
 
