@@ -48,26 +48,26 @@ router.get('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
 
 /*update(or insert) cumulative stats of news quiz for logged-in user
   params required:
-    statsUpdates : dictionary/map of key-values like 
+    updates : dictionary/map of key-values like 
       {
-        'politics' : {a : 3, c : 2} //for sending 3 attempted, 2 correct
-        'international' : {a : 5, c : 1}
+        'politics' : {attempted : 3, correct : 2} //for sending 3 attempted, 2 correct
+        'international' : {attempted : 5, correct : 1}
       }
 */
 router.put('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, res){
-  if(!req.body.statsUpdates || req.body.statsUpdates.constructor !== Object){
+  if(!req.body.updates || req.body.updates.constructor !== Object){
     res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [statsUpdates]"));
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [updates]"));
   }
 
   var username = req.session.username; //from session
-  var statsUpdates = req.body.statsUpdates;
+  var updates = req.body.updates;
   var stats = null;
   var incrementChanges = {};
-  for(var category in statsUpdates){
-    stats = statsUpdates[category];
-    incrementChanges['stats.' + category + '.a'] = parseInt(stats.a) || 0;
-    incrementChanges['stats.' + category + '.c'] = parseInt(stats.c) || 0;
+  for(var category in updates){
+    stats = updates[category];
+    incrementChanges['stats.' + category + '.attempted'] = parseInt(stats.attempted) || 0;
+    incrementChanges['stats.' + category + '.correct'] = parseInt(stats.correct) || 0;
   }
 
   console.log("%j", incrementChanges);
@@ -94,7 +94,7 @@ router.put('/cumulative', authApiHelper.loginRequiredMiddleware, function(req, r
   params required:
     months : command seperated e.g : ?months=2016-01,2016-02 
 */
-router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
+/*router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
   var months = req.query.months;
   if(!months){
     return res.json({message : "params required : [months]"});
@@ -130,7 +130,7 @@ router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, r
       return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error getting stats", err));  
     }
   });
-});
+});*/
 
 /*update(or insert) individual quiz-wise stats bucketed monthly
   params required:
@@ -139,7 +139,7 @@ router.get('/individual', authApiHelper.loginRequiredMiddleware, function(req, r
     attempted : Number
     correct : Number
 */
-router.put('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
+/*router.put('/individual', authApiHelper.loginRequiredMiddleware, function(req, res){
   var month = req.body.month;
   var quizId = req.body.quizId;
   var attempted = req.body.attempted;
@@ -174,7 +174,7 @@ router.put('/individual', authApiHelper.loginRequiredMiddleware, function(req, r
       }
     }
   );
-});
+});*/
 
 /*get individual record of stats
   params (optional):
@@ -187,7 +187,10 @@ router.get('/single', authApiHelper.loginRequiredMiddleware, function(req, res){
   var ltDateString = req.query.lt;
 
   console.log("%j", req.query);
-  var limit = parseInt(req.query.limit) || 20;
+  var MAX_LIMIT = 20;
+  var limit = parseInt(req.query.limit) || MAX_LIMIT;
+  limit = limit > MAX_LIMIT ? MAX_LIMIT : limit;
+
   var minimal = parseInt(req.query.minimal) || 0;
   var findQuery = {username : username};
   if(ltDateString){
@@ -201,7 +204,8 @@ router.get('/single', authApiHelper.loginRequiredMiddleware, function(req, res){
     selectFields = {
       quizId : true,
       attempted : true,
-      correct : true
+      correct : true,
+      publishDate : true
     }
   }
 

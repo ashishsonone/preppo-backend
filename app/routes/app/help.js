@@ -295,17 +295,15 @@ router.get('/stats/news/quiz/help', function(req, res){
     StatsNewsQuizCumulativeSchema: {
       username : "string - username of user",
       stats : {
-        "politics" : { "a" : "10 - number attempted", "c" : "6 - number correct"},
-        "international" : {"a" : 23, "c" : 19}
+        "politics" : { "attempted" : 10, "correct" : 6},
+        "international" : {"attempted" : 23, "correct" : 19}
       }
     },
-    StatsNewsQuizIndividualSchema: {
+    StatsNewsQuizSingleSchema: {
       username : "string - username of user",
-      month : "string in form '2016-02' for feb 2016",
-      stats : {
-        "<quizid-1>" : { "a" : "20 - number attempted", "c" : "16 - number correct"},
-        "<quizid-2>" : {"a" : 23, "c" : 19}
-      }
+      publishDate : "date string - quiz publish date",
+      attempted : "number",
+      correct : "number"
     },
     api : [
       {
@@ -322,37 +320,33 @@ router.get('/stats/news/quiz/help', function(req, res){
         "endpoint" : "PUT /v1/app/stats/news/quiz/cumulative", 
         "info" : "(login required) update your cumulative stats for news quiz",
         "required" : [
-          "statsUpdates - contains increments to be made in each category. " + 
-          "Must be a map like {'politics' : {'a' : 20, 'c' : 12}}. " + 
-          "See corresponding schema for what 'a' and 'c' means"
+          "updates - contains increments to be made in each category. " + 
+          "Must be a map like {'politics' : {'attempted' : 20, 'correct' : 12}}. "
           ],
         "return" : "<StatsNewsQuizCumulativeSchema> - updated one",
         "possible errors" : "[UNAUTHENTICATED]"
       },
       {
-        "endpoint" : "GET /v1/app/stats/news/quiz/individual",
-        "info" : "(login required) Get your individual quiz-wise stats for multiple given months",
-        "required params" : ["months - comma seperated month-strings. e.g ?months=2016-02,2016-01"],
-        "return" : "[<StatsNewsQuizCumulativeSchema>] - array - could be empty if not found",
+        "endpoint" : "GET /v1/app/stats/news/quiz/single",
+        "info" : "(login required) Get your individual quiz-wise stats ordered by quiz publish date",
+        "optional params" : [
+          "lt - date string - to get older stats with publishDate <= lt",
+          "limit - number - how many items to return (max 20)",
+          "minimal - 0 or 1 - when minimal=1, return only fields=[_id, publishDate, quizId, attempted, correct]. Otherwise return all fields extra=[updatedAt, createdAt, username]"
+          ],
+        "return" : "[<StatsNewsQuizSingleSchema>] - array - could be empty if none found",
         "possible errors" : "[UNAUTHENTICATED]"
       },
-      // {
-      //   "endpoint" : "GET /v1/app/stats/news/quiz/individual",
-      //   "info" : "(login required) Get your individual quiz-wise stats for the given month",
-      //   "required params" : ["month - e.g ?month=2016-02"],
-      //   "return" : "<StatsNewsQuizCumulativeSchema>",
-      //   "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
-      // },
       {
-        "endpoint" : "PUT /v1/app/stats/news/quiz/individual", 
+        "endpoint" : "PUT /v1/app/stats/news/quiz/single", 
         "info" : "(login required) update your individual stats for news quiz",
         "required" : [
-          "month - string like 2016-02",
           "quizId - object id of quiz",
+          "publishDate - date string = quiz's publish date",
           "attempted - number",
           "correct - number"
           ],
-        "return" : "<StatsNewsQuizCumulativeSchema> - updated one",
+        "return" : "<StatsNewsQuizSingleSchema> - updated one",
         "possible errors" : "[UNAUTHENTICATED]"
       }
     ]
