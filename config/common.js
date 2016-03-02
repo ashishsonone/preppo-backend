@@ -24,8 +24,15 @@ var google = {
   ],
 };
 
-module.exports = {
+var debug = {
+  debugFlag : require('../app/utils/debug_flag').getDebugFlag()
+};
+
+var config = {
   gupshup : gupshup,
   mailer : mailer,
-  google : google
+  google : google,
+  debug : debug
 };
+
+module.exports = config;

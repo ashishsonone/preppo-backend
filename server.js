@@ -27,6 +27,7 @@ var GooseSession = require('goose-session');
 var appConfig = require('./config/config').app;
 var mongoConfig = require('./config/config').mongo;
 var sessionConfig = require('./config/config').session;
+var debugConfig = require('./config/common').debug;
 
 var adminApi = require('./app/routes/admin/admin');
 var appApi = require('./app/routes/app/api');
@@ -101,6 +102,14 @@ app.use(morganFormat); //use the new format
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
 
+// If debug flag is ON, then register this middleware
+// show debug stuff - request headers, query params & body
+if(debugConfig.debugFlag){
+  app.use(function(req, res, next){
+      console.log("HEADERS=%j || QUERY=%j || BODY=%j", req.headers, req.query, req.body);
+    next();
+  });
+}
 //--------------------------------
 //the admin api
 var gooseStore = GooseSession(mongoose, {
