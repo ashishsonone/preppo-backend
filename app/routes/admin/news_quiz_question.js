@@ -29,9 +29,9 @@ var router = express.Router();
   auto filled:
     count //default value=0 (if no quizId param), o/w value=1
     uploadedBy //to current user email
-    status //default value 'uploaded'
+    status //default value 'approved' (decision to simplify the upload process - NOW 'status' doesn't matter)
 
-  not set: //since status is 'uploaded'
+  not set: //will be set on PUT (when question is edited)
     editedBy
 */
 router.post('/', function(req, res){
@@ -153,6 +153,50 @@ router.put('/:id', function(req, res){
       }
     }
   );
+});
+
+/*
+  delete a quiz question
+
+  query params:
+    quizId : (optional) - if want to add it to the quiz also
+
+  Delete the question and if quizId provided, removes it from 
+  quiz's questionIdList
+*/
+router.delete('/:id', function(req, res){
+  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+    res.status(403);
+    res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
+    return;
+  }
+
+  var id = req.params.id;
+
+  var quizId = req.query.quizId; //remove it from quiz
+
+  if(!mongoose.Types.ObjectId.isValid(id)){
+    res.status(400);
+    res.json(errUtils.ErrorObject(errUtils.errors.INVALID_OBJECT_ID, "object id provided is invalid format"));
+    return;
+  }
+
+  var promise = NewsQuizRoute.pullQuestion(quizId, id);
+
+  promise = promise.then(function(result){
+    //delete the question
+    return NewsQuizQuestionModel.remove({_id : id});
+  });
+
+  promise = promise.then(function(result){
+    return res.json(result);
+  });
+
+  promise.catch(function(err){
+    res.status(500);
+    return res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to update question item", err));
+  });
+  
 });
 
 function fetchQuestions(questionIdList){

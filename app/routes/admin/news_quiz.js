@@ -278,7 +278,8 @@ router.get('/:id', function(req, res){
   });
 
 });
-//helper exports
+
+//add question
 function pushQuestion(quizId, questionId){
   var query = NewsQuizModel.findOneAndUpdate(
     {
@@ -295,5 +296,23 @@ function pushQuestion(quizId, questionId){
   return promise;
 }
 
+//remove question
+function pullQuestion(quizId, questionId){
+  var query = NewsQuizModel.findOneAndUpdate(
+    {
+      _id : quizId
+    },
+    {
+      '$pull' : { questionIdList : questionId }
+    },
+    {
+      new : true
+    }
+  );
+  var promise = query.exec(); 
+  return promise;
+}
+
 module.exports.router = router;
 module.exports.pushQuestion = pushQuestion;
+module.exports.pullQuestion = pullQuestion;

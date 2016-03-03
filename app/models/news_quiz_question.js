@@ -26,7 +26,7 @@ var NewsQuizQuestionSchema = mongoose.Schema({
   category : String,
 
   //admin
-  status : {type : String, default : enumStatus.UPLOADED},
+  status : {type : String, default : enumStatus.APPROVED},
   editedBy : String, //email
 
   //always

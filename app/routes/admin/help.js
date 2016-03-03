@@ -292,6 +292,12 @@ router.get('/news/quizquestion/help', function(req, res){
           "endpoint" : "PUT /v1/admin/news/quizquestion/<questionid>",
           "return" : "updated question item",
           "optional" : "[content, level, status]",
+        },
+        {
+          "info" : "delete a question entry and remove it from quiz",
+          "endpoint" : "DELETE /v1/admin/news/quizquestion/<questionid>",
+          "return" : "200 OK",
+          "optional Query params" : "quizId - to remove the question from that quiz"
         }
       ]
     }
