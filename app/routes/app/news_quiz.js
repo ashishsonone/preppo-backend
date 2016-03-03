@@ -18,6 +18,7 @@ var router = express.Router();
 /*get latest published quiz items(sorted by publishDate)
   optional params:
     lt : Date String (format YYYY-MM-DD)
+    limit : Number (max 30)
   first look into cache, if not found then fetch from db and insert into cache
 */
 router.get('/', authApiHelper.loginRequiredMiddleware, function(req, res){
@@ -26,8 +27,16 @@ router.get('/', authApiHelper.loginRequiredMiddleware, function(req, res){
   //find in cache
   var key = '/news/quiz?';
 
+  var MAX_LIMIT = 50;
+  var DEFAULT_LIMIT = 15;
+
+  var limit = parseInt(req.query.limit) || DEFAULT_LIMIT;
+  limit = limit > MAX_LIMIT ? MAX_LIMIT : limit;
+
+  key += 'limit=' + limit;
+
   if(ltDateString){
-    key += 'lt=' + ltDateString;
+    key += '&lt=' + ltDateString;
   }
 
   var promise = redisCache.getFromCache(key);
@@ -57,7 +66,7 @@ router.get('/', authApiHelper.loginRequiredMiddleware, function(req, res){
         updatedAt : true,
         createdAt : true
       })
-      .limit(20) //assuming max 30 news items for the date
+      .limit(limit)
       .exec();
   });
 

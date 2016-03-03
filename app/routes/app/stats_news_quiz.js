@@ -186,10 +186,15 @@ router.get('/single', authApiHelper.loginRequiredMiddleware, function(req, res){
   var username = req.session.username;
   var ltDateString = req.query.lt;
 
-  console.log("%j", req.query);
-  var MAX_LIMIT = 20;
-  var limit = parseInt(req.query.limit) || MAX_LIMIT;
+  //console.log("%j", req.query);
+  
+  var MAX_LIMIT = 50;
+  var DEFAULT_LIMIT = 20;
+
+  var limit = parseInt(req.query.limit) || DEFAULT_LIMIT;
   limit = limit > MAX_LIMIT ? MAX_LIMIT : limit;
+
+  //console.log("/single limit = " + limit);
 
   var minimal = parseInt(req.query.minimal) || 0;
   var findQuery = {username : username};

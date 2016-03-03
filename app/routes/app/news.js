@@ -21,7 +21,6 @@ var router = express.Router();
 */
 router.get('/', function(req, res){
   var dateString = req.query.date;
-  console.log('date=' + dateString);
 
   if(!dateString){
     res.status(400);

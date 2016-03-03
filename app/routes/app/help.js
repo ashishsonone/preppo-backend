@@ -226,7 +226,7 @@ router.get('/news/help', function(req, res){
 
 
 var NewsQuizSchema = {
-  questionIdList : ["string"],
+  //questionIdList : ["string"],
   type : "string - e.g [weekly, daily, monthly]",
   publishDate : "date string",
   nickname : "string - e.g weekly-week-1-march, daily-2016-02-23",
@@ -272,7 +272,9 @@ router.get('/news/quiz/help', function(req, res){
       {
         "endpoint" : "GET /v1/app/news/quiz", 
         "info" : "(login NOT required) Get latest published quiz items. If 'lt' parameter provided, get all quiz items with publishDate<=lt",
-        "optional query params" : "[lt] - lt is date string in form YYYY-MM-DD",
+        "optional query params" : [
+          "lt - lt is date string in form YYYY-MM-DD or ISO string. get quiz items with publishDate<=lt",
+          "limit - number of items to return - default=15, upper-limit=50"],
         "return" : "array of <NewsQuiz> items",
         "possible errors" : "[]"
       },
@@ -331,7 +333,7 @@ router.get('/stats/news/quiz/help', function(req, res){
         "info" : "(login required) Get your individual quiz-wise stats ordered by quiz publish date",
         "optional params" : [
           "lt - date string - to get older stats with publishDate <= lt",
-          "limit - number - how many items to return (max 20)",
+          "limit - number - how many items to return (max 50)",
           "minimal - 0 or 1 - when minimal=1, return only fields=[_id, publishDate, quizId, attempted, correct]. Otherwise return all fields extra=[updatedAt, createdAt, username]"
           ],
         "return" : "[<StatsNewsQuizSingleSchema>] - array - could be empty if none found",
