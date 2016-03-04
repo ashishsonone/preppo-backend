@@ -8,15 +8,15 @@ var RSVP = require('rsvp');
 var errUtils = require('./error');
 
 function sendOTP(phone, msg){
-  return sendSimpleMessage(phone, msg, otpAccountCredentails);
+  return sendSimpleMessage(phone, msg, otpAccountCredentails, "Text");
 }
 
 function sendBulk(phone, msg){
-  return sendSimpleMessage(phone, msg, bulkAccountCredentails);
+  return sendSimpleMessage(phone, msg, bulkAccountCredentails, "Unicode_text");
 }
 
 //send a message to a single number
-function sendSimpleMessage(phone, msg, credentials){
+function sendSimpleMessage(phone, msg, credentials, msgType){
   var options = {
     method : 'GET',
     uri : "https://enterprise.smsgupshup.com/GatewayAPI/rest",
@@ -24,7 +24,7 @@ function sendSimpleMessage(phone, msg, credentials){
       method : "SendMessage",
       send_to : phone,
       msg : msg,
-      msg_type : "TEXT",
+      msg_type : msgType,
 
       auth_scheme : "plain",
       userid : credentials.userid,

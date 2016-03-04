@@ -157,7 +157,7 @@ router.get('/questions/', function(req, res){
 router.get('/questions/delete/', function(req, res){
   var publishDate = req.query.publishDate;
   var secret = req.query.secret;
-  if(secret !== 'toofan'){
+  if(secret !== 'toofaan'){
     res.status(400);
     return res.json({message : "Wrong secret key"});
   }
@@ -247,6 +247,41 @@ router.post('/send', function(req, res){
         res.json({message : "success"});
       });
     }
+  });
+});
+
+router.post('/sendpreview', function(req, res){
+  var content = req.body.content;
+  var publishDate = req.body.publishDate;
+  var secret = req.body.secret;
+  var phone = req.body.phone;
+
+  console.log("******* aajkasawaal/sendpreview content=%s, publishDate=%s, secret=%s", content, publishDate, secret);
+
+  var currentISTDateString = moment().utcOffset('+0530').format('YYYY-MM-DD');
+  if(!(content && publishDate && secret && phone)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [content, publishDate, secret, phone]"));
+  };
+
+  if(secret !== 'toofaan'){
+    res.status(400);
+    return res.json({message : "Wrong secret key"});
+  }
+
+  if(currentISTDateString != publishDate){
+    res.status(400);
+    return res.json({message : "Can only send today's message"});
+  }
+
+  var promise = sms.sendBulk(phone, bulkPrefix + content);
+  promise.then(function(result){
+    res.json({success : true});    
+  });
+
+  promise.catch(function(err){
+    res.status(500);
+    res.json({message : "Error sending message. Please check message length", err : err});
   });
 });
 
