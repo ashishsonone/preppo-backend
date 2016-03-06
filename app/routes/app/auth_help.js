@@ -60,21 +60,6 @@ function findUser(username){
   return promise;
 }
 
-/*Update user and return updated user object promise
-*/
-function updateUserPassword(username, password){
-  var hashed = passwordHash.generate(password);
-  var changes = {
-    password : hashed
-  };
-  var promise = UserModel.findOneAndUpdate(
-    {username : username},
-    {'$set' : changes},
-    {new : true}
-  );
-  return promise;
-}
-
 function createUser(data){
   if(data.password){
     data.password = passwordHash.generate(data.password);
@@ -206,7 +191,6 @@ function logout(req, res){
 
 module.exports.verifyOTP = verifyOTP;
 module.exports.findUser = findUser;
-module.exports.updateUserPassword = updateUserPassword;
 module.exports.createUser = createUser;
 module.exports.generateToken = generateToken;
 module.exports.findToken = findToken;

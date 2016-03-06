@@ -135,13 +135,6 @@ router.get('/auth/help', function(req, res){
         "possible errors" : "[USER_NOT_FOUND, INVALID_OTP, INVALID_CREDENTIALS, INVALID_TOKEN]"
       },
       {
-        "endpoint" : "POST /v1/app/auth/passwordreset",
-        "info" : "Reset password for phone login and get session token",
-        "return" : {"user" : "<user object>", "x-session-token" : "<session token>(string)"},
-        "required" : "[phone, otp, password] - here password is new password to set",
-        "possible errors" : "[USER_NOT_FOUND, INVALID_OTP]"
-      },
-      {
         "endpoint" : "GET /v1/app/auth/logout",
         "info" : "User logout",
         "return" : "200 OK",
@@ -173,8 +166,8 @@ router.get('/users/help', function(req, res){
       },
       {
         "endpoint" : "PUT /v1/app/users/me", 
-        "info" : "(login required) Update info of current logged in user",
-        "optional" : "[name, photo, email, location, language]",
+        "info" : "(login required) Update info of current logged in user(including password reset)",
+        "optional" : "[name, photo, email, location, language, password]",
         "return" : "updated <user object>",
         "headers required" : {
           "x-session-token" : "<session token string> recieved during login or signup"

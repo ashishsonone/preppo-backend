@@ -1,6 +1,7 @@
 'use strict'
 
 var express = require('express');
+var passwordHash = require('password-hash');
 
 var authApi = require('./auth');
 var authApiHelper = require('./auth_help');
@@ -57,6 +58,7 @@ router.get('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
     email (optional)
     location (optional)
     language (optional)
+    password (optional)
 
   Can not update 'password' (for phone login : forgot password case)
   Use PUT /me/password instead
@@ -79,6 +81,9 @@ router.put('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
   }
   if(req.body.language){
     changes.language = req.body.language;
+  }
+  if(req.body.password){
+    changes.password = passwordHash.generate(req.body.password);
   }
 
   var promise = UserModel.findOneAndUpdate(
