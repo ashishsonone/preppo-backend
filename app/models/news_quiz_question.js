@@ -39,5 +39,4 @@ var NewsQuizQuestionSchema = mongoose.Schema({
 //Mongoose#model(name, [schema], [collection], [skipInit])
 module.exports = {
   model : mongoose.model('NewsQuizQuestion', NewsQuizQuestionSchema, 'news_quiz_question'),
-  enumStatus : enumStatus
 };

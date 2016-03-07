@@ -36,5 +36,4 @@ var NewsSchema = mongoose.Schema({
 //Mongoose#model(name, [schema], [collection], [skipInit])
 module.exports = {
   model : mongoose.model('News', NewsSchema, 'news'),
-  enumStatus : enumStatus
 };

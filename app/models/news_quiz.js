@@ -22,8 +22,14 @@ var NewsQuizSchema = mongoose.Schema({
   timestamps : {} //assigns default createdAt and updatedAt fields
 });
 
+var enumNewsQuizType = {
+  DAILY : 'Daily',
+  WEEKLY : 'Weekly',
+  MONTHLY : 'Monthly'
+};
+
 //Mongoose#model(name, [schema], [collection], [skipInit])
 module.exports = {
   model : mongoose.model('NewsQuiz', NewsQuizSchema, 'news_quiz'),
-  enumStatus : enumStatus
+  enumNewsQuizType : enumNewsQuizType
 };
