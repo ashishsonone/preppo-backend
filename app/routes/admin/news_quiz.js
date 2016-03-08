@@ -261,7 +261,24 @@ router.get('/:id', function(req, res){
     //no error means resultQuiz is non null
     var result = {};
     result.quiz = resultQuiz;
-    result.questionList = questionList;
+
+    //order questionList
+    var orderedQuestionList = []; //reset
+  
+    //create a ordered list of question items
+    var questionMap = {};
+    questionList.map(function(q){
+      questionMap[q._id] = q;
+    });
+
+    resultQuiz.questionIdList.map(function(qId){ //questionIdList won't be null
+      var q = questionMap[qId];
+      if(q != null){
+        orderedQuestionList.push(q);
+      }
+    });
+
+    result.questionList = orderedQuestionList;
     res.json(result);
     return RSVP.resolve(true);
   });

@@ -162,6 +162,8 @@ router.get('/:id', authApiHelper.loginRequiredMiddleware, function(req, res){
   var promise = redisCache.getFromCache(key);
   var cached = true; //hoping we will find in cache(used not to reinsert into cache)
 
+  var questionIdList = null; //ordered as stored in quiz entity
+
   //catch not-found-in-cache error and return find-in-db promise
   promise = promise.then(null, function(err){
     cached = false;
@@ -176,7 +178,7 @@ router.get('/:id', authApiHelper.loginRequiredMiddleware, function(req, res){
         return;
       }
 
-      var questionIdList = quiz.questionIdList;
+      questionIdList = quiz.questionIdList;
 
       return NewsQuizQuestionModel.find({
         '_id' : {
@@ -199,9 +201,27 @@ router.get('/:id', authApiHelper.loginRequiredMiddleware, function(req, res){
   });
 
   promise = promise.then(function(questionItems){
+    var orderedQuestionItems = questionItems; //default if cached
+
     //got the news items either from cache or db
     if(!cached){
-      var p = redisCache.putIntoCache(key, questionItems);
+      //only if not cached, order the question according to that in quiz
+      orderedQuestionItems = []; //reset
+    
+      //create a ordered list of question items
+      var questionMap = {};
+      questionItems.map(function(q){
+        questionMap[q._id] = q;
+      });
+
+      questionIdList.map(function(qId){ //questionIdList won't be null
+        var q = questionMap[qId];
+        if(q != null){
+          orderedQuestionItems.push(q);
+        }
+      });
+
+      var p = redisCache.putIntoCache(key, orderedQuestionItems);
       
       //debug
       p.then(function(r){
@@ -211,7 +231,7 @@ router.get('/:id', authApiHelper.loginRequiredMiddleware, function(req, res){
       });
     }
 
-    return res.json(questionItems);
+    return res.json(orderedQuestionItems);
   });
 
   promise.catch(function(err){
