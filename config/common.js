@@ -7,7 +7,7 @@ var gupshup = {
   },
   otpAccount : {
     userid : "2000149020",
-    password : "abc123"
+    password : "gupshup@preppo123"
   }
 };
 
