@@ -93,6 +93,12 @@ var uSchema = {
   "updatedAt" : "string : date in iso 8601 format"
 };
 
+var UserInviteSchema = {
+  "username" : "string - unique",
+  "code" : "unique invite code for each user - e.g ASHI0231",
+  "inviteList" : "array of usernames of people successfully invited"
+};
+
 router.get('/auth/help', function(req, res){
   res.json({
     message : "Welcome to auth api home page", 
@@ -150,6 +156,7 @@ router.get('/users/help', function(req, res){
   res.json({
     message : "Welcome to users api home page", 
     UserSchema : uSchema,
+    UserInviteSchema : UserInviteSchema,
     api : [
       {
         "endpoint" : "GET /v1/app/users/help", 
@@ -169,6 +176,15 @@ router.get('/users/help', function(req, res){
         "info" : "(login required) Update info of current logged in user(including password reset)",
         "optional" : "[name, photo, email, location, language, password]",
         "return" : "updated <user object>",
+        "headers required" : {
+          "x-session-token" : "<session token string> recieved during login or signup"
+        },
+        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      },
+      {
+        "endpoint" : "GET /v1/app/users/me/invite", 
+        "info" : "(login required) get UserInvite object",
+        "return" : "<User Invite object>",
         "headers required" : {
           "x-session-token" : "<session token string> recieved during login or signup"
         },
@@ -220,7 +236,7 @@ router.get('/news/help', function(req, res){
 
 var NewsQuizSchema = {
   //questionIdList : ["string"],
-  type : "string - e.g [weekly, daily, monthly]",
+  type : "string - e.g [Weekly, Daily, Monthly]",
   publishDate : "date string",
   nickname : "string - e.g weekly-week-1-march, daily-2016-02-23",
 
@@ -264,9 +280,13 @@ router.get('/news/quiz/help', function(req, res){
       },
       {
         "endpoint" : "GET /v1/app/news/quiz", 
-        "info" : "(login NOT required) Get latest published quiz items. If 'lt' parameter provided, get all quiz items with publishDate<=lt",
+        "info" : [
+          "(login required)",
+          "if 'lt' param NOT given return only 1 latest daily quiz, and all weekly and monthly quizzes. The daily quiz will be at the top",
+          "if 'lt' param given, return only weekly & monthly quizzes with publishDate <= lt"
+        ],
         "optional query params" : [
-          "lt - lt is date string in form YYYY-MM-DD or ISO string. get quiz items with publishDate<=lt",
+          "lt - lt is date string in form YYYY-MM-DD or ISO string. get weekly and monthly quiz items with publishDate<=lt",
           "limit - number of items to return - default=15, upper-limit=50"],
         "return" : "array of <NewsQuiz> items",
         "possible errors" : "[]"

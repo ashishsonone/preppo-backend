@@ -6,6 +6,8 @@ var passwordHash = require('password-hash');
 var authApi = require('./auth');
 var authApiHelper = require('./auth_help');
 var UserModel = require('../../models/user').model;
+var UserInviteModel = require('../../models/user_invite').model;
+var stringUtils = require('../../utils/string_utils');
 
 var errUtils = require('../../utils/error');
 
@@ -133,4 +135,129 @@ if(process.env.ENV === 'local' || process.env.ENV === 'dev'){
     );
   });
 }
+
+var AtoZ = "ABCDEFGHIJKLMNOPQRSTUVWY".split(''); //exclude X and Z
+
+function createInvite(req){
+  //find user using username or _id
+  var username = req.session.username;
+  var promise = UserModel.findOne({
+    username : username
+  });
+
+  var codeName = null;
+  var codeNumber = null;
+
+  promise = promise.then(function(userObject){
+    console.log("user object %j", userObject);
+
+    if(userObject == null){
+      throw res.json(errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "user not found", null, 404));
+    }
+    var name = userObject.name;
+    name = name.replace(/\W/g, '').toUpperCase();
+
+    if(name.length < 4){ //one extra letter for later purposes
+      name += stringUtils.getRandomString(4, AtoZ);
+    }
+
+    codeName = name.slice(0, 4);
+    var regex = new RegExp('^' + codeName);
+    //find last invite code starting with codeName
+    return UserInviteModel
+      .find({
+        code : {'$regex' : regex}
+      })
+      .sort({
+        code : -1
+      })
+      .limit(1)
+      .exec();
+
+  });
+
+  promise = promise.then(function(lastInviteList){
+    console.log("last invite list " + lastInviteList.length);
+    var code;
+    if(lastInviteList.length == 0){
+      codeNumber = "0001";
+    }
+    else{
+      var code = lastInviteList[0].code;
+
+      //extract codeName and codeNumber (it could be ASHIB0023 i.e 5 letter code name instead of 4 letter code name)
+      codeName = code.replace(/[0-9]+/, '');
+
+      codeNumber = code.replace(/[a-zA-Z]+/, '');
+
+      codeNumber = parseInt(codeNumber);
+      if(codeNumber < 9999){
+        codeNumber = codeNumber + 1; //Math.floor(Math.random()*2 + 1); //increment by 1 or 2
+        codeNumber = stringUtils.padZeroes(codeNumber, 4);
+      }
+      else {
+        //need to get next codeName
+        if(codeName.length <= 4){
+          //first 5 letter codeName with given prefix - by adding 'A' at end
+          codeName = codeName + "A";
+        }
+        else{
+          //increment the last character of codeName part(hoping it won't reach 'Z' ever)
+          var codeNameLen = codeName.length;
+          var nextChar = String.fromCharCode(codeName.charCodeAt(codeNameLen - 1) + 1);
+          codeName = codeName.slice(0, codeNameLen - 1) + nextChar;
+        }
+        codeNumber = "0001";
+      }
+    }
+
+    //save this UserInvite object
+    var invite = new UserInviteModel();
+    invite.username = username;
+    invite.code = codeName + codeNumber;
+    invite.inviteList = [];
+    console.log("invite to save %j", invite);
+    return invite.save();
+  });
+
+  return promise;
+}
+
+/* return UserInvite for logged in user
+   if it doesnot exist create one and return
+*/
+router.get('/me/invite', authApiHelper.loginRequiredMiddleware, function(req, res){
+  var username = req.session.username;
+
+  var promise = UserInviteModel.findOne({
+    username : username
+  }).exec();
+
+  promise = promise.then(function(invite){
+    if(invite != null){
+      return invite;
+    }
+    console.log("/invite creating");
+    return createInvite(req);
+  });
+
+  promise = promise.then(function(invite){
+    //invite will be non null(either found or saved)
+    res.json(invite);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to get your invite", err));
+    }
+  });
+});
+
 module.exports.router = router;
