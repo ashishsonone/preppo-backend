@@ -182,9 +182,18 @@ router.get('/users/help', function(req, res){
         "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
       },
       {
-        "endpoint" : "GET /v1/app/users/me/invite", 
-        "info" : "(login required) get UserInvite object",
+        "endpoint" : "GET /v1/app/users/invites/me", 
+        "info" : "(login required) get my UserInvite object",
         "return" : "<User Invite object>",
+        "headers required" : {
+          "x-session-token" : "<session token string> recieved during login or signup"
+        },
+        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      },
+      {
+        "endpoint" : "PUT /v1/app/users/invites/<code>", 
+        "info" : "(login required) use the code. i.e add current user to inviteList of given invite code",
+        "return" : "200 OK",
         "headers required" : {
           "x-session-token" : "<session token string> recieved during login or signup"
         },

@@ -27,7 +27,7 @@ router.get('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
     function(user){
       if(!user){
         //username doesnot exist, throw error
-        throw res.json(errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "requested resource not found", null, 404));
+        throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "requested resource not found", null, 404);
         return;
       }
       else{
@@ -152,7 +152,7 @@ function createInvite(req){
     console.log("user object %j", userObject);
 
     if(userObject == null){
-      throw res.json(errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "user not found", null, 404));
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "user not found", null, 404);
     }
     var name = userObject.name;
     name = name.replace(/\W/g, '').toUpperCase();
@@ -226,7 +226,7 @@ function createInvite(req){
 /* return UserInvite for logged in user
    if it doesnot exist create one and return
 */
-router.get('/me/invite', authApiHelper.loginRequiredMiddleware, function(req, res){
+router.get('/invites/me', authApiHelper.loginRequiredMiddleware, function(req, res){
   var username = req.session.username;
 
   var promise = UserInviteModel.findOne({
@@ -244,6 +244,45 @@ router.get('/me/invite', authApiHelper.loginRequiredMiddleware, function(req, re
   promise = promise.then(function(invite){
     //invite will be non null(either found or saved)
     res.json(invite);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to get your invite", err));
+    }
+  });
+});
+
+/* return UserInvite for logged in user
+   if it doesnot exist create one and return
+*/
+router.put('/invites/:code', authApiHelper.loginRequiredMiddleware, function(req, res){
+  var username = req.session.username;
+  var code = req.params.code;
+  var promise = UserInviteModel.findOneAndUpdate(
+    {
+      code : code
+    },
+    {
+      '$addToSet' : { inviteList : username }
+    },
+    {
+      new : true
+    }
+  );
+
+  promise = promise.then(function(invite){
+    if(invite == null){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "invite code not found", null, 404);
+    }
+    res.json({success : true});
   });
 
   promise.catch(function(err){
