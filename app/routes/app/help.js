@@ -208,6 +208,12 @@ var NewsContentSchema = {
   "points" : "[string]"
 };
 
+var NewsMonthlyDigestSchema = {
+  "name" : "string",
+  "publishDate" : "date string",
+  "url" : "string"
+};
+
 var NewsSchema = {
   "content" : {
     "english" : "ContentSchema",
@@ -226,6 +232,7 @@ router.get('/news/help', function(req, res){
     message : "Welcome to news api home page", 
     ContentSchema : NewsContentSchema,
     NewsSchema : NewsSchema,
+    MonthlyDigestSchema : NewsMonthlyDigestSchema,
     api : [
       {
         "endpoint" : "GET /v1/app/news/help", 
@@ -236,6 +243,12 @@ router.get('/news/help', function(req, res){
         "info" : "(login NOT required) Get published news items for given date",
         "required query params" : "[date] - date will be of form 2016-02-27 (i.e. YYYY-MM-DD)",
         "return" : "array of news items",
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "GET /v1/app/news/monthlydigest", 
+        "info" : "(login required) Get list of monthly digest items",
+        "return" : "array of monthly digest items",
         "possible errors" : "[]"
       }
     ]
