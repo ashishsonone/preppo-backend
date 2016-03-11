@@ -137,6 +137,8 @@ if(process.env.ENV === 'local' || process.env.ENV === 'dev'){
 }
 
 var AtoZ = "ABCDEFGHIJKLMNOPQRSTUVWY".split(''); //exclude X and Z
+var DEFAULT_CODENAME_LEN = 2;
+var DEFAULT_CODENUMBER_START = "1001";
 
 function createInvite(req){
   //find user using username or _id
@@ -157,11 +159,11 @@ function createInvite(req){
     var name = userObject.name;
     name = name.replace(/\W/g, '').toUpperCase();
 
-    if(name.length < 4){ //one extra letter for later purposes
-      name += stringUtils.getRandomString(4, AtoZ);
+    if(name.length < DEFAULT_CODENAME_LEN){
+      name += stringUtils.getRandomString(DEFAULT_CODENAME_LEN, AtoZ);
     }
 
-    codeName = name.slice(0, 4);
+    codeName = name.slice(0, DEFAULT_CODENAME_LEN);
     var regex = new RegExp('^' + codeName);
     //find last invite code starting with codeName
     return UserInviteModel
@@ -180,7 +182,7 @@ function createInvite(req){
     console.log("last invite list " + lastInviteList.length);
     var code;
     if(lastInviteList.length == 0){
-      codeNumber = "0001";
+      codeNumber = DEFAULT_CODENUMBER_START;
     }
     else{
       var code = lastInviteList[0].code;
@@ -197,8 +199,8 @@ function createInvite(req){
       }
       else {
         //need to get next codeName
-        if(codeName.length <= 4){
-          //first 5 letter codeName with given prefix - by adding 'A' at end
+        if(codeName.length <= DEFAULT_CODENAME_LEN){
+          //first 3 letter codeName with given prefix - by adding 'A' at end
           codeName = codeName + "A";
         }
         else{
@@ -207,7 +209,7 @@ function createInvite(req){
           var nextChar = String.fromCharCode(codeName.charCodeAt(codeNameLen - 1) + 1);
           codeName = codeName.slice(0, codeNameLen - 1) + nextChar;
         }
-        codeNumber = "0001";
+        codeNumber = DEFAULT_CODENUMBER_START;
       }
     }
 
