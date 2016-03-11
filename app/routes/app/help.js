@@ -95,7 +95,7 @@ var uSchema = {
 
 var UserInviteSchema = {
   "username" : "string - unique",
-  "code" : "unique invite code for each user - e.g ASHI0231",
+  "code" : "unique invite code for each user - e.g AS0231",
   "inviteList" : "array of usernames of people successfully invited"
 };
 
@@ -111,7 +111,11 @@ router.get('/auth/help', function(req, res){
       {
         "endpoint" : "POST /v1/app/auth/signup", 
         "info" : "User signup",
-        "return" : {"user" : "<user object>", "x-session-token" : "<session token>(string)"},
+        "return" : {
+          "user" : "<user object>", 
+          "x-session-token" : "<session token>(string)",
+          "invite" : "<user invite> object - see /v1/app/users/help for its schema"
+        },
         "required" : [
           "for phone : [phone, otp, name, password]",
           "for fb : [fbToken]",
@@ -132,7 +136,11 @@ router.get('/auth/help', function(req, res){
       {
         "endpoint" : "POST /v1/app/auth/login",
         "info" : "User login",
-        "return" : {"user" : "<user object>", "x-session-token" : "<session token>(string)"},
+        "return" : {
+          "user" : "<user object>", 
+          "x-session-token" : "<session token>(string)",
+          "invite" : "<user invite> object - see /v1/app/users/help for its schema"
+        },
         "required" : [
           "for phone login : [(phone & otp) OR (phone & password)]",
           "for fb : [fbToken]",
@@ -185,15 +193,6 @@ router.get('/users/help', function(req, res){
         "endpoint" : "GET /v1/app/users/invites/me", 
         "info" : "(login required) get my UserInvite object",
         "return" : "<User Invite object>",
-        "headers required" : {
-          "x-session-token" : "<session token string> recieved during login or signup"
-        },
-        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
-      },
-      {
-        "endpoint" : "PUT /v1/app/users/invites/<code>", 
-        "info" : "(login required) use the code. i.e add current user to inviteList of given invite code",
-        "return" : "200 OK",
         "headers required" : {
           "x-session-token" : "<session token string> recieved during login or signup"
         },

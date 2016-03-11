@@ -3,7 +3,6 @@
 var express = require('express');
 var passwordHash = require('password-hash');
 
-var authApi = require('./auth');
 var authApiHelper = require('./auth_help');
 var UserModel = require('../../models/user').model;
 var UserInviteModel = require('../../models/user_invite').model;
@@ -136,47 +135,42 @@ if(process.env.ENV === 'local' || process.env.ENV === 'dev'){
   });
 }
 
-var AtoZ = "ABCDEFGHIJKLMNOPQRSTUVWY".split(''); //exclude X and Z
+var AtoZ = "ABCDEFGHJKLMNPQRSTUVWY".split(''); //exclude confusing(I,O) and unwanted (X,Z)
 var DEFAULT_CODENAME_LEN = 2;
 var DEFAULT_CODENUMBER_START = "1001";
 
-function createInvite(req){
-  //find user using username or _id
-  var username = req.session.username;
-  var promise = UserModel.findOne({
-    username : username
-  });
-
+/*
+  param : non-null userObject
+*/
+function createInvite(userObject){
   var codeName = null;
   var codeNumber = null;
+  var username = userObject.username;
 
-  promise = promise.then(function(userObject){
-    console.log("user object %j", userObject);
+  console.log("user object %j", userObject);
 
-    if(userObject == null){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "user not found", null, 404);
-    }
-    var name = userObject.name;
-    name = name.replace(/\W/g, '').toUpperCase();
+  var name = userObject.name;
+  name = name.replace(/\W/g, '').toUpperCase(); //keep only alpha numeric characters
+  name = name.replace(/[IO]/g, ''); //remove confusing uppercase letters
+                                    //like 'I'(confused with '1')
+                                    //& 'O' (confused with '0')
 
-    if(name.length < DEFAULT_CODENAME_LEN){
-      name += stringUtils.getRandomString(DEFAULT_CODENAME_LEN, AtoZ);
-    }
+  if(name.length < DEFAULT_CODENAME_LEN){
+    name += stringUtils.getRandomString(DEFAULT_CODENAME_LEN, AtoZ);
+  }
 
-    codeName = name.slice(0, DEFAULT_CODENAME_LEN);
-    var regex = new RegExp('^' + codeName);
-    //find last invite code starting with codeName
-    return UserInviteModel
-      .find({
-        code : {'$regex' : regex}
-      })
-      .sort({
-        code : -1
-      })
-      .limit(1)
-      .exec();
-
-  });
+  codeName = name.slice(0, DEFAULT_CODENAME_LEN);
+  var regex = new RegExp('^' + codeName);
+  //find last invite code starting with codeName
+  var promise = UserInviteModel
+    .find({
+      code : {'$regex' : regex}
+    })
+    .sort({
+      code : -1
+    })
+    .limit(1)
+    .exec();
 
   promise = promise.then(function(lastInviteList){
     console.log("last invite list " + lastInviteList.length);
@@ -207,6 +201,10 @@ function createInvite(req){
           //increment the last character of codeName part(hoping it won't reach 'Z' ever)
           var codeNameLen = codeName.length;
           var nextChar = String.fromCharCode(codeName.charCodeAt(codeNameLen - 1) + 1);
+          if(nextChar == 'O' || nextChar == 'I'){//if a confusing char, then move to next
+            nextChar = String.fromCharCode(nextChar.charCodeAt(0) + 1);
+          }
+
           codeName = codeName.slice(0, codeNameLen - 1) + nextChar;
         }
         codeNumber = DEFAULT_CODENUMBER_START;
@@ -225,14 +223,12 @@ function createInvite(req){
   return promise;
 }
 
-/* return UserInvite for logged in user
+/* return promise with UserInvite object for given non-null userObject
    if it doesnot exist create one and return
 */
-router.get('/invites/me', authApiHelper.loginRequiredMiddleware, function(req, res){
-  var username = req.session.username;
-
+function getInviteCode(userObject){
   var promise = UserInviteModel.findOne({
-    username : username
+    username : userObject.username
   }).exec();
 
   promise = promise.then(function(invite){
@@ -240,12 +236,29 @@ router.get('/invites/me', authApiHelper.loginRequiredMiddleware, function(req, r
       return invite;
     }
     console.log("/invite creating");
-    return createInvite(req);
+    return createInvite(userObject);
+  });
+
+  return promise;
+}
+
+router.get('/invites/me', authApiHelper.loginRequiredMiddleware, function(req, res){
+  var username = req.session.username;
+
+  var promise = UserModel.findOne({
+    username : username
+  });
+
+  promise = promise.then(function(userObject){
+    if(userObject == null){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "user not found", null, 404);
+    }
+    return getInviteCode(userObject);
   });
 
   promise = promise.then(function(invite){
-    //invite will be non null(either found or saved)
-    res.json(invite);
+    //invite will be non null(either found or created)
+    return res.json(invite);
   });
 
   promise.catch(function(err){
@@ -262,12 +275,9 @@ router.get('/invites/me', authApiHelper.loginRequiredMiddleware, function(req, r
   });
 });
 
-/* return UserInvite for logged in user
-   if it doesnot exist create one and return
+/* return promise with value true if success (true even if code was not found in db)
 */
-router.put('/invites/:code', authApiHelper.loginRequiredMiddleware, function(req, res){
-  var username = req.session.username;
-  var code = req.params.code;
+function useInviteCode(username, code){
   var promise = UserInviteModel.findOneAndUpdate(
     {
       code : code
@@ -282,23 +292,15 @@ router.put('/invites/:code', authApiHelper.loginRequiredMiddleware, function(req
 
   promise = promise.then(function(invite){
     if(invite == null){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "invite code not found", null, 404);
+      //throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "invite code not found", null, 404);
     }
-    res.json({success : true});
+    return true;
   });
 
-  promise.catch(function(err){
-    //error caught and set earlier
-    if(err.resStatus){
-      res.status(err.resStatus);
-      return res.json(err);
-    }
-    else{
-      //uncaught error
-      res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to get your invite", err));
-    }
-  });
-});
+  return promise;
+}
 
 module.exports.router = router;
+module.exports.getInviteCode = getInviteCode;
+module.exports.useInviteCode = useInviteCode;
+
