@@ -114,7 +114,8 @@ router.get('/auth/help', function(req, res){
         "return" : {
           "user" : "<user object>", 
           "x-session-token" : "<session token>(string)",
-          "invite" : "<user invite> object - see /v1/app/users/help for its schema"
+          "invite" : "<user invite> object - see /v1/app/users/help for its schema",
+          "isNewUser" : "<boolean> true/false - whether new user created - to track signup"
         },
         "required" : [
           "for phone : [phone, otp, name, password]",
@@ -124,6 +125,7 @@ router.get('/auth/help', function(req, res){
         "optional" : [
           "for phone : [photo, email, location, language]",
           "for fb & google: [photo, location, language]",
+          "for all: [inviteCode]"
         ],
         "possible errors" : "[USER_ALREADY_EXISTS, INVALID_OTP, INVALID_TOKEN]"
       },
@@ -139,7 +141,8 @@ router.get('/auth/help', function(req, res){
         "return" : {
           "user" : "<user object>", 
           "x-session-token" : "<session token>(string)",
-          "invite" : "<user invite> object - see /v1/app/users/help for its schema"
+          "invite" : "<user invite> object - see /v1/app/users/help for its schema",
+          "isNewUser" : "<boolean> true/false - whether new user created - to track signup"
         },
         "required" : [
           "for phone login : [(phone & otp) OR (phone & password)]",
