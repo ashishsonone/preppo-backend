@@ -67,6 +67,8 @@ router.post('/otp', function(req, res){
   returns a promise with value user object
 */
 function fbOrGoogleFlow(req){
+  req.isNewUser = false; //we first check if user already there
+
   var googleToken = req.body.googleToken;
   var fbToken = req.body.fbToken;
 
@@ -88,6 +90,8 @@ function fbOrGoogleFlow(req){
   promise = promise.then(null, function(err){
     //if USER_NOT_FOUND error, then create that user
     if(err && err.error === errUtils.errors.USER_NOT_FOUND){
+      req.isNewUser = true; //override - creating new user
+
       //this means that token was verified successfully, hence userInfo would be non-null
       return authHelp.createUser({
         username : userInfo.username,
@@ -135,6 +139,8 @@ function fbOrGoogleFlow(req){
   using the token given and save in the user object
 */
 router.post('/signup', function(req, res){
+  req.isNewUser = true; //default for signup, override if needed
+
   //console.log("------>SIGNUP %j", req.body);
   var phone = req.body.phone;
   var googleToken = req.body.googleToken;
@@ -220,6 +226,7 @@ router.post('/signup', function(req, res){
 
   promise = promise.then(function(success){
     //return response
+    returnResult['isNewUser'] = req.isNewUser;
     return res.json(returnResult);
   });
 
@@ -255,6 +262,8 @@ router.post('/signup', function(req, res){
     googleToken : String
 */
 router.post('/login', function(req, res){
+  req.isNewUser = false;
+
   var phone = req.body.phone;
   var googleToken = req.body.googleToken;
   var fbToken = req.body.fbToken;
@@ -329,6 +338,7 @@ router.post('/login', function(req, res){
 
   promise = promise.then(function(invite){
     returnResult['invite'] = invite;
+    returnResult['isNewUser'] = req.isNewUser;
     return res.json(returnResult);
   });
 
