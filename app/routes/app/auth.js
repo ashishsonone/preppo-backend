@@ -12,7 +12,6 @@ var sms = require('../../utils/sms');
 var errUtils = require('../../utils/error');
 var socialUtils = require('../../utils/social');
 var authHelp = require('./auth_help.js');
-var usersApi = require('./users');
 
 var router = express.Router();
 
@@ -132,9 +131,6 @@ function fbOrGoogleFlow(req){
     location : String
     language : String
 
-    //invite code
-    inviteCode : String (optional)
-
   For signup other than phone, we need to extract user details like name, photo, email 
   using the token given and save in the user object
 */
@@ -145,8 +141,6 @@ router.post('/signup', function(req, res){
   var phone = req.body.phone;
   var googleToken = req.body.googleToken;
   var fbToken = req.body.fbToken;
-
-  var inviteCode = req.body.inviteCode;
 
   var promise = null;
 
@@ -209,23 +203,6 @@ router.post('/signup', function(req, res){
 
   promise = promise.then(function(result){//contain both user & token
     returnResult['x-session-token'] = result.token;
-    return usersApi.getInviteCode(returnResult.user); //user is non-null
-  });
-
-  promise = promise.then(function(invite){
-    returnResult['invite'] = invite;
-
-    //if signed up using an inviteCode, then use it with current user
-    if(inviteCode != null){
-      return usersApi.useInviteCode(returnResult.user.username, inviteCode);
-    }
-    else{
-      return true; //do nothing, all good
-    }
-  });
-
-  promise = promise.then(function(success){
-    //return response
     returnResult['isNewUser'] = req.isNewUser;
     return res.json(returnResult);
   });
@@ -332,15 +309,10 @@ router.post('/login', function(req, res){
   promise = promise.then(
     function(result){
       returnResult['x-session-token'] = result.token;
-      return usersApi.getInviteCode(returnResult.user); //user is non-null
+      returnResult['isNewUser'] = req.isNewUser;
+      return res.json(returnResult);
     }
   );
-
-  promise = promise.then(function(invite){
-    returnResult['invite'] = invite;
-    returnResult['isNewUser'] = req.isNewUser;
-    return res.json(returnResult);
-  });
 
   promise.catch(function(err){
     //error caught and set earlier

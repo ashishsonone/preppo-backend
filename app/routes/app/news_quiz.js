@@ -29,7 +29,7 @@ var router = express.Router();
     limit : Number (max 30)
   first look into cache, if not found then fetch from db and insert into cache
 */
-router.get('/', authApiHelper.loginRequiredMiddleware, function(req, res){
+router.get('/', function(req, res){
   var ltDateString = req.query.lt;
 
   //find in cache
@@ -153,7 +153,7 @@ router.get('/', authApiHelper.loginRequiredMiddleware, function(req, res){
 /*get all the questions for the quiz given its id
   first look into cache, if not found then fetch from db and insert into cache
 */
-router.get('/:id', authApiHelper.loginRequiredMiddleware, function(req, res){
+router.get('/:id', function(req, res){
   var quizId = req.params.id;
 
   //find in cache

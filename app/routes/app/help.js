@@ -20,8 +20,12 @@ router.get('/help', function(req, res){
         "info" : "help page for users api - get user info, update user info, etc",
       },
       {
-        "endpoint" : "GET /v1/app/stats/news/quiz/",
-        "info" : "help page for stats api for news quiz api - cumulative and individual",
+        "endpoint" : "GET /v1/app/news/help",
+        "info" : "help page for news api : get daily updates, get montly digest",
+      },
+      {
+        "endpoint" : "GET /v1/app/news/quiz/help",
+        "info" : "help page for news quiz api - get quiz list, get content of a quiz",
       }
     ],
     errorObject : {
@@ -88,6 +92,7 @@ var uSchema = {
   "phone" : "string : 10 digit number",
   "location" : "string : city - optional",
   "language" : "string : language preference. e.g hindi, english",
+  "sharedOnFb" : "boolean : whether shared the app link on fb",
 
   "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
   "updatedAt" : "string : date in iso 8601 format"
@@ -114,7 +119,6 @@ router.get('/auth/help', function(req, res){
         "return" : {
           "user" : "<user object>", 
           "x-session-token" : "<session token>(string)",
-          "invite" : "<user invite> object - see /v1/app/users/help for its schema",
           "isNewUser" : "<boolean> true/false - whether new user created - to track signup"
         },
         "required" : [
@@ -124,8 +128,7 @@ router.get('/auth/help', function(req, res){
         ],
         "optional" : [
           "for phone : [photo, email, location, language]",
-          "for fb & google: [photo, location, language]",
-          "for all: [inviteCode]"
+          "for fb & google: [photo, location, language]"
         ],
         "possible errors" : "[USER_ALREADY_EXISTS, INVALID_OTP, INVALID_TOKEN]"
       },
@@ -141,7 +144,6 @@ router.get('/auth/help', function(req, res){
         "return" : {
           "user" : "<user object>", 
           "x-session-token" : "<session token>(string)",
-          "invite" : "<user invite> object - see /v1/app/users/help for its schema",
           "isNewUser" : "<boolean> true/false - whether new user created - to track signup"
         },
         "required" : [
@@ -185,7 +187,7 @@ router.get('/users/help', function(req, res){
       {
         "endpoint" : "PUT /v1/app/users/me", 
         "info" : "(login required) Update info of current logged in user(including password reset)",
-        "optional" : "[name, photo, email, location, language, password]",
+        "optional" : "[name, photo, email, location, language, password, sharedOnFb]",
         "return" : "updated <user object>",
         "headers required" : {
           "x-session-token" : "<session token string> recieved during login or signup"

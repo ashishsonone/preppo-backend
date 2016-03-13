@@ -34,8 +34,5 @@ module.exports.router = function(){
   //other routes
   router.use('/news/quiz', newsQuizApi.router);
   router.use('/news', newsApi.router);
-  
-  router.use('/stats/news/quiz', statsNewsQuizApi.router);
-
   return router;
 }

@@ -10,7 +10,8 @@ var UserSchema = mongoose.Schema({
   email : String,
   phone : String,
   location : String, //city
-  language : String //language preference hindi, english
+  language : String, //language preference hindi, english
+  sharedOnFb : Boolean, //whether or not shared our app link on fb
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields

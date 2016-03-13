@@ -60,6 +60,7 @@ router.get('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
     location (optional)
     language (optional)
     password (optional)
+    sharedOnFb (optional)
 
   Can not update 'password' (for phone login : forgot password case)
   Use PUT /me/password instead
@@ -85,6 +86,9 @@ router.put('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
   }
   if(req.body.password){
     changes.password = passwordHash.generate(req.body.password);
+  }
+  if(req.body.sharedOnFb){
+    changes.sharedOnFb = req.body.sharedOnFb;
   }
 
   var promise = UserModel.findOneAndUpdate(
@@ -301,6 +305,6 @@ function useInviteCode(username, code){
 }
 
 module.exports.router = router;
-module.exports.getInviteCode = getInviteCode;
-module.exports.useInviteCode = useInviteCode;
+//module.exports.getInviteCode = getInviteCode;
+//module.exports.useInviteCode = useInviteCode;
 
