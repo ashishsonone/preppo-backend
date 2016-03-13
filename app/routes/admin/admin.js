@@ -10,6 +10,9 @@ var usersApi = require('./users');
 var newsApi = require('./news');
 var newsQuizApi = require('./news_quiz');
 var newsQuizQuestionApi = require('./news_quiz_question');
+
+var newsMonthlyDigestApi = require('./news_monthly_digest');
+
 var helpApi = require('./help');
 
 var AdminUserModel = AdminUser.model;
@@ -124,6 +127,10 @@ module.exports.router = function(sessionMiddleWare){
   // news quiz item administration, 
   // should come before /news to not confuse with '/news/<news_id>' endpoint
   router.use('/news/quizquestion', newsQuizQuestionApi.router);
+
+  // news monthly digest administration
+  // should come before /news to not confuse with '/news/<news_id>' endpoint
+  router.use('/news/monthlydigest', newsMonthlyDigestApi.router);
 
   // news item administration
   router.use('/news', newsApi.router);
