@@ -14,6 +14,7 @@ var newsQuizQuestionApi = require('./news_quiz_question');
 var newsMonthlyDigestApi = require('./news_monthly_digest');
 
 var helpApi = require('./help');
+var extraApi = require('./extra');
 
 var AdminUserModel = AdminUser.model;
 
@@ -23,6 +24,9 @@ module.exports.router = function(sessionMiddleWare){
 
   //api help pages
   router.use('/', helpApi.router);
+
+  //extra api
+  router.use('/extra', extraApi.router);
 
   //session middleware
   router.use('/', sessionMiddleWare);
