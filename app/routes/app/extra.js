@@ -3,6 +3,7 @@
 var express = require('express');
 
 var FeedbackModel = require('../../models/feedback').model;
+var RatingNewsQuizModel = require('../../models/rating_news_quiz').model;
 
 var errUtils = require('../../utils/error');
 
@@ -43,6 +44,36 @@ router.post('/feedback', function(req, res){
     res.status(500);
     return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable store feedback", err, 500));      
   });
+});
+
+router.post('/ratings/news/quiz', function(req, res){
+  var quizId = req.body.quizId;
+  var rating = parseFloat(req.body.rating);
+  if(!(rating != null && quizId)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required params [quizId, rating]"));
+  }
+
+  var incrementChanges = {};
+  incrementChanges['ratingCount'] = 1;
+  incrementChanges['ratingSum'] = rating;
+
+  RatingNewsQuizModel.findOneAndUpdate(
+    {quizId :  quizId},
+    {'$inc' : incrementChanges},
+    {new : true, upsert : true},
+    function(err, result){
+      if(!err && result){
+        res.json(result);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "error updating cumulative rating for quiz", err));
+        return;
+      }
+    }
+  );
 });
 
 module.exports.router = router;
