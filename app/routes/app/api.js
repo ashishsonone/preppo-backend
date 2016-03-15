@@ -11,6 +11,7 @@ var newsApi = require('./news');
 var newsQuizApi = require('./news_quiz');
 var statsNewsQuizApi = require('./stats_news_quiz');
 var usersApi = require('./users');
+var extraApi = require('./extra');
 
 module.exports.router = function(){
   var router = express.Router();
@@ -34,5 +35,7 @@ module.exports.router = function(){
   //other routes
   router.use('/news/quiz', newsQuizApi.router);
   router.use('/news', newsApi.router);
+
+  router.use('/extra', extraApi.router);
   return router;
 }
