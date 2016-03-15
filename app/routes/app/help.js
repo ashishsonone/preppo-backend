@@ -26,6 +26,10 @@ router.get('/help', function(req, res){
       {
         "endpoint" : "GET /v1/app/news/quiz/help",
         "info" : "help page for news quiz api - get quiz list, get content of a quiz",
+      },
+      {
+        "endpoint" : "GET /v1/app/extra/help",
+        "info" : "help page for extra api - currently for feedback endpoint",
       }
     ],
     errorObject : {
@@ -393,5 +397,34 @@ router.get('/stats/news/quiz/help', function(req, res){
     ]
   });
 });
+
+router.get('/extra/help', function(req, res){
+  res.json({
+      message : "Welcome to 'extra' api home page",
+      FeedbackSchema: {
+        username : "string",
+        message : "string"
+      },
+      api : [
+        {
+          "endpoint" : "GET /v1/app/extra/help",
+          "info" : "See this help page",
+        },
+        {
+          "endpoint" : "POST /v1/app/extra/feedback",
+          "info" : "create a new feedback entry",
+          "return" : "newly created <feedback> entry",
+          "required" : [
+            "message : string - the feedback message"
+          ],
+          "optional" : [
+            "username : string - if available"
+          ]
+        }
+      ]
+    }
+  );
+});
+
 
 module.exports.router = router;

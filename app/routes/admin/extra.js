@@ -29,6 +29,11 @@ router.get('/feedback', function(req, res){
     .find(findQuery)
     .sort({createdAt : -1})
     .limit(limit)
+    .select({
+      __v : false,
+      _id : false,
+      updatedAt : false
+    })
     .exec();
     
   promise = promise.then(function(feedbackList){

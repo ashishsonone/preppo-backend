@@ -35,6 +35,10 @@ router.get('/help', function(req, res){
       {
         "info" : "See help for newsquiz api",
         "endpoint" : "GET /v1/admin/news/quiz/help"
+      },
+      {
+        "info" : "See help for extra api - currently for feedback endpoint",
+        "endpoint" : "GET /v1/admin/extra/help"
       }
     ],
     errors : [
@@ -298,6 +302,32 @@ router.get('/news/quizquestion/help', function(req, res){
           "endpoint" : "DELETE /v1/admin/news/quizquestion/<questionid>",
           "return" : "200 OK",
           "optional Query params" : "quizId - to remove the question from that quiz"
+        }
+      ]
+    }
+  );
+});
+
+router.get('/extra/help', function(req, res){
+  res.json({
+      message : "Welcome to 'extra' api home page",
+      FeedbackSchema: {
+        username : "string",
+        message : "string"
+      },
+      api : [
+        {
+          "info" : "See this help page",
+          "endpoint" : "GET /v1/admin/extra/help",
+        },
+        {
+          "info" : "get feedback entries sorted by createdAt",
+          "endpoint" : "GET /v1/admin/extra/feedback",
+          "return" : "array of <feedback> items",
+          "optional" :  [
+            "limit - number - how many items to return",
+            "lt - date string - return items with createdAt <= lt"
+            ],
         }
       ]
     }
