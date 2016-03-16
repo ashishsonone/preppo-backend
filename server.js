@@ -58,6 +58,11 @@ app.all('*', function(req, res, next) {
   }
 });
 
+//loader.io load testing tool verification
+app.get('/loaderio-62df51d7c17c6d40d6e8831e723ee4cd.txt', function(req, res){
+  res.end("loaderio-62df51d7c17c6d40d6e8831e723ee4cd");
+});
+
 //root end point
 app.get('/', function(req, res){
   res.json({message : "welcome to the unauthenticated root api endpoint"});
