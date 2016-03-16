@@ -48,6 +48,9 @@ app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Credentials', true); //allow cookie to be sent
 
   if(req.method && req.method.toUpperCase() === 'OPTIONS'){
+    if(debugConfig.debugFlag){
+      console.log("OPTIONS URL=" + req.url + "| response Access-Control-Allow-Headers=" + res.get('Access-Control-Allow-Headers'));
+    }
     res.json({});
   }
   else{
