@@ -405,6 +405,11 @@ router.get('/extra/help', function(req, res){
         username : "string",
         message : "string"
       },
+      RatingNewsQuiz: {
+        quizId : "string",
+        ratingCount : "number",
+        ratingSum : "number",
+      },
       api : [
         {
           "endpoint" : "GET /v1/app/extra/help",
@@ -419,6 +424,15 @@ router.get('/extra/help', function(req, res){
           ],
           "optional" : [
             "username : string - if available"
+          ]
+        },
+        {
+          "endpoint" : "POST /v1/app/extra/ratings/news/quiz",
+          "info" : "submit a quiz rating",
+          "return" : "updated news quiz rating entry",
+          "required" : [
+            "quizId : object id of the quiz",
+            "rating : number in [0-5]. Can be decimal"
           ]
         }
       ]

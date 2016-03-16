@@ -315,6 +315,11 @@ router.get('/extra/help', function(req, res){
         username : "string",
         message : "string"
       },
+      RatingNewsQuiz: {
+        quizId : "string",
+        ratingCount : "number",
+        ratingSum : "number",
+      },
       api : [
         {
           "info" : "See this help page",
@@ -328,6 +333,11 @@ router.get('/extra/help', function(req, res){
             "limit - number - how many items to return",
             "lt - date string - return items with createdAt <= lt"
             ],
+        },
+        {
+          "info" : "get rating object for given news quiz",
+          "endpoint" : "GET /v1/admin/extra/ratings/news/quiz/<id>",
+          "return" : "<news quiz rating object>"
         }
       ]
     }

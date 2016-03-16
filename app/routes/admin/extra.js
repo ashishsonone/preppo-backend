@@ -3,6 +3,7 @@
 var express = require('express');
 
 var FeedbackModel = require('../../models/feedback').model;
+var RatingNewsQuizModel = require('../../models/rating_news_quiz').model;
 
 var errUtils = require('../../utils/error');
 
@@ -43,6 +44,42 @@ router.get('/feedback', function(req, res){
   promise.catch(function(err){
     res.status(500);
     return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to get feedbacks", err, 500));      
+  });
+});
+
+
+router.get('/ratings/news/quiz/:id', function(req, res){
+  var quizId = req.params.id;
+
+  var promise = RatingNewsQuizModel.findOne(
+    {quizId :  quizId}
+  ).exec();
+
+  promise = promise.then(function(ratingObject){
+    if(!ratingObject){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "rating for this quiz not found", null, 404);
+      return;
+    }
+    var result = {};
+    result.quizId = ratingObject.quizId;
+    result.ratingCount = ratingObject.ratingCount;
+    result.ratingSum = ratingObject.ratingSum;
+    var avg = ratingObject.ratingSum/ratingObject.ratingCount;
+    avg = avg.toFixed(2); //returns string with rouded to 2 decimal places '2.30'
+    avg = +avg; //converts string back to number
+    result.ratingAverage = avg
+    res.json(result);
+  });
+
+  promise.catch(function(err){
+    if(err.resStatus){
+      res.status(err.resStatus);
+      res.json(err);
+    }
+    else{
+      res.status(500);
+      res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to fetch rating object", err));
+    }
   });
 });
 
