@@ -1,3 +1,4 @@
+
 //configuration either as a worker or standalone server
 //special setup for mongoose disconnect
 var cluster = require('cluster');
@@ -36,6 +37,9 @@ var randomAajKaSawaalApi = require('./app/routes/random_stuff/aaj_ka_sawaal');
 var healthUtil = require('./app/utils/health');
 
 var app = express();
+
+//disable etag (and hence trailing header causing frequent 502 errors)
+app.set('etag', false);
 
 //connect to mongo db
 mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
