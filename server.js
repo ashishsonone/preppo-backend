@@ -44,6 +44,10 @@ app.set('etag', false);
 //connect to mongo db
 mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
 
+//for extracting post parameters
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended : true}));
+
 //enable CORS
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin); //origins allowed for request, dynamically set to request's origin
@@ -54,6 +58,8 @@ app.all('*', function(req, res, next) {
   if(req.method && req.method.toUpperCase() === 'OPTIONS'){
     if(debugConfig.debugFlag){
       console.log("OPTIONS URL=" + req.url + "| response Access-Control-Allow-Headers=" + res.get('Access-Control-Allow-Headers'));
+      //console.log("OPTIONS HEADERS=%j", req.headers);
+      //console.log("OPTIONS BODY=%j", req.body);
     }
     res.json({});
   }
@@ -109,10 +115,6 @@ morgan.token('ts', function(req, res){return moment().utcOffset('+0530').format(
 //to get back moment time from the string : parsed = moment(string, formatString)
 var morganFormat = morgan('#:id :ts :method :url :status :response-time ms - :res[content-length]'); //define the new format
 app.use(morganFormat); //use the new format
-
-//for extracting post parameters
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended : true}));
 
 // If debug flag is ON, then register this middleware
 // show debug stuff - request headers, query params & body
