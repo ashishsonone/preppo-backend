@@ -9,6 +9,7 @@ var UserInviteModel = require('../../models/user_invite').model;
 var stringUtils = require('../../utils/string_utils');
 
 var errUtils = require('../../utils/error');
+var debugConfig = require('../../../config/common').debug;
 
 var router = express.Router();
 
@@ -117,26 +118,28 @@ router.put('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
   ENDPOINT EXISTS ONLY if server's process.env.ENV is 'local' or 'dev'
   REQUIRED query param 'password'
 */
-if(process.env.ENV === 'local' || process.env.ENV === 'dev'){
-  router.get('/:username/delete', function(req, res){
-    var p = req.query.password;
-    if(p !== "kitneaadmithe"){
-      return res.json({message : "wrong password"});
-    }
-
-    UserModel.remove(
-      {username : req.params.username}, 
-      function(err, result){
-        if(err){
-          res.status(500);
-          res.json(err);
-        }
-        else{
-          res.json(result);
-        }
+if(debugConfig.debugFlag){
+  if(process.env.ENV === 'local' || process.env.ENV === 'dev' || process.env.ENV === 'prod'){
+    router.get('/:username/delete', function(req, res){
+      var p = req.query.password;
+      if(p !== "kitneaadmithe"){
+        return res.json({message : "wrong password"});
       }
-    );
-  });
+
+      UserModel.remove(
+        {username : req.params.username}, 
+        function(err, result){
+          if(err){
+            res.status(500);
+            res.json(err);
+          }
+          else{
+            res.json(result);
+          }
+        }
+      );
+    });
+  }
 }
 
 var AtoZ = "ABCDEFGHJKLMNPQRSTUVWY".split(''); //exclude confusing(I,O) and unwanted (X,Z)
