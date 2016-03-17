@@ -38,15 +38,15 @@ var healthUtil = require('./app/utils/health');
 
 var app = express();
 
-//disable etag (and hence trailing header causing frequent 502 errors)
+//disable etag and hence 304 caching
 app.set('etag', false);
 
 //connect to mongo db
 mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
 
 //for extracting post parameters
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended : true}));
+app.use(bodyParser.urlencoded({extended : true})); // parse application/x-www-form-urlencoded
+app.use(bodyParser.json()); // parse application/json
 
 //enable CORS
 app.all('*', function(req, res, next) {
