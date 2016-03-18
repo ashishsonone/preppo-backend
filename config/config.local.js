@@ -34,11 +34,17 @@ var onesignal = {
   rest_api_key : "YWJkMmI1MWUtMGI0Mi00NWVlLWI5NWQtZThlODAwNmJjNGQy"
 };
 
+var localytics = {
+  app_id : "0e0c204e4a831266ac35782-ec62a0e4-e062-11e5-1165-00cef1388a40",
+  authorization : "N2RjZGFhNDgzMzhlNTllNGJkMjlhZDItZDgwYTlkNTAtZTA2Mi0xMWU1LTExNjUtMDBjZWYxMzg4YTQwOmUyYzM2MWNmNzhkM2U3YTlmZTU0OWU4LWQ4MGFhMDk4LWUwNjItMTFlNS0xMTY1LTAwY2VmMTM4OGE0MA=="
+};
+
 module.exports = {
   app : app,
   cluster : cluster,
   mongo : mongo,
   redis : redis,
   session : session,
-  onesignal : onesignal
+  onesignal : onesignal,
+  localytics : localytics
 };

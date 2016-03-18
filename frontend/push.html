@@ -1,0 +1,72 @@
+<html>
+<head>
+  <title>Notification Portal</title>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+<div class="container">
+<h3> Send a notification </h3>
+
+<h4>Disclaimer</h4>
+<h4> Please refer to <a href="https://slack-files.com/T034SA2M9-F0TMH1HDE-61eb13a017"> notification documentation</a> for meaning of fields of the Payload section of this form</h4>
+<h4> You must be logged in to <a href="http://internal.preppo.in"> our admin site </a> to send notification using this form </h4>
+<hr>
+
+<h4> Target Details</h4>
+    <form class="form-inline" id="push" action="https://prod.api.preppo.in/v1/admin/notifications/" method="post" accept-charset="UTF-8">
+        Select target type
+        <select name="targetType" class="form-control" form="push">
+            <option value="customer_id" selected="selected">Customer Id</option>
+            <option value="broadcast">Broadcast</option>
+        </select>
+        <br><br>
+
+        <i> (If target type is <b>'Customer Id'</b>)<br>
+        (Value must be username - applicable only if user has signed up/logged in to app)
+        </i>
+
+        <br>
+        Enter Customer Id 
+        <input name="target" type="text" class="form-control">
+        <br>
+<hr>
+<h4> Payload </h4>
+        Select type
+        <select name="_type" class="form-control" form="push">
+            <option value="SHOW" selected="selected">SHOW</option>
+            <option value="SILENT">SILENT</option>
+        </select>
+        <br><br>
+
+        Select action
+        <select name="_action" class="form-control" form="push">
+            <option value="NEWS_UPDATE" selected="selected">NEWS_UPDATE</option>
+            <option value="NEWS_QUIZ_UPDATE">NEWS_QUIZ_UPDATE</option>
+            <option value="MONTHLY_DIGEST_UPDATE">MONTHLY_DIGEST_UPDATE</option>
+            <option value="APP_UPDATE">APP_UPDATE</option>
+            <option value="OPEN_URL_INTERNAL">OPEN_URL_INTERNAL</option>
+            <option value="OPEN_URL_EXTERNAL">OPEN_URL_EXTERNAL</option>
+
+            <option value="NEWS_DELETE">NEWS_DELETE</option>
+        </select>
+        <br><br>
+
+        Enter notification title
+        <input type="text" class="form-control" name="_title"><br>
+
+        <br><br>
+
+        Enter notification message(content)
+        <textarea form="push" class="form-control" name="_msg" maxlength=100 placeholder="Type notification message here"></textarea>
+        <br><br>
+
+        Secret key:
+        <input type="password" class="form-control" name="secret" required>
+        <br><br>
+        <input type="submit" class="form-control" value="Submit">
+    </form>
+</div>
+</body>

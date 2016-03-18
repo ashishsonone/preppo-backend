@@ -12,6 +12,7 @@ var newsQuizApi = require('./news_quiz');
 var newsQuizQuestionApi = require('./news_quiz_question');
 
 var newsMonthlyDigestApi = require('./news_monthly_digest');
+var notificationApi = require('./notification');
 
 var helpApi = require('./help');
 var extraApi = require('./extra');
@@ -138,6 +139,9 @@ module.exports.router = function(sessionMiddleWare){
 
   // news item administration
   router.use('/news', newsApi.router);
+
+  // send notification
+  router.use('/notifications', notificationApi.router);
 
   return router;
 };

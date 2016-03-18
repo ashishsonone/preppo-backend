@@ -1,0 +1,14 @@
+<h3> Send a message to yourself to see sms received looks ok</h3>
+<form id="preview" action="https://prod.api.preppo.in/v1/randomstuff/aajkasawaal/sendpreview" method="post" accept-charset="UTF-8">
+    Date in YYYY-MM-DD format:<br>
+    <input type="text" name="publishDate" required><br>
+
+    Today's question:(max 500 characters)<br>
+    <textarea form="preview" name="content" maxlength=500 placeholder="Type the question content here" required></textarea> <br>
+
+    Phone Number :<br>
+    <input type="text" name="phone" placeholder="Type phone number" required><br>
+    Secret key:<br>
+    <input type="password" name="secret" required><br>
+    <input type="submit" value="Submit">
+</form>

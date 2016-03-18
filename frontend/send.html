@@ -1,0 +1,11 @@
+<h3> Add the question for today and send bulk sms to registered users</h3>
+<form id="send" action="https://prod.api.preppo.in/v1/randomstuff/aajkasawaal/send" method="post" accept-charset="UTF-8">
+    Date in YYYY-MM-DD format:<br>
+    <input type="text" name="publishDate" required><br>
+
+    Today's question:(max 500 characters)<br>
+    <textarea form="send" name="content" maxlength=500 placeholder="Type the question content here" required></textarea> <br>
+    Secret key:<br>
+    <input type="password" name="secret" required><br>
+    <input type="submit" value="Submit">
+</form>
