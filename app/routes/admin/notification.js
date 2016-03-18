@@ -43,7 +43,7 @@ router.post('/', function(req, res){
   }
 
   var target = req.body.target; //if targetType = customer_id
-  if(["customer_id", "broadcast"].indexOf(targetType) < 0){
+  if(["customer_id", "broadcast", "profile_dev", "profile_prod"].indexOf(targetType) < 0){
     res.status(400);
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "invalid targetType value"));
     return;
@@ -59,9 +59,14 @@ router.post('/', function(req, res){
 
     promise = notificationLocalyticsUtils.sendNotificationToCustomerId(target, req.body);
   }
-  else{
-    res.status(200);
+  else if(targetType === "broadcast"){
     promise = notificationLocalyticsUtils.sendNotificationBroadcast(req.body);
+  }
+  else if(targetType === "profile_dev"){
+    promise = notificationLocalyticsUtils.sendNotificationToProfileTag('dev', req.body);
+  }
+  else if(targetType === "profile_prod"){
+    promise = notificationLocalyticsUtils.sendNotificationToProfileTag('prod', req.body);
   }
     
   promise = promise.then(function(result){

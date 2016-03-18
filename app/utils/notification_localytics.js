@@ -47,6 +47,39 @@ function sendNotificationBroadcast(payload){
   return callLocalyticsApi(body);
 }
 
+
+function sendNotificationToProfileTag(tag, payload){
+  var body = {
+    campaign_key: "target-profile-" + tag,
+    target_type : "profile",
+    messages: [
+      {
+        "alert" : "Welcome to Preppo",
+        "android" : {
+            "extra" : payload
+        },
+        "target" : {
+          "profile" :{
+            "criteria" : [
+                {
+                    "key" : "tag",
+                    "scope" : "LocalyticsApplication",
+                    "type" : "string",
+                    "op" : "in",
+                    "values" : [
+                        tag
+                    ]
+                }
+            ],
+            "op" : "and"
+          }
+        }
+      }
+    ]
+  };
+  return callLocalyticsApi(body);
+}
+
 function callLocalyticsApi(body){
   var options = {
     method : 'POST',
@@ -88,5 +121,6 @@ function testSend(){
 module.exports = {
   sendNotificationToCustomerId : sendNotificationToCustomerId,
   sendNotificationBroadcast : sendNotificationBroadcast,
+  sendNotificationToProfileTag : sendNotificationToProfileTag,
   testSend : testSend
 };
