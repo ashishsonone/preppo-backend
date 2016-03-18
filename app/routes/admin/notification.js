@@ -29,7 +29,9 @@ router.post('/', function(req, res){
   var targetType = req.body.targetType;
   var secret = req.body.secret;
 
-  if(secret !== 'notsparta'){
+  var SECRET = 'notsparta';
+  var SECRET_B = 'broadcastnotsparta';
+  if([SECRET, SECRET_B].indexOf(secret) < 0){
     res.status(400);
     return res.json({message : "Wrong secret key"});
   }
@@ -60,7 +62,13 @@ router.post('/', function(req, res){
     promise = notificationLocalyticsUtils.sendNotificationToCustomerId(target, req.body);
   }
   else if(targetType === "broadcast"){
-    promise = notificationLocalyticsUtils.sendNotificationBroadcast(req.body);
+    if(secret === SECRET_B){
+      promise = notificationLocalyticsUtils.sendNotificationBroadcast(req.body);
+    }
+    else{
+      res.status(400);
+      return res.json({message : "Wrong secret key :P"});
+    }
   }
   else if(targetType === "profile_dev"){
     promise = notificationLocalyticsUtils.sendNotificationToProfileTag('dev', req.body);

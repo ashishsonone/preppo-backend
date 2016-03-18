@@ -15,7 +15,7 @@
 <h3> Send a notification </h3>
 
 <h4>Disclaimer</h4>
-<h4> Please refer to <a href="https://slack-files.com/T034SA2M9-F0TMH1HDE-61eb13a017"> notification documentation</a> for meaning of fields of the Payload section of this form</h4>
+<h4> Please refer to <a href="https://slack-files.com/T034SA2M9-F0TMH1HDE-61eb13a017"> notification documentation</a> for meaning of fields here</h4>
 <h4> You must be logged in to <a href="http://internal.preppo.in"> our admin site </a> to send notification using this form </h4>
 <hr>
 
@@ -26,7 +26,7 @@
             <option value="customer_id" selected="selected">Customer Id</option>
             <option value="profile_dev">Broadcast Profile DEV</option>
             <option value="profile_prod">Broadcast Profile PROD (use with caution)</option>
-            <option value="broadcast">Broadcast DEV + PROD (use with caution)</option>
+            <option value="broadcast">Broadcast DEV + PROD (BANNED : use 2nd, 3rd option instead)</option>
         </select>
         <br><br>
 
@@ -61,12 +61,16 @@
         <br><br>
 
         Enter notification title
-        <input type="text" class="form-control" name="_title"><br>
+        <input type="text" class="form-control" name="_title" required><br>
 
         <br><br>
 
         Enter notification message(content)
-        <textarea form="push" class="form-control" name="_msg" maxlength=100 placeholder="Type notification message here"></textarea>
+        <textarea form="push" class="form-control" name="_msg" maxlength=100 placeholder="Type notification message here" required></textarea>
+        <br><br>
+
+        Enter Object Id (applicable for NEWS_DELETE type)
+        <input type="text" class="form-control" name="_id"><br>
         <br><br>
 
         Secret key:
