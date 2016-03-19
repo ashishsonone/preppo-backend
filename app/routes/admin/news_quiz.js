@@ -28,7 +28,7 @@ var router = express.Router();
 */
 
 router.get('/', function(req, res){
-  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+  if([enumRoles.UPLOADER, enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
@@ -146,7 +146,7 @@ router.post('/', function(req, res){
     uploadedBy
 */
 router.put('/:id', function(req, res){
-  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+  if([enumRoles.UPLOADER, enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
@@ -196,7 +196,7 @@ router.put('/:id', function(req, res){
 });
 
 router.delete('/:id', function(req, res){
-  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+  if([enumRoles.UPLOADER, enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
@@ -227,7 +227,7 @@ router.delete('/:id', function(req, res){
 });
 
 router.get('/:id', function(req, res){
-  if([enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
+  if([enumRoles.UPLOADER, enumRoles.ADMIN, enumRoles.EDITOR].indexOf(req.session.role) < 0){
     res.status(403);
     res.json(errUtils.ErrorObject(errUtils.errors.UNAUTHORIZED, "you are not authorized - admin/editor only"));
     return;
