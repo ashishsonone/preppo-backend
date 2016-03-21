@@ -219,7 +219,8 @@ var NewsContentSchema = {
 var NewsMonthlyDigestSchema = {
   "name" : "string",
   "publishDate" : "date string",
-  "url" : "string"
+  "url" : "string",
+  "language" : "string in [english, hindi]"
 };
 
 var NewsSchema = {
