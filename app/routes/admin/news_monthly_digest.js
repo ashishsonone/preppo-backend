@@ -27,9 +27,9 @@ router.post('/', function(req, res){
     return;
   }
 
-  if(!(req.body.name && req.body.publishDate && req.body.url )){
+  if(!(req.body.name && req.body.publishDate && req.body.url && req.body.language)){
     res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [name, publishDate, url]"));
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [name, publishDate, url, language]"));
     return;
   }
 
@@ -37,6 +37,7 @@ router.post('/', function(req, res){
   newDigest.name = req.body.name;
   newDigest.publishDate = req.body.publishDate;
   newDigest.url = req.body.url;
+  newDigest.language = req.body.language;
 
   var promise = newDigest.save();
   promise = promise.then(function(digest){

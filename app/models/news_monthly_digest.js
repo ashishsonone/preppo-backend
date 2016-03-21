@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 
 var NewsMonthlyDigestSchema = mongoose.Schema({
   name : String,
+  language : String,
   publishDate : Date,
   url : String
 });
