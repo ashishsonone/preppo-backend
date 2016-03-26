@@ -146,4 +146,45 @@ router.get('/monthlydigest',  authApiHelper.loginRequiredMiddleware, function(re
 
 });
 
+/*get news items by id
+*/
+router.get('/:id', function(req, res){
+  var id = req.params.id;
+
+  var promise = NewsModel
+    .findOne({
+      _id : id
+    })
+    .select({
+      _id : true,
+      updatedAt : true,
+      createdAt : true,
+      publishDate : true,
+      content : true
+    })
+    .exec();
+
+  promise = promise.then(function(newsItem){
+    if(!newsItem){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "news for this quiz not found", null, 404);
+      return;
+    }
+
+    return res.json(newsItem);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err && err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to fetch requested news item", err, 500));  
+    }
+  });
+});
+
 module.exports.router = router;
