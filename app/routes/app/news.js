@@ -166,7 +166,7 @@ router.get('/:id', function(req, res){
 
   promise = promise.then(function(newsItem){
     if(!newsItem){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "news for this quiz not found", null, 404);
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "news item not found", null, 404);
       return;
     }
 

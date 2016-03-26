@@ -62,6 +62,10 @@ router.get('/', function(req, res){
     if(ltDateString){
       findQuery.publishDate = { '$lte' : ltDateString};
     }
+    else{
+      var todayDate = new Date().toISOString().slice(0,10); //first 10 chars 2016-03-23
+      findQuery.publishDate = { '$lte' : todayDate};
+    }
 
     console.log("GET /app/news/quiz cache error -----> %j query %j", err, findQuery);
 
@@ -90,11 +94,15 @@ router.get('/', function(req, res){
         return [];
       }
       else{
-      //second find the one latest daily quiz
+        var todayDate = new Date().toISOString().slice(0,10); //first 10 chars 2016-03-23
+        //second find the one latest daily quiz
         return NewsQuizModel
           .find({
             status : enumStatus.PUBLISHED,
-            type : enumNewsQuizType.DAILY
+            type : enumNewsQuizType.DAILY,
+            publishDate : {
+              '$lte' : todayDate
+            }
           })
           .sort({
             publishDate : -1,
