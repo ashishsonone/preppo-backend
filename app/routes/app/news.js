@@ -156,11 +156,14 @@ router.get('/:id', function(req, res){
       _id : id
     })
     .select({
-      _id : true,
+      content : true,
+      imageWeb : true,
+      imageMobile : true,
+      publishDate : true,
+      
       updatedAt : true,
       createdAt : true,
-      publishDate : true,
-      content : true
+      _id : true,
     })
     .exec();
 
