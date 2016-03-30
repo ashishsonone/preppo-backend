@@ -11,10 +11,18 @@ $language = $data["l"];
 $json = file_get_contents('https://prod.api.preppo.in/v1/app/news/'. $newsId);
 $obj = json_decode($json);
 //echo "Fetched news id" . $obj->_id;
-
-$heading = $obj->content->english->heading;
 $imageUrl = $obj->imageWeb;
-$point1 = $obj->content->english->points[0];
+
+if($language =='e'){
+    $heading = $obj->content->english->heading;
+    $point1 = $obj->content->english->points[0];
+    $locale = 'en_US';
+}
+else{
+    $heading = $obj->content->hindi->heading;
+    $point1 = $obj->content->hindi->points[0];
+    $locale = 'hi_IN';
+}
 ?>
 
 <!doctype html>
@@ -27,6 +35,7 @@ $point1 = $obj->content->english->points[0];
         <meta property="og:title" content="<?=$heading?> | Preppo" />
         <meta property="og:image" content="<?=$imageUrl?>" />
         <meta property="og:description" content="<?=$point1?>" />
+        <meta property="og:locale" content="<?=$locale?>" />
         
         <meta name="description" content="Prepare for IBPS PO, IBPS Clerk, SBI PO, SBI Clerk, SSC CGL, SSC CHSL & UPSC exams on the move by keeping yourself updated with GK & daily Current Affairs. Study in both English and Hindi, take daily updated quizzes specially designed for each exam and test your preparation"/>
         <meta name="keywords" content="SBI PO, SBI Po Exam, SBI Recruitment, SBI PO Recruitment, sbi bank po, sbi po online, sbi jobs, sbi careers, SBI Clerk, SBI Associate Clerk, SBI Exams, Banking Exams, GK, current affairs, current affairs 2016, banking current affairs, upsc current affairs, IBPS PO, IBPS Clerk, SSC, SSC CGL, SSC CHSL, Railways, LIC AAO, Banking jobs"/>
