@@ -8,6 +8,57 @@
   //prod : https://prod.api.preppo.in/v1/admin/notifications/
   //local : http://localhost:8002/v1/admin/notifications/
   </script>
+
+<script>
+function changeImage(){
+    console.log('chainging image');
+    var x = $('#image-field').val();
+    $('#image-preview').attr('src', x);
+    $('#image-input').val('');
+}
+
+function removeImage(){
+    console.log('removing image');
+    $('#image-field').val('');
+    $('#image-preview').attr('src', '');
+    $('#image-input').val('');
+}
+
+function uploadImage(o){
+    $('#image-field').val('');
+    $('#image-preview').attr('src', '');
+    $('#image-status').html('Uploading...');
+    $('#image-status').html('style', 'color:blue');
+
+    var text = $('#image-input').val();
+    console.log(text);
+    var uploadUrl = "https://storage.googleapis.com/public-prod-preppo/news/" + Math.random().toString(36).substr(2, 9) + '_' + text.replace(/[^\w.-]/g, "");
+
+    var fd = new FormData();
+    fd.append('file', $('#image-input')[0].files[0]);
+
+    console.log("hi there");
+    $.ajax({
+        url: uploadUrl, 
+        contentType: false,
+        type: 'POST',
+        data: fd,
+        processData: false  // Using FormData, don't process data.
+    }).done(function(){
+        console.log("Success: Files sent!");
+        $('#image-preview').attr('src', uploadUrl);
+
+        $('#image-status').html('Upload Success');
+        $('#image-status').attr('style', 'color:green');
+
+        $('#image-field').val(uploadUrl);
+    }).fail(function(){
+        console.log("An error occurred, the files couldn't be sent!");
+        $('#image-status').html('Upload Failed');
+        $('#image-status').attr('style', 'color:red');
+    });
+}
+</script>
 </head>
 
 <body>
@@ -61,14 +112,29 @@
         <br><br>
 
         Enter notification title
-        <input type="text" class="form-control" name="_title" required><br>
-
+        <input type="text" class="form-control" name="_title" required>
         <br><br>
 
         Enter notification message(content)
         <textarea form="push" class="form-control" name="_msg" maxlength=100 placeholder="Type notification message here" required></textarea>
         <br><br>
 
+        <b>Notification Image (to show notifications big image style) </b><br>
+        <span style="color:orange">(Note : Either (1) enter image link in input box below and click anywhere outside the box to see preview <br>Or (2) upload a local image by clicking on 'Choose File')</span><br>
+        Image Url
+        <input class="form-control" type="text" name="_imageUrl" value="" id='image-field' onchange=changeImage()>
+        <button class="form-control" style='color:red' onclick='removeImage();return false;'>Remove</button> click 'Remove' button to remove the image url from notification payload
+        <br>
+
+        <input type="file" class="form-control" id="image-input" accept="image/gif, image/jpeg, image/png" onchange="uploadImage(this)"> 
+        <br>
+
+        Upload Status: <span id='image-status' style="color:grey">None</span> <a href="" id='image-link'></a>
+        <br><br>
+
+        <img src="" id="image-preview" width="200">
+
+        <br><br>
         Enter Object Id (applicable for NEWS_DELETE type)
         <input type="text" class="form-control" name="_id"><br>
         <br><br>
@@ -79,4 +145,5 @@
         <input type="submit" class="form-control" value="Submit">
     </form>
 </div>
+
 </body>
