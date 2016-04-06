@@ -171,12 +171,16 @@ router.get('/news/help', function(req, res){
           "info" : "get news items",
           "endpoint" : "GET /v1/admin/news",
           "return" : "array of news items",
-          "required" : "status or date",
+          "required" : [
+            "one of [status] - value in [uploaded, approved, published]",
+            "OR [date] - in ISO format string",
+            "OR [month & category] - 'month' value as in prefix of ISO string e.g '2016-03' for march 2016; 'category' value e.g sports, entertainment"
+          ],
           "optional" : "[limit, gt, lt] : gt=greater-than date, lt=less-than date",
           "details" : [
-            "if status=uploaded, return latest 'uploaded' news items sorted by 'createdAt' time",
-            "if status=approved or published return 'approved' or 'published' items sorted by 'updatedAt' time",
-            "if status param missing but date given, return all news items(with all 3 status) for that publish date"
+            "if 'status' given, return items with given status sorted by 'updatedAt' time",
+            "if 'date' given, return all news items(with all 3 status) for that publish date",
+            "if 'month & category' params given, return all news items published that month belonging to given category"
           ]
         },
         {
