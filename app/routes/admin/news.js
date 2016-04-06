@@ -2,6 +2,8 @@
 
 var express = require('express');
 var mongoose = require('mongoose');
+var moment = require('moment');
+
 var errUtils = require('../../utils/error');
 var AdminUser = require('../../models/admin_user');
 var News = require('../../models/news');
@@ -104,6 +106,58 @@ function helperGetByDate(req, res){
     });
 }
 
+function helperGetByMonth(req, res){
+  var month = req.query.month; //in form 2016-04
+  var category = req.query.category; //e.g sports
+
+  var limit = 100; //return all items for the date
+
+  var monthUTCDate = moment.utc(month).toDate();
+  var m = monthUTCDate.getMonth();
+  var y = monthUTCDate.getFullYear();
+
+  var monthStartUTCDate = moment.utc([y, m, 1]).toDate(); // greater than or equal to
+  var nextMonthStartUTCDate = moment.utc([y, m+1, 1]).toDate();// strictly less than
+
+  var findCondition = {
+    status : { '$in' :
+      [enumStatus.PUBLISHED]
+    },
+    //publishDate : monthStartUTCDate,
+    publishDate : {
+      '$gte' : monthStartUTCDate,
+      '$lt' : nextMonthStartUTCDate
+    },
+    category : category
+  };
+
+  var sortBy = {
+    publishDate : -1
+  };
+
+  var selectFields = {
+    publishDate : true,
+    content : true
+  };
+
+  NewsModel
+    .find(findCondition)
+    .limit(limit)
+    .select(selectFields)
+    .sort(sortBy)
+    .exec(function (err, newsItems){
+      if(!err){
+        res.json(newsItems);
+        return;
+      }
+      else{
+        res.status(500);
+        res.json(errUtils.ErrorObject(errUtils.errors.DB_ERROR, "unable to fetch news items", err));
+        return;
+      }
+    });
+}
+
 /*get all news items
   get parameters: 
     status (required)
@@ -125,9 +179,9 @@ router.get('/', function(req, res){
   }
 
   //required one of status, date
-  if(!(req.query.status || req.query.date)){
+  if(!(req.query.status || req.query.date || (req.query.month && req.query.category))) {
     res.status(400);
-    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : 'status' or 'date'"));
+    res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [status] or [date] or [month & category]"));
     return;
   }
 
@@ -137,6 +191,10 @@ router.get('/', function(req, res){
 
   if(req.query.date){
     helperGetByDate(req, res);
+  }
+
+  if(req.query.month){
+    helperGetByMonth(req, res);
   }
   
 });
