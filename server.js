@@ -24,6 +24,7 @@ var moment = require('moment');
 
 var session = require('express-session');
 var GooseSession = require('goose-session');
+var compress = require('compression'); //gzip compression library
 
 var appConfig = require('./config/config').app;
 var mongoConfig = require('./config/config').mongo;
@@ -47,6 +48,7 @@ mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
 //for extracting post parameters
 app.use(bodyParser.urlencoded({extended : true})); // parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // parse application/json
+app.use(compress()); //enable gzip compression
 
 //enable CORS
 app.all('*', function(req, res, next) {
