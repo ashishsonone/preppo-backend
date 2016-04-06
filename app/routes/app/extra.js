@@ -6,6 +6,7 @@ var FeedbackModel = require('../../models/feedback').model;
 var RatingNewsQuizModel = require('../../models/rating_news_quiz').model;
 
 var errUtils = require('../../utils/error');
+var sms = require('../../utils/sms');
 
 var router = express.Router();
 
@@ -46,6 +47,12 @@ router.post('/feedback', function(req, res){
   });
 });
 
+/*
+  submit news quiz rating
+  params required:
+    quizId : string - object id of quiz
+    rating : number - value in range 0-5
+*/
 router.post('/ratings/news/quiz', function(req, res){
   var quizId = req.body.quizId;
   var rating = parseFloat(req.body.rating);
@@ -74,6 +81,32 @@ router.post('/ratings/news/quiz', function(req, res){
       }
     }
   );
+});
+
+/*get app link on mobile number
+  required params:
+    phone : <string> 10 digit mobile number
+*/
+router.post('/app-link-request', function(req, res){
+  var phone = req.body.phone;
+
+  if(!phone){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required params [phone]"));
+  }
+
+  var template = "Read, Revise and Remember Current Affairs like never before. Please click on the link below to download the Preppo mobile app.";
+  var link = "https://play.google.com/store/apps/details?id=preppo.current_affairs";
+
+  var promise = sms.sendBulk(phone, template + " " + link);
+  promise.then(function(result){
+    res.json({success : true});
+  });
+
+  promise.catch(function(err){
+    res.status(500);
+    res.json({message : "Error sending message. Please check message length", err : err});
+  });
 });
 
 module.exports.router = router;

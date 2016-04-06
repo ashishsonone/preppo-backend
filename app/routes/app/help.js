@@ -435,6 +435,14 @@ router.get('/extra/help', function(req, res){
             "quizId : object id of the quiz",
             "rating : number in [0-5]. Can be decimal"
           ]
+        },
+        {
+          "endpoint" : "POST /v1/app/extra/app-link-request",
+          "info" : "send link to download android app to phone",
+          "return" : "200 OK",
+          "required" : [
+            "number : string - 10 digit phone number",
+          ]
         }
       ]
     }
