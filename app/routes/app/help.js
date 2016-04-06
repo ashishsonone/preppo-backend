@@ -441,7 +441,7 @@ router.get('/extra/help', function(req, res){
           "info" : "send link to download android app to phone",
           "return" : "200 OK",
           "required" : [
-            "number : string - 10 digit phone number",
+            "phone : string - 10 digit phone number",
           ]
         }
       ]
