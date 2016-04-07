@@ -128,7 +128,7 @@ function helperGetByMonth(req, res){
       '$gte' : monthStartUTCDate,
       '$lt' : nextMonthStartUTCDate
     },
-    category : category
+    categories : category
   };
 
   var sortBy = {
