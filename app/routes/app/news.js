@@ -22,14 +22,32 @@ var router = express.Router();
 */
 router.get('/', function(req, res){
   var dateString = req.query.date;
+  var mode = req.query.mode;
 
   if(!dateString){
     res.status(400);
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : 'date'"));
   }
 
+  var findQuery = {
+    status : enumStatus.PUBLISHED,
+    publishDate : dateString, //it will get converted into date by mongoose :)
+  };
+
   //find in cache
   var key = '/news/?date=' + dateString;
+
+  //if test-mode override findQuery and redis key
+  if(mode === 'test'){
+    findQuery = {
+      status : { '$in' :
+        [enumStatus.APPROVED, enumStatus.PUBLISHED]
+      },
+      publishDate : dateString
+    };
+    key += '&mode=' + mode;
+  }
+
   var promise = redisCache.getFromCache(key);
   var cached = true; //hoping we will find in cache(used not to reinsert into cache)
 
@@ -39,10 +57,9 @@ router.get('/', function(req, res){
     console.log("GET /app/news cache error -----> %j", err);
     //use index on news {status:1, publishDate:1}
     return NewsModel
-      .find({
-        status : enumStatus.PUBLISHED,
-        publishDate : dateString, //it will get converted into date by mongoose :)
-      })
+      .find(
+        findQuery
+      )
       .sort({
         updatedAt : -1
       })

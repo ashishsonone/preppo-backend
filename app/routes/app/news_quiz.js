@@ -31,6 +31,7 @@ var router = express.Router();
 */
 router.get('/', function(req, res){
   var ltDateString = req.query.lt;
+  var mode = req.query.mode;
 
   //find in cache
   var key = '/news/quiz?';
@@ -47,6 +48,10 @@ router.get('/', function(req, res){
     key += '&lt=' + ltDateString;
   }
 
+  if(mode === 'test'){
+    key += '&mode=' + mode;
+  }
+
   var promise = redisCache.getFromCache(key);
   var cached = true; //hoping we will find in cache(used not to reinsert into cache)
 
@@ -59,12 +64,27 @@ router.get('/', function(req, res){
       status : enumStatus.PUBLISHED,
       type : {'$in' : [enumNewsQuizType.WEEKLY, enumNewsQuizType.MONTHLY] }
     };
+
+    if(mode === 'test'){
+      findQuery = {
+        status : { '$in' :
+          [enumStatus.APPROVED, enumStatus.PUBLISHED]
+        },
+        type : {'$in' : [enumNewsQuizType.DAILY, enumNewsQuizType.WEEKLY, enumNewsQuizType.MONTHLY] }
+      };
+    }
+
     if(ltDateString){
       findQuery.publishDate = { '$lte' : ltDateString};
     }
     else{
       var todayDate = new Date().toISOString().slice(0,10); //first 10 chars 2016-03-23
       findQuery.publishDate = { '$lte' : todayDate};
+    }
+
+    if(mode === 'test' && !ltDateString){
+      //if test mode and ltDateString not given, remove publishDate query from the query
+      delete findQuery.publishDate;
     }
 
     console.log("GET /app/news/quiz cache error -----> %j query %j", err, findQuery);
@@ -89,8 +109,9 @@ router.get('/', function(req, res){
 
     findPromise = findPromise.then(function(weelyQuizItems){
       allQuizItems = weelyQuizItems;
-      if(ltDateString){
+      if(ltDateString || mode === 'test'){
         //since lt param present, no daily quiz returned, return empty array
+        //in test-mode on, daily quizzes are returned by the previous query itself so just pass here
         return [];
       }
       else{
