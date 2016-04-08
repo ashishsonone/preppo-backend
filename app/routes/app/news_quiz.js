@@ -151,7 +151,7 @@ router.get('/', function(req, res){
   promise = promise.then(function(resultQuizItems){
     console.log("GET /app/news/quiz result #num=" + resultQuizItems.length);
     //got the news items either from cache or db
-    if(!cached){
+    if(!cached && mode !== 'test'){
       var p = redisCache.putIntoCache(key, resultQuizItems);
       
       //debug

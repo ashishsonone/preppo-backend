@@ -78,7 +78,7 @@ router.get('/', function(req, res){
 
   promise = promise.then(function(newsItems){
     //got the news items either from cache or db
-    if(!cached){
+    if(!cached && mode !== 'test'){
       var p = redisCache.putIntoCache(key, newsItems);
       
       //debug
