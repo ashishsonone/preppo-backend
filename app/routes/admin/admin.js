@@ -17,6 +17,8 @@ var notificationApi = require('./notification');
 var helpApi = require('./help');
 var extraApi = require('./extra');
 
+var appUsersApi = require('./app_users');
+
 var AdminUserModel = AdminUser.model;
 
 module.exports.router = function(sessionMiddleWare){
@@ -142,6 +144,9 @@ module.exports.router = function(sessionMiddleWare){
 
   // send notification
   router.use('/notifications', notificationApi.router);
+
+  // appusers management
+  router.use('/appusers', appUsersApi.router);
 
   return router;
 };

@@ -88,7 +88,7 @@ router.put('/me', authApiHelper.loginRequiredMiddleware, function(req, res){
   if(req.body.password){
     changes.password = passwordHash.generate(req.body.password);
   }
-  if(req.body.sharedOnFb){
+  if(req.body.sharedOnFb != null){
     changes.sharedOnFb = req.body.sharedOnFb;
   }
 

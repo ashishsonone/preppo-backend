@@ -83,6 +83,7 @@ function fbOrGoogleFlow(req){
   //non null promise
   promise = promise.then(function(userDetails){
     userInfo = userDetails;
+    //console.log("userInfo " + userInfo);
     return authHelp.findUser(userDetails.username);
   });
 
