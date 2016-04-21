@@ -42,7 +42,7 @@ router.post('/otp', function(req, res){
   promise = promise.then(function(result){
     console.log("otp saved in table");
     var message = "Your OTP is " + otp;
-    return sms.sendOTP(phone, message);
+    return sms.sendTransactionalMessage(phone, message);
   });
 
   //check for result

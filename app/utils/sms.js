@@ -1,5 +1,6 @@
 var request = require('request');
 var gupshupConfig = require('../../config/common.js').gupshup;
+var bulkSmsIndiaConfig = require('../../config/common.js').bulkSmsIndia;
 
 var otpAccountCredentails = gupshupConfig.otpAccount;
 var bulkAccountCredentails = gupshupConfig.bulkAccount;
@@ -8,15 +9,53 @@ var RSVP = require('rsvp');
 var errUtils = require('./error');
 
 function sendOTP(phone, msg){
-  return sendSimpleMessage(phone, msg, otpAccountCredentails, "Text");
+  return sendSimpleMessageGupshup(phone, msg, otpAccountCredentails, "Text");
 }
 
 function sendBulk(phone, msg){
-  return sendSimpleMessage(phone, msg, bulkAccountCredentails, "Unicode_text");
+  return sendSimpleMessageGupshup(phone, msg, bulkAccountCredentails, "Unicode_text");
+}
+
+function sendTransactionalMessage(phone, msg){
+  return sendSimpleMessageBulkSmsIndia(phone, msg, bulkSmsIndiaConfig.transactionalSmsType);
 }
 
 //send a message to a single number
-function sendSimpleMessage(phone, msg, credentials, msgType){
+function sendSimpleMessageBulkSmsIndia(phone, msg, smsType){
+  var options = {
+    method : 'GET',
+    uri : "http://bulksmsindia.mobi/sendurlcomma.aspx",
+    qs : {
+      user : bulkSmsIndiaConfig.userid,
+      pwd : bulkSmsIndiaConfig.password,
+      senderid : bulkSmsIndiaConfig.senderid,
+      smstype : smsType,
+      
+      msgtext : msg,
+      mobileno : phone
+    },
+    headers : {
+    }
+  };
+
+  return new RSVP.Promise(function(resolve, reject){
+    request(options, function(err, res, body){
+      if(err){
+        return reject(errUtils.ErrorObject(errUtils.errors.THIRD_PARTY, "unknown error", err));
+      }
+      console.log(res.statusCode + " " + res.body);
+      if(!err && res.body && res.body.trim().toLowerCase().indexOf("successful") > 0){
+        return resolve(res.body);
+      }
+      else{
+        return reject(errUtils.ErrorObject(errUtils.errors.THIRD_PARTY, "unknown error", res && res.body));
+      }
+    });
+  });
+}
+
+//send a message to a single number
+function sendSimpleMessageGupshup(phone, msg, credentials, msgType){
   var options = {
     method : 'GET',
     uri : "https://enterprise.smsgupshup.com/GatewayAPI/rest",
@@ -56,4 +95,5 @@ function sendSimpleMessage(phone, msg, credentials, msgType){
 module.exports = {
   sendOTP : sendOTP,
   sendBulk : sendBulk,
+  sendTransactionalMessage : sendTransactionalMessage
 };

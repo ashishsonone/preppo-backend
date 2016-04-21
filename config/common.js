@@ -11,6 +11,13 @@ var gupshup = {
   }
 };
 
+var bulkSmsIndia = {
+  userid : "20078165",
+  password : "urzdz6",
+  senderid : "PREPPO",
+  transactionalSmsType : 13
+};
+
 var mailer = {
   protocol : 'smtps',
   email : 'ashish@trumplab.com',
@@ -32,7 +39,8 @@ var config = {
   gupshup : gupshup,
   mailer : mailer,
   google : google,
-  debug : debug
+  debug : debug,
+  bulkSmsIndia : bulkSmsIndia
 };
 
 module.exports = config;
