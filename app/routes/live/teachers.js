@@ -21,17 +21,11 @@ router.post('/', function(req, res){
     return;
   }
   
-  var promise = TeacherModel.findOneAndUpdate({
-    username : username
-  },
-  {
-    $set : {
-      topics : topics
-    }
-  },
-  {
-    upsert : true, new : true
-  }).exec();
+  var teacher = new TeacherModel();
+  teacher.username = username;
+  teacher.topics = topics;
+  teacher.save
+  var promise = teacher.save();
 
   promise = promise.then(function(teacher){
     res.json(teacher);

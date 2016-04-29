@@ -16,7 +16,7 @@ var LiveTeacherSchema = mongoose.Schema({
   timestamps : {} //assigns default createdAt and updatedAt fields
 });
 
-var LiveTeacherModel = mongoose.model('LiveTeacher', LiveTeacherSchema, 'live_teacher');
+var LiveTeacherModel = mongoose.model('LiveTeacher', LiveTeacherSchema, 'live_teachers');
 
 module.exports = {
   model : LiveTeacherModel

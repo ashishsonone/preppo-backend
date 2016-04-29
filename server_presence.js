@@ -2,7 +2,7 @@
 var Firebase = require('firebase');
 var mongoose = require('./app/utils/mongoose_robust');
 
-var TeacherModel = require('./app/models/live_teacher.js').LiveTeacherModel;
+var TeacherModel = require('./app/models/live_teacher.js').model;
 
 var firebaseConfig = require('./config/config').firebase;
 var mongoConfig = require('./config/config').mongo;
@@ -20,9 +20,9 @@ function handleSessionEvent(snapshot){
   var token = snapshot.key();
   var ts = session.ts;
 
-  console.log("handleSessionEvent | session | username=" + session.username + ", online=" + session.online + ", key=" + token);
+  //console.log("handleSessionEvent | session | username=" + session.username + ", online=" + session.online + ", key=" + token);
   if(session.online === false){//if goes offline remove the entry
-    console.log("handleSessionEvent | deleting session | key " + token + " | ts " + ts);
+    console.log("handleSessionEvent | deleting session | username=" + session.username + " | key " + token + " | ts " + ts);
     sessionBaseRef.child(snapshot.key()).remove();
 
     var promise = TeacherModel
@@ -32,7 +32,10 @@ function handleSessionEvent(snapshot){
       {
         '$pull' : {online : {token : token}}
       },
-      {new : true})
+      {
+        new : true
+      })
+      .select({username : true, online : true, _id : false, status : true})
       .exec();
 
     promise.then(function(t){
@@ -42,7 +45,7 @@ function handleSessionEvent(snapshot){
     });
   }
   else{
-    console.log("handleSessionEvent | processing session | key " + token + " | ts " + ts);
+    console.log("handleSessionEvent | processing session | username=" + session.username + " | key " + token + " | ts " + ts);
     sessionBaseRef.child(snapshot.key()).child('processed').set(true);
 
     var promise = TeacherModel
@@ -53,34 +56,35 @@ function handleSessionEvent(snapshot){
       {
         '$set' : { 'online.$.ts' : ts}
       },
-      {new : true, upsert : true}
-      )
-      .select({name : true, online : true, _id : false})
+      {
+        new : true, 
+        upsert : true //NOTE upsert : true flag is critical here (otherwise won't fail with 16836 when this token doesn't exist in 'online' field)
+      })
+      .select({username : true, online : true, _id : false, status : true})
       .exec();
 
     promise = promise.then(null, 
     function(e){
+      //console.log("handleSessionEvent | processing session | %j", e);
       if(e.code === 16836){//positional operator cannot upsert
-        console.log("creating new");
+        console.log("creating new token for " + session.username);
         var p = TeacherModel
         .findOneAndUpdate({
           username : session.username
         },
         {
           '$addToSet' : {online : {ts : ts, token : token}},
-          '$setOnInsert': {status : "free"}
         },
         {
-          new : true,
-          upsert : true,
-        }
-        )
+          new : true
+        })
+        .select({username : true, online : true, _id : false, status : true})
         .exec();
 
         return p;
       }
       else{
-        return e;
+        throw e;
       }
     });
 
