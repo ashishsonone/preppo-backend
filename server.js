@@ -34,6 +34,7 @@ var debugConfig = require('./config/common').debug;
 var adminApi = require('./app/routes/admin/admin');
 var appApi = require('./app/routes/app/api');
 var randomAajKaSawaalApi = require('./app/routes/random_stuff/aaj_ka_sawaal');
+var liveApi = require('./app/routes/live/api');
 
 var healthUtil = require('./app/utils/health');
 
@@ -147,6 +148,9 @@ app.use('/v1/admin', adminApi.router(adminSesionMiddleWare));
 //---------------------------------
 //product api
 app.use('/v1/app/', appApi.router());
+
+//live api
+app.use('/v1/live/', liveApi.router());
 
 //random aaj ka sawaal api
 app.use('/v1/randomstuff/aajkasawaal', randomAajKaSawaalApi.router);
