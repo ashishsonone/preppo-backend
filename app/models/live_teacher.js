@@ -8,12 +8,16 @@ var SessionSchema = mongoose.Schema({
 
 var LiveTeacherSchema = mongoose.Schema({
   username : String,
+  topics : [String],
   online : [SessionSchema],
   status :  {type : String, default : "free"}
+},
+{
+  timestamps : {} //assigns default createdAt and updatedAt fields
 });
 
 var LiveTeacherModel = mongoose.model('LiveTeacher', LiveTeacherSchema, 'live_teacher');
 
 module.exports = {
-  LiveTeacherModel : LiveTeacherModel
+  model : LiveTeacherModel
 };
