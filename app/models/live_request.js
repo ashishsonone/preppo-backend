@@ -12,6 +12,9 @@ var LiveRequestSchema = mongoose.Schema({
   teacher : {type : String, default : "none"}, //set after teacher selection
   sessionInfo : String, //after session over
   billingId : String //after payment
+},
+{
+  timestamps : {} //assigns default createdAt and updatedAt fields
 });
 
 var LiveRequestModel = mongoose.model('LiveRequest', LiveRequestSchema, 'live_requests');

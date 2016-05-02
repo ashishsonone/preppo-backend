@@ -40,8 +40,8 @@ var localytics = {
 };
 
 var firebase = {
-  baseUrl : "https://shining-inferno-4918.firebaseio.com",
-  secret : "6Uqqvzd5nXmc4di7m1G53atJa2jXJXouh46C63rp"
+  baseUrl : "https://prod-preppo.firebaseio.com",
+  secret : "q2uXU6ldMefC1vFpIywLQRORQFrE1aZh7HdhMVGD"
 };
 
 module.exports = {

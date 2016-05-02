@@ -16,18 +16,21 @@ var FIREBASE_SECRET = firebaseConfig.secret;
 var rootRef = new Firebase(FIREBASE_BASE_URL);
 
 //IMPORTANT admin-level access to the firebase database(all references)
-// rootRef.auth(FIREBASE_SECRET,function(error, result) {
-//   if (error) {
-//     console.log("Authentication Failed!", error);
-//   } else {
-//     console.log("Authenticated successfully with payload:", result.auth);
-//     console.log("Auth expires at:", new Date(result.expires * 1000));
-//   }
-// });
+rootRef.auth(FIREBASE_SECRET,function(error, result) {
+  if (error) {
+    console.log("Authentication Failed!", error);
+  } else {
+    console.log("Authenticated successfully with payload:", result.auth);
+    console.log("Auth expires at:", new Date(result.expires * 1000));
+  }
+});
 
 var rootChannelRef = rootRef.child('channels');
 var rootRequestRef = rootRef.child('requests');
 var rootTeachingRef = rootRef.child('teaching');
+
+var rootTeacherProfile = rootRef.child('teachers');
+var rootStudentProfile = rootRef.child('students');
 
 //START PATH /v1/live/requests/
 var router = express.Router();
@@ -151,7 +154,11 @@ function selectBestTeacher(requestEntity, teacherList){
 
       //set current teaching session status to 'running'
       rootTeachingRef.child(requestId).child('status').set('running');
+      rootTeacherProfile.child(selectedTeacher).child('status').set(requestId);
+      rootStudentProfile.child(studentUsername).child('status').set(requestId);
       //#todo update requestEntity.teacher = the assigned teacher (nothing to do in 'else' case)
+      //#todo set teachers/<username>/status = requestId
+      //#todo set students/<username>/status = requestId
     }
     else{
       //send deny to all teachers as well the requesting student
@@ -262,9 +269,10 @@ router.get('/', function(req, res){
 
 /*
   params:
-    requestId
     username
-    #todo : think what should happen in this case and how
+    #whoever calls terminate, it should terminate on both teacher and student
+    #update request entity about termination
+    #currently only teacher can call - think it over
 */
 router.post('/terminate', function(req, res){
   console.log("terminate api request for %j", req.body);
@@ -289,6 +297,8 @@ router.post('/terminate', function(req, res){
       if(requestId !== "free"){
         console.log("terminate api request for " + username + " | was busy with " + requestId);
         rootTeachingRef.child(requestId).child('status').set('terminated');
+        rootTeacherProfile.child(username).child('status').set('free');
+        //free the student also
       }
       res.json({message : "success | old status=" + requestId});
     }
