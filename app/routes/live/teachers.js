@@ -5,7 +5,7 @@ var RSVP = require('rsvp');
 
 var errUtils = require('../../utils/error');
 
-var TeacherModel = require('../../models/live_teacher').model;
+var TeacherModel = require('../../models/live.teacher').model;
 //START PATH /v1/live/requests/
 
 var router = express.Router();
@@ -14,17 +14,18 @@ var router = express.Router();
 */
 router.post('/', function(req, res){
   var username = req.body.username;
+  var subjects = req.body.subjects;
   var topics = req.body.topics;
   
-  if(!(topics && username)){
-    res.json({error : 401, message : "required fields : [username, topics]"});
+  if(!(username && subjects && topics)){
+    res.json({error : 401, message : "required fields : [username, subjects, topics]"});
     return;
   }
   
   var teacher = new TeacherModel();
   teacher.username = username;
+  teacher.subjects = subjects;
   teacher.topics = topics;
-  teacher.save
   var promise = teacher.save();
 
   promise = promise.then(function(teacher){
@@ -48,7 +49,16 @@ router.post('/', function(req, res){
 router.get('/:username', function(req, res){
   var promise = TeacherModel.findOne({
     username : req.params.username
-  }).exec();
+  })
+  .select({
+    username : true,
+    subjects : true,
+    topics : true,
+    _id : false,
+    status : true,
+    online : true
+  })
+  .exec();
 
   promise = promise.then(function(teacher){
     if(!teacher){
@@ -77,11 +87,12 @@ router.get('/', function(req, res){
     })
     .select({
       username : true,
+      subjects : true,
       topics : true,
       _id : false,
       status : true,
       online : true
-    }) .exec();
+    }).exec();
 
   promise = promise.then(function(teacherList){
     res.json(teacherList);

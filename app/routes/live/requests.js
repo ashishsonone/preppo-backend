@@ -3,10 +3,11 @@
 var express = require('express');
 var RSVP = require('rsvp');
 var firebase = require('firebase');
+var shortid = require('shortid');
 
 var errUtils = require('../../utils/error');
 var requestsHelp = require('./requests_help');
-var RequestModel = require('../../models/live_request').model;
+var RequestModel = require('../../models/live.request').model;
 
 var firebaseConfig = require('../../../config/config').firebase;
 
@@ -41,11 +42,21 @@ function selectBestTeacher(requestEntity, teacherList){
   //wait for responses for 30-40 secs (using setTimeout)
   //pick the best teacher
   //notify all teachers and students
-  var requestId = requestEntity.requestId;
+  var requestId = requestEntity.requestDate + '/' + requestEntity.requestCode;
 
-  var details = {
-    topic : requestEntity.details.topic
-  };
+  var details = {};
+  if(requestEntity.details.subject){
+    details.subject = requestEntity.details.subject;
+  }
+  if(requestEntity.details.topic){
+    details.topic = requestEntity.details.topic;
+  }
+  if(requestEntity.details.description){
+    details.description = requestEntity.details.description;
+  }
+  if(requestEntity.details.image){
+    details.image = requestEntity.details.image;
+  }
 
   var requestMessage = {
     type : "request",
@@ -154,12 +165,12 @@ function selectBestTeacher(requestEntity, teacherList){
       rootStudentChannelRef.child(studentUsername).push(assignMessage);
 
       //set current teaching session status to 'running'
-      rootTeachingRef.child(requestId).child('status').set('running');
+      rootTeachingRef.child(requestId).child('status').set("assigned");
       rootTeacherProfile.child(selectedTeacher).child('status').set(requestId);
       rootStudentProfile.child(studentUsername).child('status').set(requestId);
-      //#todo update requestEntity.teacher = the assigned teacher (nothing to do in 'else' case)
-      //#todo set teachers/<username>/status = requestId
-      //#todo set students/<username>/status = requestId
+
+      //#todo requestsHelp.setStudentBusy(studentUsername, requestId);
+      requestsHelp.updateRequestEntity(requestId, {status : "assigned", teacher : selectedTeacher});
     }
     else{
       //send deny to all teachers as well the requesting student
@@ -170,6 +181,8 @@ function selectBestTeacher(requestEntity, teacherList){
       }
       console.log(requestId + "|" + "sending deny to student " + studentUsername);
       rootStudentChannelRef.child(studentUsername).push(denyMessage);
+
+      requestsHelp.updateRequestEntity(requestId, {status : "unassigned"});
     }
   };
 
@@ -181,22 +194,34 @@ function selectBestTeacher(requestEntity, teacherList){
 */
 router.post('/', function(req, res){
   var studentUsername = req.body.username;
+  var subject = req.body.subject;
   var topic = req.body.topic;
-  
-  if(!(topic && studentUsername)){
-    res.json({error : 401, message : "required fields : [username, topic]"});
+  var description = req.body.description;
+  var image = req.body.image;
+
+  if(!(studentUsername)){
+    res.json({error : 401, message : "required fields : [username]"});
     return;
   }
 
-  var date = new Date().toISOString().slice(0, 10);
-  var requestId = date + "/" + studentUsername + "_" + parseInt(new Date().getTime()/1000);
-  var promise = requestsHelp.createRequest(requestId, studentUsername, {topic : topic});
+  var details = {
+    subject : subject,
+    topic : topic,
+    description : description,
+    image : image
+  };
+
+  var requestDate = new Date().toISOString().slice(0, 10);
+  var requestCode = shortid.generate();
+
+  var requestId = requestDate + '/' + requestCode;
+  var promise = requestsHelp.createRequest(requestDate, requestCode, studentUsername, details);
 
   var requestEntity;
   promise = promise.then(function(r){
     requestEntity = r;
     console.log(requestId + "|" + "new request entity created %j", requestEntity);
-    return requestsHelp.findFreeTeachers(topic);
+    return requestsHelp.findFreeTeachers(subject, topic);
   });
 
   promise = promise.then(function(teacherList){
@@ -206,7 +231,7 @@ router.post('/', function(req, res){
         success : false,
         message : "no eligible online teachers"
       });
-      //requestEntity.teacher is already set to "none" so nothing else to do
+      requestsHelp.updateRequestEntity(requestId, {status : "unassigned"});
     }
     else{
       res.json({
@@ -248,10 +273,42 @@ router.get('/', function(req, res){
     .sort({
       createdAt : -1
     })
-    .limit(10);
+    .limit(10)
+    .exec();
 
   promise = promise.then(function(requestList){
     return res.json(requestList);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to fetch requests", err));
+    }
+  });
+});
+
+router.get('/:requestDate/:requestCode', function(req, res){
+  var findQuery = {};
+
+  //#todo for debugging purposes only
+  var promise = RequestModel
+    .findOne({
+      requestCode : req.params.requestCode
+    })
+    .exec();
+
+  promise = promise.then(function(requestEntity){
+    if(!requestEntity){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such request exists", null, 404);
+    }
+    return res.json(requestEntity);
   });
 
   promise.catch(function(err){
@@ -299,10 +356,25 @@ router.post('/terminate', function(req, res){
         console.log("terminate api request for " + username + " | was busy with " + requestId);
         rootTeachingRef.child(requestId).child('status').set('terminated');
         rootTeacherProfile.child(username).child('status').set('');
-        //free the student also
+
+        //update request entity status
+        return requestsHelp.updateRequestEntity(requestId, {status : "terminated"});
       }
-      res.json({message : "success | old status=" + requestId});
+      return null; 
     }
+  });
+
+  promise = promise.then(function(requestEntity){
+    var requestId = "";
+    if(requestEntity){
+      requestId = requestEntity.requestDate + "/" + requestEntity.requestCode;
+      var studentUsername = requestEntity.student;
+      rootStudentProfile.child(studentUsername).child('status').set("");
+      console.log("terminate api request for " + username + " | setting student free " + studentUsername);
+      //#todo setStudentFree() entity
+    }
+
+    res.json({message : "success | old status=" + requestId});
   });
 
   promise = promise.catch(function(err){

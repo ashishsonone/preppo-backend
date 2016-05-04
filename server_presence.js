@@ -2,7 +2,7 @@
 var Firebase = require('firebase');
 var mongoose = require('./app/utils/mongoose_robust');
 
-var TeacherModel = require('./app/models/live_teacher.js').model;
+var TeacherModel = require('./app/models/live.teacher.js').model;
 
 var firebaseConfig = require('./config/config').firebase;
 var mongoConfig = require('./config/config').mongo;

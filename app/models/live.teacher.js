@@ -8,6 +8,7 @@ var SessionSchema = mongoose.Schema({
 
 var LiveTeacherSchema = mongoose.Schema({
   username : String,
+  subjects : [String],
   topics : [String],
   online : [SessionSchema],
   status :  {type : String, default : ""}
@@ -16,7 +17,7 @@ var LiveTeacherSchema = mongoose.Schema({
   timestamps : {} //assigns default createdAt and updatedAt fields
 });
 
-var LiveTeacherModel = mongoose.model('LiveTeacher', LiveTeacherSchema, 'live_teachers');
+var LiveTeacherModel = mongoose.model('LiveTeacher', LiveTeacherSchema, 'live.teachers');
 
 module.exports = {
   model : LiveTeacherModel
