@@ -68,7 +68,7 @@ router.get('/:username', function(req, res){
       res.status(500);
       return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find teacher", err));
     }
-  })
+  });
 });
 
 router.get('/', function(req, res){
@@ -98,7 +98,7 @@ router.get('/', function(req, res){
       res.status(500);
       return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find all teachers", err));
     }
-  })
+  });
 });
 
 module.exports.router = router;

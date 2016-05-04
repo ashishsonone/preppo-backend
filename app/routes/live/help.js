@@ -88,7 +88,7 @@ var teacherSchema = {
   "name" : "string",
 
   "online" : "[<session>] : array of login session objects - if empty means the teacher is offline right now",
-  "status" : "either 'free' or <requestId> : whether the teacher is busy currently with a teaching request",
+  "status" : "either ''(empty string) or <requestId> : whether the teacher is busy currently with a teaching request",
 
   "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
   "updatedAt" : "string : date in iso 8601 format"

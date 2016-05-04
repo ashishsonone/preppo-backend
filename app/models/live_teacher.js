@@ -10,7 +10,7 @@ var LiveTeacherSchema = mongoose.Schema({
   username : String,
   topics : [String],
   online : [SessionSchema],
-  status :  {type : String, default : "free"}
+  status :  {type : String, default : ""}
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields

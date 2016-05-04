@@ -7,7 +7,7 @@ function findFreeTeachers(topic){
   var promise = TeacherModel.find({
     topics : topic,
     online : {$ne : []},
-    status : "free"
+    status : ""
   }).limit(10).exec();
 
   console.log("finding free teachers for topic=" + topic);
@@ -28,7 +28,7 @@ function setTeacherBusy(username, requestId){
   console.log("setting teacher busy " + username + "| requestId=" + requestId);
   var promise = TeacherModel.findOneAndUpdate({
     username : username,
-    status : "free"
+    status : ""
   },
   {
     '$set' : {status : requestId}
@@ -45,7 +45,7 @@ function setTeacherFree(username){
     username : username  
   },
   {
-    '$set' : {status : "free"}
+    '$set' : {status : ""}
   },
   {
     new : false //note we want old entity

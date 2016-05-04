@@ -16,7 +16,7 @@ var FIREBASE_SECRET = firebaseConfig.secret;
 var rootRef = new Firebase(FIREBASE_BASE_URL);
 
 //IMPORTANT admin-level access to the firebase database(all references)
-rootRef.auth(FIREBASE_SECRET,function(error, result) {
+rootRef.authWithCustomToken(FIREBASE_SECRET,function(error, result) {
   if (error) {
     console.log("Authentication Failed!", error);
   } else {
@@ -25,7 +25,8 @@ rootRef.auth(FIREBASE_SECRET,function(error, result) {
   }
 });
 
-var rootChannelRef = rootRef.child('channels');
+var rootTeacherChannelRef = rootRef.child('teacher-channels');
+var rootStudentChannelRef = rootRef.child('student-channels');
 var rootRequestRef = rootRef.child('requests');
 var rootTeachingRef = rootRef.child('teaching');
 
@@ -56,7 +57,7 @@ function selectBestTeacher(requestEntity, teacherList){
   for(var i = 0; i < teacherList.length; i++){
     var teacher = teacherList[i];
     console.log(requestId + "|" + "sending request to " + teacher.username);
-    rootChannelRef.child(teacher.username).push(requestMessage);
+    rootTeacherChannelRef.child(teacher.username).push(requestMessage);
   }
 
   var responseList = [];
@@ -143,14 +144,14 @@ function selectBestTeacher(requestEntity, teacherList){
         var teacher = teacherList[i];
         if(teacher.username !== selectedTeacher){
           console.log(requestId + "|" + "sending deny to teacher " + teacher.username);
-          rootChannelRef.child(teacher.username).push(denyMessage);
+          rootTeacherChannelRef.child(teacher.username).push(denyMessage);
         }
       }
 
       console.log(requestId + "|" + "sending assign to teacher " + selectedTeacher);
-      rootChannelRef.child(selectedTeacher).push(assignMessage);
+      rootTeacherChannelRef.child(selectedTeacher).push(assignMessage);
       console.log(requestId + "|" + "sending assign to student " + studentUsername);
-      rootChannelRef.child(studentUsername).push(assignMessage);
+      rootStudentChannelRef.child(studentUsername).push(assignMessage);
 
       //set current teaching session status to 'running'
       rootTeachingRef.child(requestId).child('status').set('running');
@@ -165,10 +166,10 @@ function selectBestTeacher(requestEntity, teacherList){
       for(var i = 0; i < teacherList.length; i++){
         var teacher = teacherList[i];
         console.log(requestId + "|" + "sending deny to teacher " + teacher.username);
-        rootChannelRef.child(teacher.username).push(denyMessage);
+        rootTeacherChannelRef.child(teacher.username).push(denyMessage);
       }
       console.log(requestId + "|" + "sending deny to student " + studentUsername);
-      rootChannelRef.child(studentUsername).push(denyMessage);
+      rootStudentChannelRef.child(studentUsername).push(denyMessage);
     }
   };
 
@@ -238,7 +239,7 @@ router.get('/', function(req, res){
     findQuery.student = req.query.student;
   }
   if(req.query.teacher){
-    findQuery.teaching = req.query.teacher;
+    findQuery.teacher = req.query.teacher;
   }
 
   //#todo for debugging purposes only
@@ -294,10 +295,10 @@ router.post('/terminate', function(req, res){
     }
     else{
       var requestId = oldTeacher.status;
-      if(requestId !== "free"){
+      if(requestId !== ""){
         console.log("terminate api request for " + username + " | was busy with " + requestId);
         rootTeachingRef.child(requestId).child('status').set('terminated');
-        rootTeacherProfile.child(username).child('status').set('free');
+        rootTeacherProfile.child(username).child('status').set('');
         //free the student also
       }
       res.json({message : "success | old status=" + requestId});
@@ -312,4 +313,3 @@ router.post('/terminate', function(req, res){
 });
 
 module.exports.router = router;
-module.exports.rootChannelRef = rootChannelRef;

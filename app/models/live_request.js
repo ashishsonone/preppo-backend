@@ -9,7 +9,7 @@ var LiveRequestSchema = mongoose.Schema({
   requestId : String, //init
   student : String, //init
   details: DetailsSchema, //init - to decide on its schema
-  teacher : {type : String, default : "none"}, //set after teacher selection
+  teacher : {type : String, default : ""}, //set after teacher selection
   sessionInfo : String, //after session over
   billingId : String //after payment
 },
