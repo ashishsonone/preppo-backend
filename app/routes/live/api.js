@@ -5,6 +5,7 @@ var express = require('express');
 var helpApi = require('./help');
 var reqestsApi = require('./requests');
 var teachersApi = require('./teachers');
+var studentsApi = require('./students');
 
 module.exports.router = function(){
   var router = express.Router();
@@ -26,5 +27,8 @@ module.exports.router = function(){
   router.use('/requests', reqestsApi.router);
 
   router.use('/teachers', teachersApi.router);
+
+  router.use('/students', studentsApi.router);
+
   return router;
 }

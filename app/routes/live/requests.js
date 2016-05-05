@@ -169,8 +169,10 @@ function selectBestTeacher(requestEntity, teacherList){
       rootTeacherProfile.child(selectedTeacher).child('status').set(requestId);
       rootStudentProfile.child(studentUsername).child('status').set(requestId);
 
+      //teacher entity already set busy
       //#todo requestsHelp.setStudentBusy(studentUsername, requestId);
       requestsHelp.updateRequestEntity(requestId, {status : "assigned", teacher : selectedTeacher});
+      requestsHelp.updateStudentEntity(studentUsername, {status : requestId});
     }
     else{
       //send deny to all teachers as well the requesting student
@@ -200,10 +202,11 @@ router.post('/', function(req, res){
   var image = req.body.image;
 
   if(!(studentUsername)){
-    res.json({error : 401, message : "required fields : [username]"});
-    return;
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username]"));
   }
 
+  var requestEntity;
   var details = {
     subject : subject,
     topic : topic,
@@ -215,9 +218,17 @@ router.post('/', function(req, res){
   var requestCode = shortid.generate();
 
   var requestId = requestDate + '/' + requestCode;
-  var promise = requestsHelp.createRequest(requestDate, requestCode, studentUsername, details);
 
-  var requestEntity;
+  var promise = requestsHelp.findStudentEntity(studentUsername);
+  promise = promise.then(function(studentEntity){
+    console.log("studentEntity.status=" + studentEntity.status);
+    if(studentEntity.status && studentEntity.status !== ""){
+      throw errUtils.ErrorObject(errUtils.errors.BUSY, "already busy with requestId=" + studentEntity.status, null, 400);
+    }
+
+    return requestsHelp.createRequest(requestDate, requestCode, studentUsername, details);
+  });
+
   promise = promise.then(function(r){
     requestEntity = r;
     console.log(requestId + "|" + "new request entity created %j", requestEntity);
@@ -253,7 +264,7 @@ router.post('/', function(req, res){
     else{
       //uncaught error
       res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to create your requests", err));
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to create your request", err));
     }
   });
 });
@@ -325,6 +336,36 @@ router.get('/:requestDate/:requestCode', function(req, res){
   });
 });
 
+router.post('/start', function(req, res){
+  var username = req.body.username;
+  var requestId = req.body.requestId;
+  var role = req.body.role;
+
+  if(!(username && requestId && role)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "params required [username, requestId, role]"));
+  }
+
+  var promise = requestsHelp.updateRequestEntity(requestId, {sessionStartTime : new Date(), status : "started"});
+  promise = promise.then(function(requestEntity){
+    rootTeachingRef.child(requestId).child('status').set('started');
+    res.json(requestEntity);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to start teaching request", err));
+    }
+  });
+});
+
 /*
   params:
     username
@@ -332,54 +373,70 @@ router.get('/:requestDate/:requestCode', function(req, res){
     #update request entity about termination
     #currently only teacher can call - think it over
 */
-router.post('/terminate', function(req, res){
-  console.log("terminate api request for %j", req.body);
+router.post('/end', function(req, res){
   var username = req.body.username;
+  var requestId = req.body.requestId;
+  var role = req.body.role;
 
-  if(!(username)){
+  console.log("end api request for %j", req.body);
+
+  if(!(username && requestId && role)){
     res.status(400);
-    res.json({message : "params required [username]"});
-    return;
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "params required [username, requestId, role]"));
   }
 
-  var promise = requestsHelp.setTeacherFree(username);
+  var requestCode = requestId.split('/')[1];
+  var promise = requestsHelp.updateRequestEntity(requestId, {sessionEndTime : new Date(), status : "ended"});
 
-  promise = promise.then(function(oldTeacher){
-    if(!oldTeacher){
-      throw {
-        message : username + " not found"
-      };
+  var requestEntity;
+  var studentUsername;
+  var teacherUsername;
+
+  promise = promise.then(function(r){
+    requestEntity = r;
+    rootTeachingRef.child(requestId).child('status').set('ended'); //firebase request status
+    
+    //free student & teacher
+    studentUsername = requestEntity.student;
+    teacherUsername = requestEntity.teacher;
+
+    return requestsHelp.updateStudentEntity(studentUsername, {status : ""}, false);
+  });
+
+  promise = promise.then(function(oldStudentEntity){
+    console.log("end api request student " + studentUsername + " was busy with=" + oldStudentEntity.status);
+    rootStudentProfile.child(studentUsername).child('status').set(""); //firebase student status
+    if(teacherUsername && teacherUsername !== ""){
+      return requestsHelp.updateTeacherEntity(teacherUsername, {status : ""}, false);
+    }
+
+    //no teacher involved, just return null
+    return null;
+  });
+
+  promise = promise.then(function(oldTeacherEntity){
+    if(oldTeacherEntity){
+      console.log("end api request teacher " + teacherUsername + " was busy with " + oldTeacherEntity.status);
+      rootTeacherProfile.child(teacherUsername).child('status').set(''); //firebase teacher status
     }
     else{
-      var requestId = oldTeacher.status;
-      if(requestId !== ""){
-        console.log("terminate api request for " + username + " | was busy with " + requestId);
-        rootTeachingRef.child(requestId).child('status').set('terminated');
-        rootTeacherProfile.child(username).child('status').set('');
-
-        //update request entity status
-        return requestsHelp.updateRequestEntity(requestId, {status : "terminated"});
-      }
-      return null; 
-    }
-  });
-
-  promise = promise.then(function(requestEntity){
-    var requestId = "";
-    if(requestEntity){
-      requestId = requestEntity.requestDate + "/" + requestEntity.requestCode;
-      var studentUsername = requestEntity.student;
-      rootStudentProfile.child(studentUsername).child('status').set("");
-      console.log("terminate api request for " + username + " | setting student free " + studentUsername);
-      //#todo setStudentFree() entity
+      console.log("end api request teacher : no teacher involved yet");
     }
 
-    res.json({message : "success | old status=" + requestId});
+    res.json(requestEntity);
   });
 
-  promise = promise.catch(function(err){
-    res.status(500);
-    res.json(err);
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to end teaching request", err));
+    }
   });
 
 });

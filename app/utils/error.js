@@ -53,6 +53,10 @@ var errors = {
   USER_ALREADY_EXISTS : "USER_ALREADY_EXISTS",
   USER_NOT_FOUND : "USER_NOT_FOUND",
   INVALID_TOKEN : "INVALID_TOKEN", //for fb and google tokens
+
+  //preppo live new errors
+  BUSY : "BUSY" //already busy with another request(when student makes a request)
+  //NOT_BUSY : "INVALID_REQUEST", //you're not currently busy with the request you're trying to modify
 };
 
 function ErrorObject(error, description, debug, resStatus){

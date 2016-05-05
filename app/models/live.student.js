@@ -11,5 +11,5 @@ var LiveStudentSchema = mongoose.Schema({
 var LiveStudentModel = mongoose.model('LiveStudent', LiveStudentSchema, 'live.students');
 
 module.exports = {
-  model : LiveTeacherModel
+  model : LiveStudentModel
 };

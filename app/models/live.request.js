@@ -14,7 +14,7 @@ var LiveRequestSchema = mongoose.Schema({
   student : String, //init
   details : DetailsSchema, //init
 
-  status : {type : String, default : ""}, //on teacher selection set ["" -> "unassigned"/"assigned" -> "ongoing" -> "terminated"]
+  status : {type : String, default : ""}, //on teacher selection set ["" -> "unassigned"/"assigned" -> "started" -> "ended"]
 
   teacher : {type : String, default : ""}, //set after teacher selection
 

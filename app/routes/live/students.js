@@ -5,32 +5,27 @@ var RSVP = require('rsvp');
 
 var errUtils = require('../../utils/error');
 var requestsHelp = require('./requests_help');
-
-var TeacherModel = require('../../models/live.teacher').model;
+var StudentModel = require('../../models/live.student').model;
 //START PATH /v1/live/requests/
 
 var router = express.Router();
 
-/*create a new user
+/*create a new student
 */
 router.post('/', function(req, res){
   var username = req.body.username;
-  var subjects = req.body.subjects;
-  var topics = req.body.topics;
   
-  if(!(username && subjects && topics)){
-    res.json({error : 401, message : "required fields : [username, subjects, topics]"});
+  if(!(username)){
+    res.json({error : 401, message : "required fields : [username]"});
     return;
   }
   
-  var teacher = new TeacherModel();
-  teacher.username = username;
-  teacher.subjects = subjects;
-  teacher.topics = topics;
-  var promise = teacher.save();
+  var student = new StudentModel();
+  student.username = username;
+  var promise = student.save();
 
-  promise = promise.then(function(teacher){
-    res.json(teacher);
+  promise = promise.then(function(studentEntity){
+    res.json(studentEntity);
   });
 
   promise.catch(function(err){
@@ -42,16 +37,16 @@ router.post('/', function(req, res){
     else{
       //uncaught error
       res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to create teacher entity", err));
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to create student entity", err));
     }
   });
 });
 
 router.get('/:username', function(req, res){
-  var promise = requestsHelp.findTeacherEntity(req.params.username);
-  promise = promise.then(function(teacher){
-    //will either return a non-null teacher or throw error
-    res.json(teacher);
+  var promise = requestsHelp.findStudentEntity(req.params.username);
+  promise = promise.then(function(student){
+    //will either return a non-null student or throw error
+    res.json(student);
   });
 
   promise = promise.catch(function(err){
@@ -69,20 +64,17 @@ router.get('/:username', function(req, res){
 });
 
 router.get('/', function(req, res){
-  var promise = TeacherModel
+  var promise = StudentModel
     .find({
     })
     .select({
       username : true,
-      subjects : true,
-      topics : true,
       _id : false,
       status : true,
-      online : true
     }).exec();
 
-  promise = promise.then(function(teacherList){
-    res.json(teacherList);
+  promise = promise.then(function(studentList){
+    res.json(studentList);
   });
 
   promise = promise.catch(function(err){
@@ -94,7 +86,7 @@ router.get('/', function(req, res){
     else{
       //uncaught error
       res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find all teachers", err));
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find all students", err));
     }
   });
 });
