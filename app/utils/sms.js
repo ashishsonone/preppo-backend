@@ -16,8 +16,16 @@ function sendBulk(phone, msg){
   return sendSimpleMessageGupshup(phone, msg, bulkAccountCredentails, "Unicode_text");
 }
 
+function sendOtpMessage(phone, msg){
+  return sendSimpleMessageBulkSmsIndia(phone, msg, bulkSmsIndiaConfig.otpSmsType);
+}
+
 function sendTransactionalMessage(phone, msg){
   return sendSimpleMessageBulkSmsIndia(phone, msg, bulkSmsIndiaConfig.transactionalSmsType);
+}
+
+function sendPromotionalMessage(phone, msg){
+  return sendSimpleMessageBulkSmsIndia(phone, msg, bulkSmsIndiaConfig.promotionalSmsType);
 }
 
 //send a message to a single number
@@ -95,5 +103,7 @@ function sendSimpleMessageGupshup(phone, msg, credentials, msgType){
 module.exports = {
   sendOTP : sendOTP,
   sendBulk : sendBulk,
-  sendTransactionalMessage : sendTransactionalMessage
+  sendTransactionalMessage : sendTransactionalMessage,
+  sendOtpMessage: sendOtpMessage,
+  sendPromotionalMessage : sendPromotionalMessage
 };

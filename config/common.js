@@ -15,7 +15,9 @@ var bulkSmsIndia = {
   userid : "20078165",
   password : "urzdz6",
   senderid : "PREPPO",
-  transactionalSmsType : 13
+  transactionalSmsType : 0,
+  otpSmsType : 13,
+  promotionalSmsType : 4
 };
 
 var mailer = {
