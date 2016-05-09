@@ -83,4 +83,30 @@ router.get('/ratings/news/quiz/:id', function(req, res){
   });
 });
 
+router.get('/ratings/news/quiz/', function(req, res){
+  var lt = req.query.lt;
+
+  var findQuery = {};
+  if(lt){
+    findQuery.createdAt = {'$lt' : lt};
+  }
+
+  var promise = RatingNewsQuizModel.find(findQuery).limit(10).exec();
+
+  promise = promise.then(function(ratingList){
+    res.json(ratingList);
+  });
+
+  promise.catch(function(err){
+    if(err.resStatus){
+      res.status(err.resStatus);
+      res.json(err);
+    }
+    else{
+      res.status(500);
+      res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to fetch rating objects", err));
+    }
+  });
+});
+
 module.exports.router = router;
