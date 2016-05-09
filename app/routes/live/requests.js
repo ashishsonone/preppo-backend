@@ -336,6 +336,16 @@ router.get('/:requestDate/:requestCode', function(req, res){
   });
 });
 
+/*
+  start the teaching session
+  params required:
+    username
+    requestId
+    role - 'teacher' or 'student'
+
+  returns:
+    updated Request entity
+*/
 router.post('/start', function(req, res){
   var username = req.body.username;
   var requestId = req.body.requestId;
@@ -366,12 +376,52 @@ router.post('/start', function(req, res){
   });
 });
 
-/*
+/* update Request entity's sessionDuration(only teacher can call this)
   params:
     username
-    #whoever calls terminate, it should terminate on both teacher and student
-    #update request entity about termination
-    #currently only teacher can call - think it over
+    requestId
+    sessionDuration - number (seconds)
+  returns:
+    updated Request entity
+*/
+router.post('/update', function(req, res){
+  var username = req.body.username;
+  var requestId = req.body.requestId;
+  var sessionDuration = req.body.sessionDuration;
+
+  if(!(username && requestId && (sessionDuration != null))){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "params required [username, requestId, sessionDuration]"));
+  }
+
+  var promise = requestsHelp.updateRequestEntity(requestId, {sessionDuration : sessionDuration});
+
+  promise = promise.then(function(requestEntity){
+    res.json(requestEntity);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to update the request", err));
+    }
+  });
+});
+
+/*
+  end the teaching session
+  params required:
+    username
+    requestId
+    role - 'teacher' or 'student'
+  returns:
+    updated Request entity
 */
 router.post('/end', function(req, res){
   var username = req.body.username;
