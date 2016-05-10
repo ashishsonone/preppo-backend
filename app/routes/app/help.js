@@ -437,8 +437,8 @@ router.get('/extra/help', function(req, res){
           ]
         },
         {
-          "endpoint" : "POST /v1/app/extra/app-link-request",
-          "info" : "send link to download android app to phone",
+          "endpoint" : "POST /v1/app/extra/send-app-link",
+          "info" : "send link to download current affairs android app to phone",
           "return" : "200 OK",
           "required" : [
             "phone : string - 10 digit phone number",

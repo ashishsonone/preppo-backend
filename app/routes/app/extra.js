@@ -7,6 +7,7 @@ var RatingNewsQuizModel = require('../../models/rating_news_quiz').model;
 
 var errUtils = require('../../utils/error');
 var sms = require('../../utils/sms');
+var appLinks = require("../../../config/common").appLinks;
 
 var router = express.Router();
 
@@ -87,7 +88,7 @@ router.post('/ratings/news/quiz', function(req, res){
   required params:
     phone : <string> 10 digit mobile number
 */
-router.post('/app-link-request', function(req, res){
+router.post('/send-app-link', function(req, res){
   var phone = req.body.phone;
 
   if(!phone){
@@ -96,17 +97,29 @@ router.post('/app-link-request', function(req, res){
   }
 
   var template = "Read, Revise and Remember Current Affairs like never before. Please click on the link below to download the Preppo mobile app.";
-  var link = "https://play.google.com/store/apps/details?id=preppo.current_affairs";
+  var link = appLinks["current_affairs"];
 
-  var promise = sms.sendBulk(phone, template + " " + link);
-  promise.then(function(result){
-    res.json({success : true});
+  var promise = sms.sendTransactionalMessage(phone, template + " " + link);
+
+  //check for result
+  promise = promise.then(function(result){
+    console.log("link sent result = %j", result);
+    return res.json({"success" : true});
   });
 
   promise.catch(function(err){
-    res.status(500);
-    res.json({message : "Error sending message. Please check message length", err : err});
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to send app link", err));
+    }
   });
+
 });
 
 module.exports.router = router;

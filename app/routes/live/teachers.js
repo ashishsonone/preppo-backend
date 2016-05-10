@@ -19,8 +19,8 @@ router.post('/', function(req, res){
   var topics = req.body.topics;
   
   if(!(username && subjects && topics)){
-    res.json({error : 401, message : "required fields : [username, subjects, topics]"});
-    return;
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username, subjects, topics]"));
   }
   
   var teacher = new TeacherModel();

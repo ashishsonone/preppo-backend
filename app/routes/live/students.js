@@ -16,8 +16,8 @@ router.post('/', function(req, res){
   var username = req.body.username;
   
   if(!(username)){
-    res.json({error : 401, message : "required fields : [username]"});
-    return;
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username]"));
   }
   
   var student = new StudentModel();

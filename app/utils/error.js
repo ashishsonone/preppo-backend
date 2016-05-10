@@ -17,18 +17,7 @@
 */
 
 /*
-  custom error strings 'error' in response json data
-
-  UNAUTHENTICATED
-  UNAUTHORIZED
-
-  DB_ERROR
-
-  INVALID_CREDENTIALS
-  INVALID_OBJECT_ID
-
-  PARAMS_REQUIRED
-  NOT_FOUND
+  custom error strings : 'error' in response json data
 */
 
 var errors = {
@@ -40,7 +29,9 @@ var errors = {
   INVALID_CREDENTIALS : "INVALID_CREDENTIALS",
   INVALID_OBJECT_ID : "INVALID_OBJECT_ID",
 
-  PARAMS_REQUIRED : "PARAMS_REQUIRED",
+  PARAMS_REQUIRED : "PARAMS_REQUIRED", //required params not provided
+  PARAMS_INVALID : "PARAMS_INVALID", //one of the params invalid
+
   NOT_FOUND : "NOT_FOUND",
   DUPLICATE : "DUPLICATE",
 
