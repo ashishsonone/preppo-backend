@@ -46,6 +46,26 @@ function updateRequestEntity(requestId, update, wantNew){
   return promise;
 }
 
+function findRequestEntity(requestId){
+  console.log("finding request " + requestId);
+  var requestCode = requestId.split('/')[1];
+
+  var promise = RequestModel.findOne({
+    requestCode : requestCode
+  })
+  .exec();
+
+  promise = promise.then(function(requestEntity){
+    if(requestEntity == null){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such request entity exists " + requestId, null, 404);
+      return;
+    }
+    return requestEntity;
+  });
+
+  return promise;
+}
+
 //======== teachers
 function findFreeTeachers(subject, topic){
   //check if subject or topic is not null and then query accordingly
@@ -85,15 +105,13 @@ function setTeacherBusy(username, requestId){
   return promise;
 }
 
-function updateTeacherEntity(username, update, wantNew){
+function updateTeacherEntity(findQuery, update, wantNew){
   if(wantNew !== false){
     wantNew = true;
   }
 
-  console.log("updating teacher " + username + "| update=%j" + update);
-  var promise = TeacherModel.findOneAndUpdate({
-    username : username  
-  },
+  console.log("updating teacher %j" + "| update=%j", findQuery, update);
+  var promise = TeacherModel.findOneAndUpdate(findQuery,
   {
     '$set' : update
   },
@@ -103,10 +121,11 @@ function updateTeacherEntity(username, update, wantNew){
   .exec();
 
   promise = promise.then(function(teacherEntity){
-    if(teacherEntity == null){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such teacher exists " + username, null, 404);
-      return;
-    }
+    console.log("updating teacher found = " + (teacherEntity != null));
+    // if(teacherEntity == null){
+    //   throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such teacher exists " + username, null, 404);
+    //   return;
+    // }
     return teacherEntity;
   });
 
@@ -131,15 +150,13 @@ function findTeacherEntity(username){
 }
 
 //====== students =========
-function updateStudentEntity(username, update, wantNew){
+function updateStudentEntity(findQuery, update, wantNew){
   if(wantNew !== false){
     wantNew = true;
   }
   
-  console.log("updating student " + username + "| update=%j", update);
-  var promise = StudentModel.findOneAndUpdate({
-    username : username,
-  },
+  console.log("updating student %j" + "| update=%j", findQuery, update);
+  var promise = StudentModel.findOneAndUpdate(findQuery,
   {
     '$set' : update
   },
@@ -149,10 +166,11 @@ function updateStudentEntity(username, update, wantNew){
   .exec();
 
   promise = promise.then(function(studentEntity){
-    if(studentEntity == null){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such student exists " + username, null, 404);
-      return;
-    }
+    console.log("updating teacher found = " + (studentEntity != null));
+    // if(studentEntity == null){
+    //   throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such student exists " + username, null, 404);
+    //   return;
+    // }
     return studentEntity;
   });
 
@@ -178,6 +196,7 @@ function findStudentEntity(username){
 module.exports = {
   createRequest : createRequest,
   updateRequestEntity : updateRequestEntity,
+  findRequestEntity : findRequestEntity,
 
   findFreeTeachers : findFreeTeachers,
   setTeacherBusy : setTeacherBusy,

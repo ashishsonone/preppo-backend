@@ -172,7 +172,7 @@ function selectBestTeacher(requestEntity, teacherList){
       //teacher entity already set busy
       //#todo requestsHelp.setStudentBusy(studentUsername, requestId);
       requestsHelp.updateRequestEntity(requestId, {status : "assigned", teacher : selectedTeacher});
-      requestsHelp.updateStudentEntity(studentUsername, {status : requestId});
+      requestsHelp.updateStudentEntity({username : studentUsername}, {status : requestId});
     }
     else{
       //send deny to all teachers as well the requesting student
@@ -246,7 +246,7 @@ router.post('/', function(req, res){
     }
     else{
       res.json({
-        status : true,
+        success : true,
         requestId : requestId,
         message : "wait for 60 seconds"
       });
@@ -356,9 +356,27 @@ router.post('/start', function(req, res){
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "params required [username, requestId, role]"));
   }
 
-  var promise = requestsHelp.updateRequestEntity(requestId, {sessionStartTime : new Date(), status : "started"});
+  var updateTeachingChannelStatus = false;
+  var promise = requestsHelp.findRequestEntity(requestId);
+  promise = promise.then(function(r){
+    if(r.status === "assigned"){
+      //only if current status is assigned, update the request entity's sessionStartTime
+      updateTeachingChannelStatus = true;
+      return requestsHelp.updateRequestEntity(requestId, {sessionStartTime : new Date(), status : "started"});
+    }
+    else{
+      if(r.status === "started"){
+        updateTeachingChannelStatus = true; //overwriting for robustness
+      }
+      return r;
+    }
+  });
+
+
   promise = promise.then(function(requestEntity){
-    rootTeachingRef.child(requestId).child('status').set('started');
+    if(updateTeachingChannelStatus){
+      rootTeachingRef.child(requestId).child('status').set('started');
+    }
     res.json(requestEntity);
   });
 
@@ -394,7 +412,16 @@ router.post('/update', function(req, res){
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "params required [username, requestId, sessionDuration]"));
   }
 
-  var promise = requestsHelp.updateRequestEntity(requestId, {sessionDuration : sessionDuration});
+  var promise = requestsHelp.findRequestEntity(requestId);
+  promise = promise.then(function(r){
+    if(r.status === "started"){
+      //only if current status is started, can the sessionDuration be updated
+      return requestsHelp.updateRequestEntity(requestId, {sessionDuration : sessionDuration});
+    }
+    else{
+      return r;
+    }
+  });
 
   promise = promise.then(function(requestEntity){
     res.json(requestEntity);
@@ -435,8 +462,24 @@ router.post('/end', function(req, res){
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "params required [username, requestId, role]"));
   }
 
-  var requestCode = requestId.split('/')[1];
-  var promise = requestsHelp.updateRequestEntity(requestId, {sessionEndTime : new Date(), status : "ended"});
+
+  var updateTeachingChannelStatus = false;
+  var promise = requestsHelp.findRequestEntity(requestId);
+  promise = promise.then(function(r){
+    if(r.status === "assigned" || r.status === "started"){
+      //only if current status is assigned or started, update the request entity's sessionStartTime
+      console.log("end api request : setting sessionEndTime");
+      updateTeachingChannelStatus = true;
+      return requestsHelp.updateRequestEntity(requestId, {sessionEndTime : new Date(), status : "ended"});
+    }
+    else{
+      console.log("end api request : request no longer in 'assigned' or 'started' status");
+      if(r.status === "ended"){
+        updateTeachingChannelStatus = true; //overwriting for robustness
+      }
+      return r;
+    }
+  });
 
   var requestEntity;
   var studentUsername;
@@ -450,14 +493,20 @@ router.post('/end', function(req, res){
     studentUsername = requestEntity.student;
     teacherUsername = requestEntity.teacher;
 
-    return requestsHelp.updateStudentEntity(studentUsername, {status : ""}, false);
+    return requestsHelp.updateStudentEntity({username : studentUsername, status : requestId}, {status : ""}, false);
   });
 
   promise = promise.then(function(oldStudentEntity){
-    console.log("end api request student " + studentUsername + " was busy with=" + oldStudentEntity.status);
-    rootStudentProfile.child(studentUsername).child('status').set(""); //firebase student status
+    if(oldStudentEntity){
+      console.log("end api request student " + studentUsername + " was busy with=" + oldStudentEntity.status);
+      rootStudentProfile.child(studentUsername).child('status').set(''); //firebase student status
+    }
+    else{
+      console.log("end api request student : student not busy with this request");
+    }
+
     if(teacherUsername && teacherUsername !== ""){
-      return requestsHelp.updateTeacherEntity(teacherUsername, {status : ""}, false);
+      return requestsHelp.updateTeacherEntity({username : teacherUsername, status : requestId}, {status : ""}, false);
     }
 
     //no teacher involved, just return null
@@ -470,7 +519,7 @@ router.post('/end', function(req, res){
       rootTeacherProfile.child(teacherUsername).child('status').set(''); //firebase teacher status
     }
     else{
-      console.log("end api request teacher : no teacher involved yet");
+      console.log("end api request teacher : either no teacher assinged or teacher no longer busy with this request");
     }
 
     res.json(requestEntity);

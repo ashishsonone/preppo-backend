@@ -22,10 +22,6 @@ router.get('/help', function(req, res){
       {
         "endpoint" : "GET /v1/live/students/help",
         "info" : "help page for students api - student type users",
-      },
-      {
-        "endpoint" : "GET /v1/live/auth/help",
-        "info" : "help page auth api - login, signup, etc",
       }
     ],
     errorObject : {
@@ -36,49 +32,7 @@ router.get('/help', function(req, res){
         "debug": "JSON : in case the error was unknown like some unexpected database error, or gupshup api call error or some other, this will be set for debugging purpose",
         "resStatus" : "number(integer) : used internally in the server side code"
       }
-    },
-    errors : [
-      {
-        "error" : errUtils.errors.UNAUTHENTICATED,
-        "info" : "not logged in and accessing a api endpoint which requires session"
-      },
-      {
-        "error" : errUtils.errors.PARAMS_REQUIRED,
-        "info" : "insufficient data or parameters provided to access the api"
-      },
-      {
-        "error" : errUtils.errors.INVALID_OTP,
-        "info" : "phone login or signup - otp not valid"
-      },
-      {
-        "error" : errUtils.errors.USER_ALREADY_EXISTS,
-        "info" : "during signup : user already exists"
-      },
-      {
-        "error" : errUtils.errors.UNKNOWN,
-        "info" : "general error : unknown unexpected error - handle gracefully client side"
-      },
-      {
-        "error" : errUtils.errors.NOT_FOUND,
-        "info" : "general error : resource not found"
-      },
-      {
-        "error" : errUtils.errors.USER_NOT_FOUND,
-        "info" : "during login : no such user not found"
-      },
-      {
-        "error" : errUtils.errors.THIRD_PARTY,
-        "info" : "general error : due to 3rd party service like gupshup"
-      },
-      {
-        "error" : errUtils.errors.INVALID_CREDENTIALS,
-        "info" : "phone login : password did not match"
-      },
-      {
-        "error" : errUtils.errors.INVALID_TOKEN,
-        "info" : "fb & google login/signup : invalid token - e.g expired token"
-      }
-    ]
+    }
   });
 });
 
@@ -94,12 +48,26 @@ var teacherSchema = {
   "updatedAt" : "string : date in iso 8601 format"
 };
 
+var requestDetailsSchema = {
+  subject : "string", //subject
+  topic : "string", //topic within the subject
+  description : "string", //text description of the problem
+  image : "string", //url
+};
+
 var requestSchema = {
   "_id" : "string - mongodb object id",
-  "requestId" : "sytem generated unique id for request",
+  "requestDate" : "date string YYYY-MM-DD format",
+  "requestCode" : "unique id for the request. <requestId> = <requestDate> + '/' + <requestCode>",
   "student" : "username of student who made this request",
+  "details" : requestDetailsSchema,
+
   "teacher" : "username of teacher who was assigned this request - could be empty if no teacher could be assigned",
-  "info" : "after session ends, details of the teaching session e.g startTime, endTime, duration",
+
+  "sessionStartTime" : "iso datetime string : when session started",
+  "sessionEndTime" : "iso datetime string : when session ended",
+  "sessionDuration" : "duration of session in seconds used for billing",
+
   "billingId" : "id corresponding to the billing entity of this request"
 };
 
@@ -116,13 +84,59 @@ router.get('/requests/help', function(req, res){
         "endpoint" : "POST /v1/live/requests", 
         "info" : "Create a teaching requests",
         "return" : {
-          "requestId" : "<requestId>(string)"
+          "success" : "true if online teachers available, false otherwise",
+          "requestId" : "<requestId>(string) - if success true"
         },
         "required" : [
-          "requestDetails : ...to be decided..."
+          "username : string",
+          "subject : string",
+          "topic : string",
+          "description : textual description of the doubt",
+          "image : url string : doubt image"
         ],
-        "possible errors" : "[UNAUTHENTICATED]"
-      }
+        "possible errors" : "[PARAMS_REQUIRED, BUSY]"
+      },
+      {
+        "endpoint" : "GET /v1/live/requests/<requestId>",
+        "info" : "Get Request entity",
+        "return" : "request entity",
+        "required" : [
+        ],
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "POST /v1/live/requests/start",
+        "info" : "start the teaching session - sets the sessionStartTime field",
+        "return" : "updated request entity",
+        "required" : [
+          "username : string",
+          "role : 'teacher' or 'student'",
+          "requestId : string"
+        ],
+        "possible errors" : "[PARAMS_REQUIRED]"
+      },
+      {
+        "endpoint" : "POST /v1/live/requests/update",
+        "info" : "modify the teaching session - update the sessionDuration field",
+        "return" : "updated request entity",
+        "required" : [
+          "username : string",
+          "requestId : string",
+          "sessionDuration : number - in seconds"
+        ],
+        "possible errors" : "[PARAMS_REQUIRED]"
+      },
+      {
+        "endpoint" : "POST /v1/live/requests/end",
+        "info" : "terminate the teaching session - sets the sessionEndTime field",
+        "return" : "updated request entity",
+        "required" : [
+          "username : string",
+          "role : 'teacher' or 'student'",
+          "requestId : string"
+        ],
+        "possible errors" : "[PARAMS_REQUIRED]"
+      },
     ]
   });
 });
