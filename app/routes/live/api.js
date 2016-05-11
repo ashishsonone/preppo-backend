@@ -6,15 +6,18 @@ var helpApi = require('./help');
 var reqestsApi = require('./requests');
 var teachersApi = require('./teachers');
 var studentsApi = require('./students');
+var authApi = require('./auth');
 
 module.exports.router = function(){
   var router = express.Router();
-  //start ENDPOINT /v1/app/
+  //start ENDPOINT /v1/live/
 
   //api help pages
   router.use('/', helpApi.router);
 
-  //auth api (login, signup, gen otp)
+  //auth api (gen otp)
+  router.use('/auth', authApi.router);
+
   //Note: /auth/logout endpoint is after token verification middleware for obvious reasons
   //router.use('/auth', authApi.router);
 
