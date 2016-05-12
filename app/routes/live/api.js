@@ -17,12 +17,10 @@ module.exports.router = function(){
 
   //auth api (gen otp)
   router.use('/auth', authApi.router);
-
   //Note: /auth/logout endpoint is after token verification middleware for obvious reasons
-  //router.use('/auth', authApi.router);
 
   //token verification middleware
-  //router.use('/', authApiHelper.findTokenAndSetSession);
+  router.use('/', authApi.findTokenAndSetSessionMiddleware);
 
   //logout endpoint
   //router.get('/auth/logout', authApiHelper.logout);

@@ -55,7 +55,7 @@ app.use(compress()); //enable gzip compression
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', req.headers.origin); //origins allowed for request, dynamically set to request's origin
   res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS, PATCH, PUT'); //type of methods allowed
-  res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-token'); //allow headers starting with
+  res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-token, x-live-token'); //allow headers starting with
   res.header('Access-Control-Allow-Credentials', true); //allow cookie to be sent
 
   if(req.method && req.method.toUpperCase() === 'OPTIONS'){

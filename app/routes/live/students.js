@@ -96,22 +96,52 @@ router.post('/signup', function(req, res){
 
 });
 
-/*create a new student
-*/
-router.post('/', function(req, res){
-  var username = req.body.username;
-  
-  if(!(username)){
-    res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username]"));
-  }
-  
-  var student = new StudentModel();
-  student.username = username;
-  var promise = student.save();
 
+router.post('/login', function(req, res){
+  var phone = req.body.phone;
+  var device = req.body.device;
+
+  var password = req.body.password;
+  var otp = req.body.otp;
+
+  if(!(phone && device && (otp || password))){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [phone, device, (otp or password)]"));
+  }
+
+  var isPasswordLogin = password ? true : false;
+
+  var promise = RSVP.resolve(true);
+  if(!isPasswordLogin){
+    //otp login
+    promise = authApi.verifyOtp(phone, otp);
+  }
+
+  //find user if all good
+  promise = promise.then(function(result){
+    return requestsHelp.findStudentEntity(phone);
+  });
+
+  var returnResult = {};
   promise = promise.then(function(studentEntity){
-    res.json(studentEntity);
+    if(isPasswordLogin){
+      //password login, check if passwords match
+      var hash = studentEntity.password;
+      if(!passwordHash.verify(password, hash)){
+        throw errUtils.ErrorObject(errUtils.errors.INVALID_CREDENTIALS, "invalid credentials", null, 400);
+      }
+      //password verified
+    }
+
+    returnResult['user'] = studentEntity;
+    //generate and return token
+    return authApi.generateLiveToken('student', device, phone); //role, device, username
+  });
+
+  promise = promise.then(function(tokenString){
+    console.log("login : tokenEntity created");
+    returnResult['x-live-token'] = tokenString;
+    return res.json(returnResult);
   });
 
   promise.catch(function(err){
@@ -123,12 +153,51 @@ router.post('/', function(req, res){
     else{
       //uncaught error
       res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to create student entity", err));
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to login student", err));
+    }
+  });
+
+});
+
+router.get('/', function(req, res){
+  var promise = StudentModel
+    .find({
+    })
+    .select({
+      username : true,
+      name : true,
+      _id : false,
+      status : true,
+    })
+    .limit(20)
+    .exec();
+
+  promise = promise.then(function(studentList){
+    res.json(studentList);
+  });
+
+  promise = promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find all students", err));
     }
   });
 });
 
+//================= after this needs login ============
+router.use(authApi.loginRequiredMiddleware);
+//-----------------------------------------------------
+
 router.get('/:username', function(req, res){
+
+  console.log("get username : %j", req.session);
+
   var promise = requestsHelp.findStudentEntity(req.params.username);
   promise = promise.then(function(student){
     //will either return a non-null student or throw error
@@ -149,18 +218,25 @@ router.get('/:username', function(req, res){
   });
 });
 
-router.get('/', function(req, res){
-  var promise = StudentModel
-    .find({
-    })
-    .select({
-      username : true,
-      _id : false,
-      status : true,
-    }).exec();
+/*update self [name, password]
+*/
+router.put('/me', function(req, res){
+  var username = req.session.username;
 
-  promise = promise.then(function(studentList){
-    res.json(studentList);
+  var update = {};
+  if(req.body.name){
+    update.name = req.body.name;
+  }
+  if(req.body.password){
+    update.password = passwordHash.generate(req.body.password);
+  }
+
+  var promise = requestsHelp.updateStudentEntity({username : username}, update, true);
+  promise = promise.then(function(studentEntity){
+    if(!studentEntity){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such student exists " + username, null, 404);
+    }
+    res.json(studentEntity);
   });
 
   promise = promise.catch(function(err){
@@ -172,7 +248,7 @@ router.get('/', function(req, res){
     else{
       //uncaught error
       res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find all students", err));
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find teacher", err));
     }
   });
 });
