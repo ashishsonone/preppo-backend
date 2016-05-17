@@ -8,12 +8,12 @@ var firebaseConfig = require('./config/config').firebase;
 var mongoConfig = require('./config/config').mongo;
 
 var FIREBASE_BASE_URL = firebaseConfig.baseUrl;
-var sessionBaseRef = new Firebase(FIREBASE_BASE_URL + "/sessions/");
+var teacherPresenceBaseRef = new Firebase(FIREBASE_BASE_URL + "/teacher-presence/");
 
 //connect to mongo db
 mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
 
-console.log("listening to presence events @ '" + FIREBASE_BASE_URL + "/sessions/' FIREBASE endpoint");
+console.log("listening to presence events @ '" + FIREBASE_BASE_URL + "/teacher-presence/' FIREBASE endpoint");
 
 function handleSessionEvent(snapshot){
   var session = snapshot.val();
@@ -23,7 +23,7 @@ function handleSessionEvent(snapshot){
   //console.log("handleSessionEvent | session | username=" + session.username + ", online=" + session.online + ", key=" + token);
   if(session.online === false){//if goes offline remove the entry
     console.log("handleSessionEvent | deleting session | username=" + session.username + " | key " + token + " | ts " + ts);
-    sessionBaseRef.child(snapshot.key()).remove();
+    teacherPresenceBaseRef.child(snapshot.key()).remove();
 
     var promise = TeacherModel
       .findOneAndUpdate({
@@ -46,7 +46,7 @@ function handleSessionEvent(snapshot){
   }
   else{
     console.log("handleSessionEvent | processing session | username=" + session.username + " | key " + token + " | ts " + ts);
-    sessionBaseRef.child(snapshot.key()).child('processed').set(true);
+    teacherPresenceBaseRef.child(snapshot.key()).child('processed').set(true);
 
     var promise = TeacherModel
       .findOneAndUpdate({
@@ -96,7 +96,7 @@ function handleSessionEvent(snapshot){
   }
 }
 
-var unprocessedSessionsRef = sessionBaseRef.orderByChild('processed').equalTo(false);
+var unprocessedPresenceEventsRef = teacherPresenceBaseRef.orderByChild('processed').equalTo(false);
 
-unprocessedSessionsRef.on('child_added', handleSessionEvent);
-unprocessedSessionsRef.on('child_changed', handleSessionEvent);
+unprocessedPresenceEventsRef.on('child_added', handleSessionEvent);
+unprocessedPresenceEventsRef.on('child_changed', handleSessionEvent);
