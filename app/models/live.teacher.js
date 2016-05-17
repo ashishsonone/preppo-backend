@@ -6,12 +6,22 @@ var SessionSchema = mongoose.Schema({
   ts : Number
 });
 
+/*
+  indexes:
+    username : unique
+    phone : unique
+*/
 var LiveTeacherSchema = mongoose.Schema({
   username : String,
-  subjects : [String],
-  topics : [String],
-  online : [SessionSchema],
-  status :  {type : String, default : ""}
+  password : String,
+
+  phone : String,
+  name : String,
+
+  online : {type : [SessionSchema], default : []}, //array of Session schema
+  status : {type : String, default : "away"}, //"active", "away"
+
+  doubtQueue :  {type : [String], default : []} //array of doubt-id strings
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields

@@ -3,10 +3,12 @@
 var express = require('express');
 
 var helpApi = require('./help');
-var reqestsApi = require('./requests');
-var teachersApi = require('./teachers');
-var studentsApi = require('./students');
+
+var doubtsApi = require('./doubts');
+
 var authApi = require('./auth');
+
+var teachersApi = require('./teachers');
 
 module.exports.router = function(){
   var router = express.Router();
@@ -25,11 +27,11 @@ module.exports.router = function(){
   //logout endpoint
   //router.get('/auth/logout', authApiHelper.logout);
 
-  router.use('/requests', reqestsApi.router);
+  router.use('/doubts', doubtsApi.router);
 
   router.use('/teachers', teachersApi.router);
 
-  router.use('/students', studentsApi.router);
+  //router.use('/students', studentsApi.router);
 
   return router;
 }
