@@ -59,6 +59,19 @@ function updateDoubtEntity(doubtId, update, wantNew){
   return promise;
 }
 
+function findUnAssignedDoubts(){
+  var promise = DoubtModel
+    .find({
+      status : "unassigned"
+    })
+    .sort({
+      createdAt : 1
+    })
+    .limit(10)
+    .exec();
+  return promise;
+}
+
 /*
   returns list of teachers who are currently online and active
 */
@@ -67,10 +80,7 @@ function findActiveOnlineTeachers(){
     {$match : {online : {$ne : []}, status : "active"}}, 
     {$project : {username : true, doubtQueueSize : {$size : "$doubtQueue"}}}, 
     {$sort : {doubtQueueSize : 1}}
-    ],
-    function(err, result){
-      console.log(err + " | " + result);
-    });
+    ]).exec();
 
   return promise;
 }
@@ -110,6 +120,7 @@ module.exports = {
   createDoubt : createDoubt,
   findDoubtEntity : findDoubtEntity,
   updateDoubtEntity : updateDoubtEntity,
+  findUnAssignedDoubts : findUnAssignedDoubts,
 
   findActiveOnlineTeachers : findActiveOnlineTeachers,
   assignDoubt : assignDoubt,

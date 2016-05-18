@@ -100,3 +100,13 @@ var unprocessedPresenceEventsRef = teacherPresenceBaseRef.orderByChild('processe
 
 unprocessedPresenceEventsRef.on('child_added', handleSessionEvent);
 unprocessedPresenceEventsRef.on('child_changed', handleSessionEvent);
+
+//==============
+var doubtsApi = require('./app/routes/live/doubts');
+
+doubtsApi.handleUnAssignedDoubts();
+
+setInterval(function(){
+  console.log("calling handleUnAssignedDoubts");
+  doubtsApi.handleUnAssignedDoubts();
+}, 60000);

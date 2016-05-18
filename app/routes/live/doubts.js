@@ -78,6 +78,7 @@ function pickATeacher(doubtEntity, activeTeacherList, res){
 
   promise = promise.then(function(updatedDoubtEntity){
     console.log("selectBestTeacher | updateDoubtEntity %j", updatedDoubtEntity);
+    if(!res) return;
     res.json({
       success : true,
       doubtId : updatedDoubtEntity.doubtId,
@@ -87,6 +88,8 @@ function pickATeacher(doubtEntity, activeTeacherList, res){
   });
 
   promise.catch(function(err){
+    console.log("selectBestTeacher | error %j", err);
+    if(!res) return;
     //error caught and set earlier
     if(err.resStatus){
       res.status(err.resStatus);
@@ -97,6 +100,60 @@ function pickATeacher(doubtEntity, activeTeacherList, res){
       res.status(500);
       return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to create your doubt", err));
     }
+  });
+
+  return promise; //return promise before 'catch' clause
+}
+
+function handleUnAssignedDoubts(){
+  console.log("handleUnAssignedDoubts | entered");
+  var promise = doubtsHelp.findUnAssignedDoubts();
+  var pendingDoubts;
+
+  promise = promise.then(function(pDoubts){
+    pendingDoubts = pDoubts;
+    if(pendingDoubts.length == 0){
+      console.log("handleUnAssignedDoubts | no unassiged doubts | OVER");
+      return [];
+    }
+
+    console.log("handleUnAssignedDoubts | doubt count=" + pendingDoubts.length);
+    return doubtsHelp.findActiveOnlineTeachers();
+  });
+
+  promise = promise.then(function(teacherList){
+    if(teacherList.length == 0){
+      console.log("handleUnAssignedDoubts | no active teachers | OVER");
+      return false;
+    }
+
+    console.log("handleUnAssignedDoubts | online teacher count=" + teacherList.length);
+
+    var temp = RSVP.resolve(true);
+    pendingDoubts.forEach(function(doubtEntity){
+      temp = temp.then(function(){
+        console.log("handleUnAssignedDoubts | find " + doubtEntity.doubtId);
+        return doubtsHelp.findActiveOnlineTeachers();
+      });
+
+      temp = temp.then(function(activeTeacherList){
+        console.log("handleUnAssignedDoubts | assign " + doubtEntity.doubtId);
+        if(activeTeacherList.length == 0){
+          throw "NO_ACTIVE_TEACHERS"; //can't continue
+        }
+        return pickATeacher(doubtEntity, activeTeacherList, null);
+      });
+    });
+
+    return temp;
+  });
+
+  promise = promise.then(function(){
+    console.log("handleUnAssignedDoubts | OVER WITHOUT ERROR");
+  });
+
+  promise.catch(function(err){
+    console.log("handleUnAssignedDoubts | error %j", err);
   });
 }
 
@@ -329,3 +386,4 @@ router.post('/end', function(req, res){
 });
 
 module.exports.router = router;
+module.exports.handleUnAssignedDoubts = handleUnAssignedDoubts;

@@ -21,7 +21,7 @@ router.get('/help', function(req, res){
       }
     ],
     errorObject : {
-      "info" : "if the response is 2xx, then the api call was success. Otherwise if the error was caught on server-side, then there will be a error object in the body of response. Error object will be a JSON. Its structure will be as follows:",
+      "info" : "if the response is 2xx, then the api call was success. Otherwise if the error was caught on server-side, then response will be a JSON to be interpreted as Error object. Its structure will be as follows:",
       "errorSchema" : {
         "error" : "string - e.g 'USER_NOT_FOUND' - like a code to identify the error in client code",
         "description" : "string - human readable description of what went wrong",
