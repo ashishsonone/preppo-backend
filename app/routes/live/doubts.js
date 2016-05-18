@@ -246,6 +246,7 @@ router.get('/:doubtId', function(req, res){
   optional params:
     student : username of student
     teacher : username of teacher
+    status : string - doubt status
 */
 router.get('/', function(req, res){
   var findQuery = {};
@@ -254,6 +255,9 @@ router.get('/', function(req, res){
   }
   if(req.query.teacher){
     findQuery.teacher = req.query.teacher;
+  }
+  if(req.query.status){
+    findQuery.status = req.query.status;
   }
 
   var promise = DoubtModel
