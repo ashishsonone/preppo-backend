@@ -12,6 +12,9 @@ var TeacherModel = require('../../models/live.teacher').model;
 var router = express.Router();
 
 /*create a new user
+  params:
+    phone
+    name
 */
 router.post('/', function(req, res){
   var username = idGen.generateNumericId();

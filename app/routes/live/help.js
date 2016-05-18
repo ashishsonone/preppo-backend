@@ -12,16 +12,12 @@ router.get('/help', function(req, res){
         "info" : "See this help page",
       },
       {
-        "endpoint" : "GET /v1/live/requests/help",
-        "info" : "help page requests api : post a teaching request, and stuff",
+        "endpoint" : "GET /v1/live/doubts/help",
+        "info" : "help page requests api : post a new doubt, end doubt",
       },
       {
         "endpoint" : "GET /v1/live/teachers/help",
         "info" : "help page for teachers api - teacher type users",
-      },
-      {
-        "endpoint" : "GET /v1/live/students/help",
-        "info" : "help page for students api - student type users",
       }
     ],
     errorObject : {
@@ -36,109 +32,144 @@ router.get('/help', function(req, res){
   });
 });
 
-var teacherSchema = {
-  "_id" : "string : mongodb object id",
-  "username" : "string : could be phone number, fb id, google id",
-  "name" : "string",
-
-  "online" : "[<session>] : array of login session objects - if empty means the teacher is offline right now",
-  "status" : "either ''(empty string) or <requestId> : whether the teacher is busy currently with a teaching request",
-
-  "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
-  "updatedAt" : "string : date in iso 8601 format"
-};
-
-var requestDetailsSchema = {
-  subject : "string", //subject
-  topic : "string", //topic within the subject
+var doubtDetailsScheama = {
   description : "string", //text description of the problem
-  image : "string", //url
+  images : "[<url>]", //url
 };
 
-var requestSchema = {
-  "_id" : "string - mongodb object id",
-  "requestDate" : "date string YYYY-MM-DD format",
-  "requestCode" : "unique id for the request. <requestId> = <requestDate> + '/' + <requestCode>",
-  "student" : "username of student who made this request",
-  "details" : requestDetailsSchema,
-
-  "teacher" : "username of teacher who was assigned this request - could be empty if no teacher could be assigned",
-
-  "sessionStartTime" : "iso datetime string : when session started",
-  "sessionEndTime" : "iso datetime string : when session ended",
-  "sessionDuration" : "duration of session in seconds used for billing",
-
-  "billingId" : "id corresponding to the billing entity of this request"
+var doubtResponseScheama = {
+  description : "string", //text description of the problem
+  images : "[<url>]", //url
 };
 
-router.get('/requests/help', function(req, res){
+var doubtSchema = {
+  "doubtId" : "string",
+  "student" : "username of student who posted this doubt",
+
+  "details" : doubtDetailsScheama,
+  "status" : "current status : enum [unassigned, assigned, solved, unsolved]",
+
+  "teacher" : "username of teacher who was assigned this doubt - could be empty if no teacher could be assigned",
+  "assignTime" : "iso datetime string : when was assigned to a teacher",
+
+  "response" : doubtResponseScheama,
+  "endTime" : "iso datetime string : when doubt was ended - either solved/unsolved",
+
+  "billingId" : "NOT IN USE : id corresponding to the billing entity of this request"
+};
+
+router.get('/doubts/help', function(req, res){
   res.json({
-    message : "Welcome to requests api home page", 
-    RequestSchema : requestSchema,
+    message : "Welcome to live doubts api home page",
+    DoubtSchema : doubtSchema,
     api : [
       {
-        "endpoint" : "GET /v1/live/requests/help", 
+        "endpoint" : "GET /v1/live/requests/help",
         "info" : "See this help page",
       },
       {
-        "endpoint" : "POST /v1/live/requests", 
-        "info" : "Create a teaching requests",
+        "endpoint" : "POST /v1/live/doubts",
+        "info" : "submit a new doubt",
         "return" : {
           "success" : "true if online teachers available, false otherwise",
-          "requestId" : "<requestId>(string) - if success true"
+          "doubtId" : "<requestId>(string) - if success true",
+          "position" : "integer - Your position in the doubtQueue of assigned teacher"
         },
         "required" : [
           "username : string",
-          "subject : string",
-          "topic : string",
           "description : textual description of the doubt",
-          "image : url string : doubt image"
+          "images : array [<url>] - doubt photos"
         ],
-        "possible errors" : "[PARAMS_REQUIRED, BUSY]"
+        "possible errors" : "[]"
       },
       {
-        "endpoint" : "GET /v1/live/requests/<requestId>",
-        "info" : "Get Request entity",
-        "return" : "request entity",
+        "endpoint" : "GET /v1/live/doubts/<doubtId>",
+        "info" : "Get Doubt entity",
+        "return" : "Doubt entity",
         "required" : [
         ],
         "possible errors" : "[]"
       },
       {
-        "endpoint" : "POST /v1/live/requests/start",
-        "info" : "start the teaching session - sets the sessionStartTime field",
-        "return" : "updated request entity",
+        "endpoint" : "POST /v1/live/doubts/end",
+        "info" : "end the doubt - either to 'solved' or 'unsolved' status",
+        "return" : "updated doubt entity",
         "required" : [
           "username : string",
-          "role : 'teacher' or 'student'",
-          "requestId : string"
+          "doubtId : string",
+          "status : string - one of [solved, unsolved]",
+          "description : solution description(if solved) or reason(if unsolved)",
+          "images : [<url>] solution photos(if solved), empty array(if unsolved)"
         ],
-        "possible errors" : "[PARAMS_REQUIRED]"
-      },
-      {
-        "endpoint" : "POST /v1/live/requests/update",
-        "info" : "modify the teaching session - update the sessionDuration field",
-        "return" : "updated request entity",
-        "required" : [
-          "username : string",
-          "requestId : string",
-          "sessionDuration : number - in seconds"
-        ],
-        "possible errors" : "[PARAMS_REQUIRED]"
-      },
-      {
-        "endpoint" : "POST /v1/live/requests/end",
-        "info" : "terminate the teaching session - sets the sessionEndTime field",
-        "return" : "updated request entity",
-        "required" : [
-          "username : string",
-          "role : 'teacher' or 'student'",
-          "requestId : string"
-        ],
-        "possible errors" : "[PARAMS_REQUIRED]"
+        "possible errors" : "[]"
       },
     ]
   });
 });
 
+var teacherSessionSchema = {
+  token : "string - token returned during login/signup",
+  ts : "number - datetime in millis"
+};
+
+var teacherSchema = {
+  username : "string - backend generated random username",
+  phone : "string - 10 digit phone number",
+  name : "string",
+
+  status : "string - enum [active, away]",
+  online : "[<SessionSchema>] - active teacher device sessions",
+  doubtQueue : "[<doubtId>] - currently assinged doubts"
+};
+
+router.get('/teachers/help', function(req, res){
+  res.json({
+    message : "Welcome to live teachers api home page. API IS INCOMPLETE right now.",
+    SessionSchema : teacherSessionSchema,
+    TeacherSchema : teacherSchema,
+    api : [
+      {
+        "endpoint" : "GET /v1/live/teachers/help",
+        "info" : "See this help page",
+      },
+      {
+        "endpoint" : "POST /v1/live/teachers",
+        "info" : "[FOR TESTING ONLY] create a new teacher : WILL CHANGE TO /singup endpoint",
+        "return" : "Teacher entity on success",
+        "required" : [
+          "username : string",
+          "phone : string - 10 digit phone number",
+          "name : string"
+        ],
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "GET /v1/live/teachers/<username>",
+        "info" : "[FOR TESTING ONLY] Get Teacher entity by username",
+        "return" : "Teacher entity",
+        "required" : [
+        ],
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "PUT /v1/live/teachers/<username>",
+        "info" : "[FOR TESTING ONLY] Get Teacher entity by username",
+        "return" : "Teacher entity",
+        "optional params" : [
+          "name : string",
+          "status : string - enum in [active, away]"
+        ],
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "GET /v1/live/teachers/",
+        "info" : "[FOR TESTING ONLY]  Get all teachers",
+        "return" : "array of Teacher entity",
+        "required" : [
+        ],
+        "possible errors" : "[]"
+      },
+    ]
+  });
+});
 module.exports.router = router;

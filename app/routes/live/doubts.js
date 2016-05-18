@@ -102,7 +102,7 @@ function pickATeacher(doubtEntity, activeTeacherList, res){
 
 /*post a teaching request
   params:
-    studentUsername : string
+    username : string
     description : string
     images : [<url>]
 */
@@ -160,6 +160,31 @@ router.post('/', function(req, res){
 
 });
 
+/*
+  Fetch doubt entity by its id
+*/
+router.get('/:doubtId', function(req, res){
+  var doubtId = req.params.doubtId;
+  var promise = doubtsHelp.findDoubtEntity(doubtId);
+
+  promise.then(function(doubtEntity){
+    res.json(doubtEntity);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to fetch give doubt", err));
+    }
+  });
+});
+
 /*get all doubts
   optional params:
     student : username of student
@@ -212,9 +237,12 @@ router.get('/', function(req, res){
     doubtId
     status
 
+    description : <string> - solution description
+    images : [<url>] - solution photos
+
   how:
     check current doubt status
-    update doubt status to "solved", "unsolved". Also update endTime
+    update doubt status to "solved", "unsolved". Also update endTime. Set response
     update teacher entity's doubtQueue : both DB and firebase
     send notification to student
 */
@@ -223,15 +251,23 @@ router.post('/end', function(req, res){
   var doubtId = req.body.doubtId;
   var status = req.body.status;
 
-  if(!(teacherUsername && doubtId && status)){
+  var description = req.body.description;
+  var images = req.body.images;
+
+  if(!(teacherUsername && doubtId && status && description && images)){
     res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username, doubtId, status]"));
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username, doubtId, status, description, images]"));
   }
 
   if(!(status === "solved" || status === "unsolved")){
     res.status(400);
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_INVALID, "'status' must belong to [solved, unsolved]"));
   }
+
+  var response = {
+    description : description,
+    images : images
+  };
 
   var promise = doubtsHelp.findDoubtEntity(doubtId);
 
@@ -247,7 +283,7 @@ router.post('/end', function(req, res){
     }
     else if(d.status === "assigned"){
       console.log("end api request : setting status & endTime");
-      return doubtsHelp.updateDoubtEntity(doubtId, {status : status, endTime : new Date()});
+      return doubtsHelp.updateDoubtEntity(doubtId, {status : status, endTime : new Date(), response : response});
     }
     else{
       //throw error
