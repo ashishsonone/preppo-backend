@@ -37,9 +37,9 @@ function leftPad(str, maxLen){
   return str;
 }
 
-function generateSequentialId(tse){
+function generateSequentialId(){
   var ts = new Date().getTime();
-  var tsPart = radix64.encodeInt(tse); //timestamp part for sequential nature (7 chars long in time range 2015 to 2050)
+  var tsPart = radix64.encodeInt(ts); //timestamp part for sequential nature (7 chars long in time range 2015 to 2050)
   var shortIdPart = shortid.generate().substr(0, 3); //random shortid (just 3 chars long)
 
   var id = tsPart + shortIdPart; //total 10 chars long sequential id

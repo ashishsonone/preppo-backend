@@ -13,7 +13,6 @@ var ResponseSchema = mongoose.Schema({
 });
 
 var LiveDoubtSchema = mongoose.Schema({
-  doubtDate : String, //init
   doubtId : String, //init
   student : String, //init
 

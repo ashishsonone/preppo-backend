@@ -31,6 +31,7 @@ var errors = {
 
   PARAMS_REQUIRED : "PARAMS_REQUIRED", //required params not provided
   PARAMS_INVALID : "PARAMS_INVALID", //one of the params invalid
+  REQUEST_INVALID : "REQUEST_INVALID",
 
   NOT_FOUND : "NOT_FOUND",
   DUPLICATE : "DUPLICATE",

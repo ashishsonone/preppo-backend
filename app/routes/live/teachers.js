@@ -128,6 +128,11 @@ router.put('/:username', function(req, res){
 
   if(req.body.status){
     update.status = req.body.status;
+
+    if(!(update.status === "active" || update.status === "away")){
+      res.status(400);
+      return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_INVALID, "'status' must belong to [active, away]"));
+    }
   }
 
   var promise = TeacherModel.findOneAndUpdate({username : username}, {$set : update}, {new : true});
