@@ -168,7 +168,7 @@ router.post('/', function(req, res){
   var description = req.body.description;
   var images = req.body.images;
 
-  if(!(studentUsername && description && images)){
+  if(!(studentUsername && (description != undefined) && images)){
     res.status(400);
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username, description, images]"));
   };
@@ -193,7 +193,8 @@ router.post('/', function(req, res){
     if(activeTeacherList.length === 0){
       res.json({
         success : false,
-        message : "no online active teachers"
+        message : "no online active teachers : we will assign this doubt when a teacher becomes online",
+        doubtId : doubtId
       });
       doubtsHelp.updateDoubtEntity(doubtId, {status : "unassigned"});
     }

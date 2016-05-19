@@ -155,6 +155,13 @@ app.use('/v1/live/', liveApi.router());
 //random aaj ka sawaal api
 app.use('/v1/randomstuff/aajkasawaal', randomAajKaSawaalApi.router);
 
+app.use(function(req, res){
+  res.status(404);
+  res.json({
+    error : "NOT_FOUND",
+    description : "This request [path + method] is invalid"
+  });
+});
 //listen to port
 app.listen(appConfig.port);
 console.log("#" + myId + " pid=" + process.pid + " listening on port=" + appConfig.port);
