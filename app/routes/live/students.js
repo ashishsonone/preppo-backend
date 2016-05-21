@@ -34,10 +34,11 @@ function createNewStudent(data){
   return promise;
 }
 
-function findStudentEntity(findQuery){
+function findStudentEntity(findQuery, selectQuery){
   console.log("finding student %j", findQuery);
   var promise = StudentModel
   .findOne(findQuery)
+  .select(selectQuery)
   .exec();
 
   promise = promise.then(function(studentEntity){
@@ -74,7 +75,7 @@ function updateStudentEntity(findQuery, update, wantNew, throwNotFound){
   .exec();
 
   promise = promise.then(function(studentEntity){
-    console.log("updating teacher found = " + (studentEntity != null));
+    console.log("updating student found = " + (studentEntity != null));
     if(throwNotFound && studentEntity == null){
       throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such student exists " + JSON.stringify(findQuery), null, 404);
       return;
@@ -221,11 +222,13 @@ router.get('/', function(req, res){
     .find({
     })
     .select({
-      username : true,
-      phone : true,
-      name : true,
       _id : false,
-      status : true,
+      __v : false,
+
+      password : false,
+
+      createdAt : false,
+      updatedAt : false,
     })
     .limit(20)
     .exec();
@@ -248,17 +251,10 @@ router.get('/', function(req, res){
   });
 });
 
-//================= after this needs login ============
-router.use(authApi.loginRequiredMiddleware);
-//-----------------------------------------------------
-
 router.get('/:username', function(req, res){
-
-  console.log("get username : %j", req.session);
-
   var username = req.params.username;
 
-  var promise = findStudentEntity({username : username});
+  var promise = findStudentEntity({username : username}, {_id : false, __v : false, password : false});
   promise = promise.then(function(student){
     //will either return a non-null student or throw error
     res.json(student);
@@ -277,6 +273,10 @@ router.get('/:username', function(req, res){
     }
   });
 });
+
+//================= after this needs login ============
+router.use(authApi.loginRequiredMiddleware);
+//-----------------------------------------------------
 
 /*update self [name, password]
 */
@@ -305,7 +305,7 @@ router.put('/me', function(req, res){
     else{
       //uncaught error
       res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find teacher", err));
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to update student", err));
     }
   });
 });
