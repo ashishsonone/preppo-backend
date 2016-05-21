@@ -6,9 +6,14 @@ var passwordHash = require('password-hash');
 
 var authApi = require('./auth');
 var errUtils = require('../../utils/error');
-var idGen = require('../../utils/id_gen');
+var doubtsHelp = require('./doubts_help');
+var firebaseHelp = require('./firebase_help');
 
 var TeacherModel = require('../../models/live.teacher').model;
+
+var rootRef = firebaseHelp.rootRef;
+var rootTeacherProfile = rootRef.child('teachers'); //update doubtQueue
+
 //START PATH /v1/live/teachers/
 
 var router = express.Router();
@@ -304,6 +309,10 @@ router.put('/me', function(req, res){
 
   promise = promise.then(function(teacherEntity){
     //non-null teacher entity
+    if(update.status){
+      //if status was changed, do so in the teacher's firebase ref
+      rootTeacherProfile.child(teacherEntity.username).child('status').set(teacherEntity.status);
+    }
     res.json(teacherEntity);
   });
 

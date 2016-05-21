@@ -2,32 +2,15 @@
 
 var express = require('express');
 var RSVP = require('rsvp');
-var firebase = require('firebase');
 var shortid = require('shortid');
 
 var errUtils = require('../../utils/error');
 var idGen = require('../../utils/id_gen');
 var doubtsHelp = require('./doubts_help');
-
+var firebaseHelp = require('./firebase_help');
 var DoubtModel = require('../../models/live.doubt').model;
 
-var firebaseConfig = require('../../../config/config').firebase;
-
-var FIREBASE_BASE_URL = firebaseConfig.baseUrl;
-var FIREBASE_SECRET = firebaseConfig.secret;
-
-var rootRef = new Firebase(FIREBASE_BASE_URL);
-
-//IMPORTANT admin-level access to the firebase database(all references)
-rootRef.authWithCustomToken(FIREBASE_SECRET,function(error, result) {
-  if (error) {
-    console.log("Authentication Failed!", error);
-  } else {
-    console.log("Authenticated successfully with payload:", result.auth);
-    console.log("Auth expires at:", new Date(result.expires * 1000));
-  }
-});
-
+var rootRef = firebaseHelp.rootRef;
 var rootStudentChannelRef = rootRef.child('student-channels'); //send doubt status notification/message
 var rootTeacherProfile = rootRef.child('teachers'); //update doubtQueue
 
