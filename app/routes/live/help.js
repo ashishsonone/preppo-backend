@@ -18,6 +18,10 @@ router.get('/help', function(req, res){
       {
         "endpoint" : "GET /v1/live/teachers/help",
         "info" : "help page for teachers api - teacher type users",
+      },
+      {
+        "endpoint" : "GET /v1/live/students/help",
+        "info" : "help page for students api - student type users",
       }
     ],
     errorObject : {
@@ -54,8 +58,6 @@ var doubtSchema = {
 
   "response" : doubtResponseScheama,
   "endTime" : "iso datetime string : when doubt was ended - either solved/unsolved",
-
-  "billingId" : "NOT IN USE : id corresponding to the billing entity of this request"
 };
 
 router.get('/doubts/help', function(req, res){
@@ -64,7 +66,7 @@ router.get('/doubts/help', function(req, res){
     DoubtSchema : doubtSchema,
     api : [
       {
-        "endpoint" : "GET /v1/live/requests/help",
+        "endpoint" : "GET /v1/live/doubts/help",
         "info" : "See this help page",
       },
       {
@@ -72,7 +74,7 @@ router.get('/doubts/help', function(req, res){
         "info" : "submit a new doubt",
         "return" : {
           "success" : "true if online teachers available, false otherwise",
-          "doubtId" : "<requestId>(string) - if success true",
+          "doubtId" : "<doubtId>(string) - if success true",
           "position" : "integer - Your position in the doubtQueue of assigned teacher"
         },
         "required" : [
@@ -116,6 +118,7 @@ var teacherSchema = {
   username : "string - backend generated random username",
   phone : "string - 10 digit phone number",
   name : "string",
+  password : "string",
 
   status : "string - enum [active, away]",
   online : "[<SessionSchema>] - active teacher device sessions",
@@ -124,7 +127,7 @@ var teacherSchema = {
 
 router.get('/teachers/help', function(req, res){
   res.json({
-    message : "Welcome to live teachers api home page. API IS INCOMPLETE right now.",
+    message : "Welcome to live teachers api home page.",
     SessionSchema : teacherSessionSchema,
     TeacherSchema : teacherSchema,
     api : [
@@ -133,38 +136,136 @@ router.get('/teachers/help', function(req, res){
         "info" : "See this help page",
       },
       {
-        "endpoint" : "POST /v1/live/teachers",
-        "info" : "[FOR TESTING ONLY] create a new teacher : WILL CHANGE TO /singup endpoint",
-        "return" : "Teacher entity on success",
+        "endpoint" : "POST /v1/live/teachers/signup",
+        "info" : "signup using phone & otp",
+        "return" : {
+          user : "Teacher Entity",
+          "x-live-token" : "string - session token"
+        },
         "required" : [
-          "username : string",
           "phone : string - 10 digit phone number",
-          "name : string"
+          "name : string",
+          "otp : number",
+          "password : string"
         ],
-        "possible errors" : "[]"
+        "possible errors" : "[INVALID_OTP]"
+      },
+      {
+        "endpoint" : "POST /v1/live/teachers/login",
+        "info" : "login using either password or otp",
+        "return" : {
+          user : "Teacher Entity",
+          "x-live-token" : "string - session token"
+        },
+        "required" : [
+          "phone : string - 10 digit phone number",
+          "otp OR password"
+        ],
+        "possible errors" : "[INVALID_OTP, INVALID_CREDENTIALS]"
       },
       {
         "endpoint" : "GET /v1/live/teachers/<username>",
-        "info" : "[FOR TESTING ONLY] Get Teacher entity by username",
+        "info" : "Get Teacher entity by username",
         "return" : "Teacher entity",
         "required" : [
         ],
         "possible errors" : "[]"
       },
       {
-        "endpoint" : "PUT /v1/live/teachers/<username>",
-        "info" : "[FOR TESTING ONLY] Get Teacher entity by username",
-        "return" : "Teacher entity",
+        "endpoint" : "PUT /v1/live/teachers/me",
+        "info" : "(login required) Update name, password or status",
+        "return" : "updated Teacher entity",
         "optional params" : [
           "name : string",
-          "status : string - enum in [active, away]"
+          "status : string - enum in [active, away]",
+          "password : string"
+        ],
+        "headers required" : [
+          "x-live-token : session token string returned during login/signup"
+        ],
+        "possible errors" : "[UNAUTHENTICATED]"
+      },
+      {
+        "endpoint" : "GET /v1/live/teachers/",
+        "info" : "[FOR DEV ONLY]  Get all teachers",
+        "return" : "array of Teacher entities",
+        "required" : [
+        ],
+        "possible errors" : "[]"
+      },
+    ]
+  });
+});
+
+var studentSchema = {
+  username : "string - backend generated random username",
+  phone : "string - 10 digit phone number",
+  name : "string",
+  password : "string",
+};
+
+router.get('/students/help', function(req, res){
+  res.json({
+    message : "Welcome to live students api home page.",
+    StudentSchema : studentSchema,
+    api : [
+      {
+        "endpoint" : "GET /v1/live/students/help",
+        "info" : "See this help page",
+      },
+      {
+        "endpoint" : "POST /v1/live/students/signup",
+        "info" : "signup using phone & otp",
+        "return" : {
+          user : "Student Entity",
+          "x-live-token" : "string - session token"
+        },
+        "required" : [
+          "phone : string - 10 digit phone number",
+          "name : string",
+          "otp : number",
+          "password : string"
+        ],
+        "possible errors" : "[INVALID_OTP]"
+      },
+      {
+        "endpoint" : "POST /v1/live/students/login",
+        "info" : "login using either password or otp",
+        "return" : {
+          user : "Student Entity",
+          "x-live-token" : "string - session token"
+        },
+        "required" : [
+          "phone : string - 10 digit phone number",
+          "otp OR password"
+        ],
+        "possible errors" : "[INVALID_OTP, INVALID_CREDENTIALS]"
+      },
+      {
+        "endpoint" : "GET /v1/live/students/<username>",
+        "info" : "Get Student entity by username",
+        "return" : "Student entity",
+        "required" : [
         ],
         "possible errors" : "[]"
       },
       {
-        "endpoint" : "GET /v1/live/teachers/",
-        "info" : "[FOR TESTING ONLY]  Get all teachers",
-        "return" : "array of Teacher entity",
+        "endpoint" : "PUT /v1/live/students/me",
+        "info" : "(login required) Update name or password",
+        "return" : "updated Student entity",
+        "optional params" : [
+          "name : string",
+          "password : string"
+        ],
+        "headers required" : [
+          "x-live-token : session token string returned during login/signup"
+        ],
+        "possible errors" : "[UNAUTHENTICATED]"
+      },
+      {
+        "endpoint" : "GET /v1/live/students/",
+        "info" : "[FOR DEV ONLY]  Get all students",
+        "return" : "array of Student entities",
         "required" : [
         ],
         "possible errors" : "[]"

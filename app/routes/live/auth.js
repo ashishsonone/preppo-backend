@@ -133,9 +133,10 @@ function findTokenAndSetSessionMiddleware(req, res, next){
     return next();
   }
 
-  var promise = LiveTokenModel.findOne({
-    _id : token
-  }).exec();
+  var promise = LiveTokenModel.findOneAndUpdate(
+    {_id : token},
+    {'$set' : {touch : true}}
+  ).exec();
 
   promise = promise.then(function(liveTokenEntity){
     //token not found. Just do next() without setting req.session fields

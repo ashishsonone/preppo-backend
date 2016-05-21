@@ -9,6 +9,7 @@ var idGen = require('../../utils/id_gen');
 var doubtsHelp = require('./doubts_help');
 var firebaseHelp = require('./firebase_help');
 var DoubtModel = require('../../models/live.doubt').model;
+var authApi = require('./auth');
 
 var rootRef = firebaseHelp.rootRef;
 var rootStudentChannelRef = rootRef.child('student-channels'); //send doubt status notification/message
@@ -291,7 +292,7 @@ router.get('/', function(req, res){
     update teacher entity's doubtQueue : both DB and firebase
     send notification to student
 */
-router.post('/end', function(req, res){
+router.post('/end', authApi.loginRequiredMiddleware, function(req, res){
   var teacherUsername = req.body.username;
   var doubtId = req.body.doubtId;
   var status = req.body.status;

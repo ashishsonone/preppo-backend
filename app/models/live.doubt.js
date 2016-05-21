@@ -24,8 +24,6 @@ var LiveDoubtSchema = mongoose.Schema({
 
   endTime : Date, //set when doubt closed either to "solved" or "unsolved"
   response : ResponseSchema, 
-
-  billingId : String //after payment
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields
