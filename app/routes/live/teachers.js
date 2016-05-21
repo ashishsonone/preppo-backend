@@ -8,6 +8,7 @@ var authApi = require('./auth');
 var errUtils = require('../../utils/error');
 var doubtsHelp = require('./doubts_help');
 var firebaseHelp = require('./firebase_help');
+var idGen = require('../../utils/id_gen');
 
 var TeacherModel = require('../../models/live.teacher').model;
 
