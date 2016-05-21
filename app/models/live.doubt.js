@@ -24,6 +24,9 @@ var LiveDoubtSchema = mongoose.Schema({
 
   endTime : Date, //set when doubt closed either to "solved" or "unsolved"
   response : ResponseSchema, 
+
+  review : String, //post end
+  rating : Number, //post end; int in range [1-5]
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields

@@ -29,17 +29,14 @@ function findDoubtEntity(doubtId){
   return promise;
 }
 
-function updateDoubtEntity(doubtId, update, wantNew){
-  console.log("updateDoubtEntity | enter doubtId=" + doubtId);
+function updateDoubtEntity(findQuery, update, wantNew){
   if(wantNew !== false){
     wantNew = true;
   }
   
-  console.log("updating doubt " + doubtId + "| update=%j", update);
+  console.log("updating doubt %j | update=%j", findQuery, update);
 
-  var promise = DoubtModel.findOneAndUpdate({
-    doubtId : doubtId
-  },
+  var promise = DoubtModel.findOneAndUpdate(findQuery,
   {
     '$set' : update
   },
@@ -50,7 +47,7 @@ function updateDoubtEntity(doubtId, update, wantNew){
 
   promise = promise.then(function(doubtEntity){
     if(doubtEntity == null){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such doubt exists " + doubtId, null, 404);
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such doubt exists " + JSON.stringify(findQuery), null, 404);
       return;
     }
     return doubtEntity;

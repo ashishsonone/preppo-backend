@@ -57,7 +57,7 @@ function pickATeacher(doubtEntity, activeTeacherList, res){
     var doubtQueue = teacherEntity.doubtQueue.map(function(e){return e}); //convert object(teacherEntity.doubtQueue) to plain array
     rootTeacherProfile.child(selectedTeacherUsername).child('doubtQueue').set(doubtQueue);
     console.log("selectBestTeacher | doubt assigned after %j", doubtQueue);
-    return doubtsHelp.updateDoubtEntity(doubtEntity.doubtId, {teacher : selectedTeacherUsername, status : "assigned", assignTime : new Date()});
+    return doubtsHelp.updateDoubtEntity({doubtId : doubtEntity.doubtId}, {teacher : selectedTeacherUsername, status : "assigned", assignTime : new Date()});
   });
 
   promise = promise.then(function(updatedDoubtEntity){
@@ -180,7 +180,7 @@ router.post('/', function(req, res){
         message : "no online active teachers : we will assign this doubt when a teacher becomes online",
         doubtId : doubtId
       });
-      doubtsHelp.updateDoubtEntity(doubtId, {status : "unassigned"});
+      doubtsHelp.updateDoubtEntity({doubtId : doubtId}, {status : "unassigned"});
     }
     else{
       pickATeacher(doubtEntity, activeTeacherList, res);
@@ -244,6 +244,11 @@ router.get('/', function(req, res){
   if(req.query.status){
     findQuery.status = req.query.status;
   }
+  if(req.query.lt){
+    findQuery.createdAt = {
+      '$lt' : req.query.lt
+    };
+  }
 
   var promise = DoubtModel
     .find(findQuery)
@@ -252,9 +257,7 @@ router.get('/', function(req, res){
     })
     .select({
       _id : false,
-      __v : false,
-      createdAt : false,
-      updatedAt : false
+      __v : false
     })
     .limit(10)
     .exec();
@@ -370,6 +373,58 @@ router.post('/end', authApi.loginRequiredMiddleware, function(req, res){
       //uncaught error
       res.status(500);
       return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to end the doubt", err));
+    }
+  });
+});
+
+/*
+  update doubt entity (rating by student)
+  params:
+    rating //rating in 1-5
+    review //description
+*/
+router.put('/:doubtId', authApi.loginRequiredMiddleware, function(req, res){
+  var doubtId = req.params.doubtId;
+  var username = req.session.username;
+
+  var review = req.body.review;
+  var rating = req.body.rating;
+
+  if(!(review !== undefined && rating !== undefined)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [rating, review]"));
+  };
+
+  var intRating = parseInt(rating);
+  if(!(intRating > 0 && intRating <= 5)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_INVALID, "'rating' must be integer in range [1, 5]"));
+  }
+
+  var promise = doubtsHelp.updateDoubtEntity({
+    student : username,
+    doubtId : doubtId
+  },
+  {
+    review : review,
+    rating : rating
+  },
+  true);
+
+  var promise = promise.then(function(doubtEntity){
+    res.json(doubtEntity);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to update the doubt", err));
     }
   });
 });

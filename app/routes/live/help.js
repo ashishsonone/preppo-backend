@@ -105,6 +105,19 @@ router.get('/doubts/help', function(req, res){
         ],
         "possible errors" : "[]"
       },
+      {
+        "endpoint" : "PUT /v1/live/doubts/<doubtId>",
+        "info" : "(login required) update doubt - submit review and rating",
+        "return" : "updated doubt entity",
+        "required" : [
+          "review : string - comment on how the solution was",
+          "rating : integer in range [1, 5]"
+        ],
+        "headers required" : [
+          "x-live-token : session token string returned during login/signup"
+        ],
+        "possible errors" : "[UNAUTHENTICATED, NOT_FOUND]"
+      },
     ]
   });
 });
