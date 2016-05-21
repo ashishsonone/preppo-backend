@@ -2,9 +2,9 @@ var mongoose = require('mongoose');
 
 var LiveStudentSchema = mongoose.Schema({
   name : String,
-  username : String,
+  username : String, //random numeric id
   password: String,
-  phone : String, //same as username as login via phone allowed as of now
+  phone : String, //verified phone number
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields

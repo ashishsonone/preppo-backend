@@ -9,6 +9,7 @@ var doubtsApi = require('./doubts');
 var authApi = require('./auth');
 
 var teachersApi = require('./teachers');
+var studentsApi = require('./students');
 
 module.exports.router = function(){
   var router = express.Router();
@@ -31,7 +32,7 @@ module.exports.router = function(){
 
   router.use('/teachers', teachersApi.router);
 
-  //router.use('/students', studentsApi.router);
+  router.use('/students', studentsApi.router);
 
   return router;
 }

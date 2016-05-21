@@ -91,17 +91,16 @@ function verifyOtp(phone, otp){
 /* generates a LiveToken.
   Returns a promise with token string
 */
-function generateLiveToken(role, device, username){
-  console.log("generateLiveToken : r=" + role + "| d=" + device + "| u=" + username);
+function generateLiveToken(role, username){
+  console.log("generateLiveToken : r=" + role + "| u=" + username);
 
   //clean device string : allowed chars alpha-numeric, single quote, underscore, dash & space
-
-  device = device.replace(/[^a-zA-Z0-9'_ -]/g, '-')  //remove unwanted chars with '-'
-  device = device.replace(/[-]+/g, '-') //remove multiple consecutive '-' with single one
+  //device = device.replace(/[^a-zA-Z0-9'_ -]/g, '-')  //remove unwanted chars with '-'
+  //device = device.replace(/[-]+/g, '-') //remove multiple consecutive '-' with single one
 
   var liveTokenEntity = new LiveTokenModel();
 
-  var token = shortid.generate() + "|" + device;
+  var token = shortid.generate();
   console.log("generateLiveToken : token=" + token);
 
   liveTokenEntity._id = token;

@@ -7,7 +7,7 @@ var errUtils = require('../../utils/error');
 var idGen = require('../../utils/id_gen');
 
 var TeacherModel = require('../../models/live.teacher').model;
-//START PATH /v1/live/requests/
+//START PATH /v1/live/teachers/
 
 var router = express.Router();
 

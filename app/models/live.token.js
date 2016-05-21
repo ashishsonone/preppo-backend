@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 var LiveTokenSchema = mongoose.Schema({
-  _id : String, //<shortid> + "|" + <device name>
+  _id : String, //<shortid>
   username : String, //username of user object
   role : String, //either 'teacher' or 'student'
   touch : Boolean, //field to touch the token

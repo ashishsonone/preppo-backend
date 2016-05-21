@@ -5,10 +5,11 @@ var RSVP = require('rsvp');
 var passwordHash = require('password-hash');
 
 var errUtils = require('../../utils/error');
-var requestsHelp = require('./requests_help');
 var StudentModel = require('../../models/live.student').model;
 var authApi = require('./auth');
-//START PATH /v1/live/requests/
+var idGen = require('../../utils/id_gen');
+
+//START PATH /v1/live/students/
 
 var router = express.Router();
 
@@ -33,6 +34,57 @@ function createNewStudent(data){
   return promise;
 }
 
+function findStudentEntity(findQuery){
+  console.log("finding student %j", findQuery);
+  var promise = StudentModel
+  .findOne(findQuery)
+  .exec();
+
+  promise = promise.then(function(studentEntity){
+    console.log("found student %j", studentEntity);
+    if(studentEntity == null){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such student exists " + JSON.stringify(findQuery), null, 404);
+      return;
+    }
+    return studentEntity;
+  });
+  return promise;
+}
+
+function updateStudentEntity(findQuery, update, wantNew, throwNotFound){
+  if(wantNew !== false){
+    wantNew = true;
+  }
+
+  if(throwNotFound === true){
+    throwNotFound = true;
+  }
+  else{
+    throwNotFound = false;
+  }
+
+  console.log("updating student %j" + "| update=%j", findQuery, update);
+  var promise = StudentModel.findOneAndUpdate(findQuery,
+  {
+    '$set' : update
+  },
+  {
+    new : wantNew
+  })
+  .exec();
+
+  promise = promise.then(function(studentEntity){
+    console.log("updating teacher found = " + (studentEntity != null));
+    if(throwNotFound && studentEntity == null){
+      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such student exists " + JSON.stringify(findQuery), null, 404);
+      return;
+    }
+    return studentEntity;
+  });
+
+  return promise;
+}
+
 /* signup a student
   required params:
     phone : String,
@@ -49,17 +101,16 @@ router.post('/signup', function(req, res){
   var name = req.body.name;
   var password = req.body.password;
 
-  var device = req.body.device;
-
-  if(!(phone && otp && name && password && device)){
+  if(!(phone && otp && name && password)){
     res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [phone, otp, name, password, device]"));
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [phone, otp, name, password]"));
   }
 
+  var username = idGen.generateNumericId();
   var promise = authApi.verifyOtp(phone, otp);
   promise = promise.then(function(result){
     return createNewStudent({
-      username : phone,
+      username : username,
       phone : phone,
       name : name,
       password : password
@@ -72,7 +123,7 @@ router.post('/signup', function(req, res){
     console.log("signup : studentEntity created");
     returnResult['user'] = studentEntity;
     //generate and return token
-    return authApi.generateLiveToken('student', device, phone); //role, device, username
+    return authApi.generateLiveToken('student', studentEntity.username); //role, username
   });
 
   promise = promise.then(function(tokenString){
@@ -97,16 +148,20 @@ router.post('/signup', function(req, res){
 });
 
 
+/*login endpoint
+  params:
+    phone
+    password OR otp
+*/
 router.post('/login', function(req, res){
   var phone = req.body.phone;
-  var device = req.body.device;
 
   var password = req.body.password;
   var otp = req.body.otp;
 
-  if(!(phone && device && (otp || password))){
+  if(!(phone && (otp || password))){
     res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [phone, device, (otp or password)]"));
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [phone, (otp or password)]"));
   }
 
   var isPasswordLogin = password ? true : false;
@@ -119,11 +174,13 @@ router.post('/login', function(req, res){
 
   //find user if all good
   promise = promise.then(function(result){
-    return requestsHelp.findStudentEntity(phone);
+    console.log("login : otp verified");
+    return findStudentEntity({phone : phone});
   });
 
   var returnResult = {};
   promise = promise.then(function(studentEntity){
+    console.log("login : studentEntity found");
     if(isPasswordLogin){
       //password login, check if passwords match
       var hash = studentEntity.password;
@@ -135,7 +192,7 @@ router.post('/login', function(req, res){
 
     returnResult['user'] = studentEntity;
     //generate and return token
-    return authApi.generateLiveToken('student', device, phone); //role, device, username
+    return authApi.generateLiveToken('student', studentEntity.username); //role, username
   });
 
   promise = promise.then(function(tokenString){
@@ -165,6 +222,7 @@ router.get('/', function(req, res){
     })
     .select({
       username : true,
+      phone : true,
       name : true,
       _id : false,
       status : true,
@@ -198,7 +256,9 @@ router.get('/:username', function(req, res){
 
   console.log("get username : %j", req.session);
 
-  var promise = requestsHelp.findStudentEntity(req.params.username);
+  var username = req.params.username;
+
+  var promise = findStudentEntity({username : username});
   promise = promise.then(function(student){
     //will either return a non-null student or throw error
     res.json(student);
@@ -213,7 +273,7 @@ router.get('/:username', function(req, res){
     else{
       //uncaught error
       res.status(500);
-      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find teacher", err));
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to find student " + username, err));
     }
   });
 });
@@ -231,11 +291,8 @@ router.put('/me', function(req, res){
     update.password = passwordHash.generate(req.body.password);
   }
 
-  var promise = requestsHelp.updateStudentEntity({username : username}, update, true);
+  var promise = updateStudentEntity({username : username}, update, true, true);
   promise = promise.then(function(studentEntity){
-    if(!studentEntity){
-      throw errUtils.ErrorObject(errUtils.errors.NOT_FOUND, "No such student exists " + username, null, 404);
-    }
     res.json(studentEntity);
   });
 
