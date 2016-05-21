@@ -13,7 +13,7 @@ router.get('/help', function(req, res){
       },
       {
         "endpoint" : "GET /v1/live/doubts/help",
-        "info" : "help page requests api : post a new doubt, end doubt",
+        "info" : "help page doubts api : post a new doubt, end doubt",
       },
       {
         "endpoint" : "GET /v1/live/teachers/help",

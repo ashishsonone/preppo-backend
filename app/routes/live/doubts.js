@@ -31,7 +31,7 @@ rootRef.authWithCustomToken(FIREBASE_SECRET,function(error, result) {
 var rootStudentChannelRef = rootRef.child('student-channels'); //send doubt status notification/message
 var rootTeacherProfile = rootRef.child('teachers'); //update doubtQueue
 
-//START PATH /v1/live/requests/
+//START PATH /v1/live/doubts/
 var router = express.Router();
 
 /*
