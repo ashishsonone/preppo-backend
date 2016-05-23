@@ -58,6 +58,9 @@ var doubtSchema = {
 
   "response" : doubtResponseScheama,
   "endTime" : "iso datetime string : when doubt was ended - either solved/unsolved",
+
+  "review" : "string",
+  "rating" : "integer in range [1-5]"
 };
 
 router.get('/doubts/help', function(req, res){
