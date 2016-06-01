@@ -111,7 +111,7 @@ router.get('/', function(req, res){
 Note: insert manually using 
 db.news_monthly_digest.insert({name : "March 2016", publishDate : ISODate("2016-04-02"), url : "https://preppo.in"})
 */
-router.get('/monthlydigest',  authApiHelper.loginRequiredMiddleware, function(req, res){
+router.get('/monthlydigest', function(req, res){
   //find in cache
   var key = '/news/monthlydigest';
   var promise = redisCache.getFromCache(key);
