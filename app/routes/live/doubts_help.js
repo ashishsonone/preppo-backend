@@ -70,11 +70,11 @@ function findUnAssignedDoubts(){
 }
 
 /*
-  returns list of teachers who are currently online and active
+  returns list of teachers who are currently active
 */
-function findActiveOnlineTeachers(){
+function findActiveTeachers(){
   var promise = TeacherModel.aggregate([
-    {$match : {online : {$ne : []}, status : "active"}}, 
+    {$match : {status : "active"}}, 
     {$project : {username : true, doubtQueueSize : {$size : "$doubtQueue"}}}, 
     {$sort : {doubtQueueSize : 1}}
     ]).exec();
@@ -119,7 +119,7 @@ module.exports = {
   updateDoubtEntity : updateDoubtEntity,
   findUnAssignedDoubts : findUnAssignedDoubts,
 
-  findActiveOnlineTeachers : findActiveOnlineTeachers,
+  findActiveTeachers : findActiveTeachers,
   assignDoubt : assignDoubt,
   unAssignDoubt : unAssignDoubt
 };

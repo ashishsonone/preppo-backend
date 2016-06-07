@@ -23,10 +23,7 @@ var LiveDoubtSchema = mongoose.Schema({
   assignTime : Date, //set when teacher assigned
 
   endTime : Date, //set when doubt closed either to "solved" or "unsolved"
-  response : ResponseSchema, 
-
-  review : String, //post end
-  rating : Number, //post end; int in range [1-5]
+  response : ResponseSchema
 },
 {
   timestamps : {} //assigns default createdAt and updatedAt fields

@@ -13,7 +13,7 @@ var teacherPresenceBaseRef = new Firebase(FIREBASE_BASE_URL + "/teacher-presence
 //connect to mongo db
 mongoose.connectWithRetry(mongoConfig.url, mongoConfig.poolSize);
 
-console.log("listening to presence events @ '" + FIREBASE_BASE_URL + "/teacher-presence/' FIREBASE endpoint");
+//console.log("listening to presence events @ '" + FIREBASE_BASE_URL + "/teacher-presence/' FIREBASE endpoint");
 
 function handleSessionEvent(snapshot){
   var session = snapshot.val();
@@ -96,10 +96,11 @@ function handleSessionEvent(snapshot){
   }
 }
 
-var unprocessedPresenceEventsRef = teacherPresenceBaseRef.orderByChild('processed').equalTo(false);
+/*var unprocessedPresenceEventsRef = teacherPresenceBaseRef.orderByChild('processed').equalTo(false);
 
 unprocessedPresenceEventsRef.on('child_added', handleSessionEvent);
 unprocessedPresenceEventsRef.on('child_changed', handleSessionEvent);
+*/
 
 //==============
 var doubtsApi = require('./app/routes/live/doubts');

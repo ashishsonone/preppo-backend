@@ -4,7 +4,6 @@ var express = require('express');
 var RSVP = require('rsvp');
 var passwordHash = require('password-hash');
 
-var authApi = require('./auth');
 var errUtils = require('../../utils/error');
 var doubtsHelp = require('./doubts_help');
 var firebaseHelp = require('./firebase_help');
@@ -95,34 +94,27 @@ function updateTeacherEntity(findQuery, update, wantNew, throwNotFound){
 
 /* signup a teacher
   required params:
-    phone : String,
-    otp : Number,
-
-    name: String,
-    password : String
+    username : string,
+    name : string
+    password : string
+    secret : secret
 */
 
 router.post('/signup', function(req, res){
-  var phone = req.body.phone;
-  var otp = req.body.otp;
-
+  var username = req.body.username;
   var name = req.body.name;
   var password = req.body.password;
+  var secret = req.body.secret;
 
-  if(!(phone && otp && name && password)){
+  if(!(username && name && password && secret === "helloworld")){
     res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [phone, otp, name, password]"));
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username, name, password, secret(correct)]"));
   }
 
-  var username = idGen.generateNumericId();
-  var promise = authApi.verifyOtp(phone, otp);
-  promise = promise.then(function(result){
-    return createNewTeacher({
-      username : username,
-      phone : phone,
-      name : name,
-      password : password
-    });
+  var promise = createNewTeacher({
+    username : username,
+    name : name,
+    password : password
   });
 
   var returnResult = {}; //will contain x-live-token, user and invite
@@ -130,14 +122,7 @@ router.post('/signup', function(req, res){
   promise = promise.then(function(teacherEntity){
     console.log("signup : teacherEntity created");
     returnResult['user'] = teacherEntity;
-    //generate and return token
-    return authApi.generateLiveToken('teacher', teacherEntity.username); //role, username
-  });
-
-  promise = promise.then(function(tokenString){
-    console.log("signup : tokenEntity created");
-    returnResult['x-live-token'] = tokenString;
-    return res.json(returnResult);
+    res.json(returnResult);
   });
 
   promise.catch(function(err){
@@ -152,61 +137,36 @@ router.post('/signup', function(req, res){
       return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to signup teacher", err));
     }
   });
-
 });
-
 
 /*login endpoint
   params:
-    phone
-    password OR otp
+    username
+    password
 */
 router.post('/login', function(req, res){
-  var phone = req.body.phone;
-
+  var username = req.body.username;
   var password = req.body.password;
-  var otp = req.body.otp;
 
-  if(!(phone && (otp || password))){
+  if(!(username && password)){
     res.status(400);
-    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [phone, (otp or password)]"));
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username, password]"));
   }
 
-  var isPasswordLogin = password ? true : false;
-
-  var promise = RSVP.resolve(true);
-  if(!isPasswordLogin){
-    //otp login
-    promise = authApi.verifyOtp(phone, otp);
-  }
-
-  //find user if all good
-  promise = promise.then(function(result){
-    console.log("login : otp verified");
-    return findTeacherEntity({phone : phone});
-  });
+  var promise = findTeacherEntity({username : username});
 
   var returnResult = {};
   promise = promise.then(function(teacherEntity){
     console.log("login : teacherEntity found");
-    if(isPasswordLogin){
-      //password login, check if passwords match
-      var hash = teacherEntity.password;
-      if(!passwordHash.verify(password, hash)){
-        throw errUtils.ErrorObject(errUtils.errors.INVALID_CREDENTIALS, "invalid credentials", null, 400);
-      }
-      //password verified
+    //password login, check if passwords match
+    var hash = teacherEntity.password;
+    if(!passwordHash.verify(password, hash)){
+      throw errUtils.ErrorObject(errUtils.errors.INVALID_CREDENTIALS, "invalid credentials", null, 400);
     }
+    //password verified
 
     returnResult['user'] = teacherEntity;
-    //generate and return token
-    return authApi.generateLiveToken('teacher', teacherEntity.username); //role, username
-  });
-
-  promise = promise.then(function(tokenString){
-    console.log("login : tokenEntity created");
-    returnResult['x-live-token'] = tokenString;
-    return res.json(returnResult);
+    res.json(returnResult);
   });
 
   promise.catch(function(err){
@@ -279,14 +239,10 @@ router.get('/', function(req, res){
   });
 });
 
-//================= after this needs login ============
-router.use(authApi.loginRequiredMiddleware);
-//-----------------------------------------------------
-
 /*update self [name, password, status]
 */
-router.put('/me', function(req, res){
-  var username = req.session.username;
+router.put('/:username', function(req, res){
+  var username = req.params.username;
 
   var update = {};
   if(req.body.name){
