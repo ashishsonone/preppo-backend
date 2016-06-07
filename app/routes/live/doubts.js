@@ -332,7 +332,7 @@ router.post('/end', authApi.loginRequiredMiddleware, function(req, res){
     }
     else if(d.status === "assigned"){
       console.log("end api request : setting status & endTime");
-      return doubtsHelp.updateDoubtEntity(doubtId, {status : status, endTime : new Date(), response : response});
+      return doubtsHelp.updateDoubtEntity({doubtId : doubtId}, {status : status, endTime : new Date(), response : response});
     }
     else{
       //throw error
@@ -347,6 +347,7 @@ router.post('/end', authApi.loginRequiredMiddleware, function(req, res){
   });
 
   promise = promise.then(function(teacherEntity){
+    console.log("end api request : doubt unassign success %j", teacherEntity);
     var doubtQueue = teacherEntity.doubtQueue.map(function(e){return e}); //convert object(teacherEntity.doubtQueue) to plain array
     rootTeacherProfile.child(teacherEntity.username).child('doubtQueue').set(doubtQueue); //set doubtQueue in teacher's firebase ref
 
