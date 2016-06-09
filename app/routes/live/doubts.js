@@ -3,6 +3,7 @@
 var express = require('express');
 var RSVP = require('rsvp');
 var shortid = require('shortid');
+var moment = require('moment');
 
 var errUtils = require('../../utils/error');
 var idGen = require('../../utils/id_gen');
@@ -16,6 +17,117 @@ var rootTeacherProfile = rootRef.child('teachers'); //update doubtQueue
 
 //START PATH /v1/live/doubts/
 var router = express.Router();
+
+/*
+  Analytics
+  show by
+    student - status
+    teacher - status
+
+  match
+    date
+    status
+    teacher
+    student
+
+  required params:
+    by : enum from ['s', 'ss', 't', 'ts']
+
+  optional params:
+    date : date string '2016-06-09'
+    status : a valid <status> value
+    teacher : string - username
+    student : string - username
+
+  Use aggregate function
+  db.live.doubts.aggregate([{$match : {}}, {$group : {_id : {teacher : '$teacher', status : '$status'}, count : {$sum : 1}}}])
+*/
+
+router.get('/analytics', function(req, res){
+  var by = req.query.by;
+
+  if(!(by)){
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [by]"));
+  };
+
+  //process by-fields
+  var firstByFieldMap = {
+    's' : 'student',
+    't' : 'teacher',
+  };
+
+  var byFields = by.split('');
+
+  var groupQuery = {};
+  var firstByField = firstByFieldMap[byFields[0]];
+  var secondByField = byFields[1];
+
+  if(firstByField){
+    groupQuery[firstByField] = '$' + firstByField;
+  }
+  else{
+    res.status(400);
+    return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "invalid 'by' param value=" + by));
+  }
+
+  if(secondByField){
+    if(secondByField != 's'){
+      res.status(400);
+      return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "invalid 'by' param value=" + by));
+    }
+    else{
+      groupQuery['status'] = '$status';
+    }
+  }
+
+  //process match fields
+  var matchQuery = {};
+  if(req.query.student){
+    matchQuery['student'] = req.query.student;
+  }
+  if(req.query.teacher){
+    matchQuery['teacher'] = req.query.teacher;
+  }
+  if(req.query.status){
+    matchQuery['status'] = req.query.status;
+  }
+  if(req.query.date){
+    var dateString = req.query.date;
+    var dateStringIST = dateString + "T00:00:00.000+0530"; //pad to make this date IST date string
+
+    var todayDate = moment(dateStringIST);
+    var tomorrowDate = moment(todayDate).add(1, 'day');
+
+    todayDate = todayDate.toDate();
+    tomorrowDate = tomorrowDate.toDate();
+
+    matchQuery['createdAt'] = {
+      '$gte' : todayDate,
+      '$lt' : tomorrowDate
+    };
+  }
+
+  //var promise = DoubtModel.aggregate([{$match : matchQuery}]).exec();
+  var promise = DoubtModel.aggregate([{$match : matchQuery}, {$group : {_id : groupQuery, count : {$sum : 1}}}]).exec();
+
+  promise.then(function(summary){
+    res.json(summary);
+  });
+
+  promise.catch(function(err){
+    //error caught and set earlier
+    if(err.resStatus){
+      res.status(err.resStatus);
+      return res.json(err);
+    }
+    else{
+      //uncaught error
+      res.status(500);
+      return res.json(errUtils.ErrorObject(errUtils.errors.UNKNOWN, "unable to fetch analytics", err));
+    }
+  });
+});
 
 /*
   - from the list of active teachers, pick the least busy(mininum doubtQueue length)
@@ -376,6 +488,8 @@ router.post('/end', function(req, res){
     }
   });
 });
+
+
 
 module.exports.router = router;
 module.exports.handleUnAssignedDoubts = handleUnAssignedDoubts;

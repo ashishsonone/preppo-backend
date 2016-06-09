@@ -112,6 +112,19 @@ router.get('/doubts/help', function(req, res){
           "images : [<url>] solution photos(if solved), empty array(if unsolved)"
         ],
         "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "GET /v1/live/doubts/analytics",
+        "info" : "get usage summary analytics - with doubt count as measure",
+        "return" : "list of items(see for yourself)",
+        "required" : [
+          "by : one of [s, ss, t, ts] - meaning group doubts by [student, student-cum-status, teacher, teacher-cum-status] respectively",
+          "student : username (as filter)",
+          "teacher : username(as filter)",
+          "date : string e.g 2016-06-09 (as filter)",
+          "status : a valid doubt status (as filter) - look at DoubtSchema"
+        ],
+        "possible errors" : "[]"
       }
     ]
   });
