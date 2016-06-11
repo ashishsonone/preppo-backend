@@ -178,7 +178,8 @@ function pickATeacher(doubtEntity, activeTeacherList, res){
       success : true,
       doubtId : updatedDoubtEntity.doubtId,
       position : (minQueueSize + 1),
-      message : "Aap katar me hai"
+      message : "Aap katar me hai",
+      createdAt : updateDoubtEntity.createdAt
     });
   });
 
