@@ -289,7 +289,8 @@ router.post('/', function(req, res){
       res.json({
         success : false,
         message : "no online active teachers : we will assign this doubt when a teacher becomes actives",
-        doubtId : doubtId
+        doubtId : doubtId,
+        createdAt : doubtEntity.createdAt
       });
       doubtsHelp.updateDoubtEntity({doubtId : doubtId}, {status : "unassigned"});
     }
