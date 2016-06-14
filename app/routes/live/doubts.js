@@ -417,7 +417,7 @@ router.post('/end', function(req, res){
   var description = req.body.description;
   var images = req.body.images;
 
-  if(!(teacherUsername && doubtId && status && description && images)){
+  if(!(teacherUsername && doubtId && status && (description != undefined) && images)){
     res.status(400);
     return res.json(errUtils.ErrorObject(errUtils.errors.PARAMS_REQUIRED, "required : [username, doubtId, status, description, images]"));
   }
