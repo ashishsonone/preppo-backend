@@ -12,117 +12,204 @@ router.get('/help', function(req, res){
         "info" : "See this help page",
       },
       {
-        "endpoint" : "GET /v1/live/requests/help",
-        "info" : "help page requests api : post a teaching request, and stuff",
+        "endpoint" : "GET /v1/live/doubts/help",
+        "info" : "help page doubts api : post a new doubt, end doubt",
       },
       {
         "endpoint" : "GET /v1/live/teachers/help",
         "info" : "help page for teachers api - teacher type users",
-      },
-      {
-        "endpoint" : "GET /v1/live/students/help",
-        "info" : "help page for students api - student type users",
-      },
-      {
-        "endpoint" : "GET /v1/live/auth/help",
-        "info" : "help page auth api - login, signup, etc",
       }
     ],
     errorObject : {
-      "info" : "if the response is 2xx, then the api call was success. Otherwise if the error was caught on server-side, then there will be a error object in the body of response. Error object will be a JSON. Its structure will be as follows:",
+      "info" : "if the response is 2xx, then the api call was success. Otherwise if the error was caught on server-side, then response will be a JSON to be interpreted as Error object. Its structure will be as follows:",
       "errorSchema" : {
         "error" : "string - e.g 'USER_NOT_FOUND' - like a code to identify the error in client code",
         "description" : "string - human readable description of what went wrong",
         "debug": "JSON : in case the error was unknown like some unexpected database error, or gupshup api call error or some other, this will be set for debugging purpose",
         "resStatus" : "number(integer) : used internally in the server side code"
       }
-    },
-    errors : [
+    }
+  });
+});
+
+var doubtDetailsScheama = {
+  description : "string", //text description of the problem
+  images : "[<url>]", //url
+};
+
+var doubtResponseScheama = {
+  description : "string", //text description of the problem
+  images : "[<url>]", //url
+};
+
+var doubtSchema = {
+  "doubtId" : "string",
+  "student" : "username of student who posted this doubt",
+
+  "details" : doubtDetailsScheama,
+  "status" : "current status : enum [unassigned, assigned, solved, unsolved]",
+
+  "teacher" : "username of teacher who was assigned this doubt - could be empty if no teacher could be assigned",
+  "assignTime" : "iso datetime string : when was assigned to a teacher",
+
+  "response" : doubtResponseScheama,
+  "endTime" : "iso datetime string : when doubt was ended - either solved/unsolved",
+};
+
+router.get('/doubts/help', function(req, res){
+  res.json({
+    message : "Welcome to live doubts api home page",
+    DoubtSchema : doubtSchema,
+    api : [
       {
-        "error" : errUtils.errors.UNAUTHENTICATED,
-        "info" : "not logged in and accessing a api endpoint which requires session"
+        "endpoint" : "GET /v1/live/doubts/help",
+        "info" : "See this help page",
       },
       {
-        "error" : errUtils.errors.PARAMS_REQUIRED,
-        "info" : "insufficient data or parameters provided to access the api"
+        "endpoint" : "POST /v1/live/doubts",
+        "info" : "submit a new doubt",
+        "return" : {
+          "success" : "true if active teachers available, false otherwise",
+          "doubtId" : "<doubtId>(string) - if success true",
+          "position" : "integer - Your position in the doubtQueue of assigned teacher"
+        },
+        "required" : [
+          "username : string",
+          "description : textual description of the doubt",
+          "images : array [<url>] - doubt photos"
+        ],
+        "possible errors" : "[]"
       },
       {
-        "error" : errUtils.errors.INVALID_OTP,
-        "info" : "phone login or signup - otp not valid"
+        "endpoint" : "GET /v1/live/doubts/<doubtId>",
+        "info" : "Get Doubt entity",
+        "return" : "Doubt entity",
+        "required" : [
+        ],
+        "possible errors" : "[]"
       },
       {
-        "error" : errUtils.errors.USER_ALREADY_EXISTS,
-        "info" : "during signup : user already exists"
+        "endpoint" : "GET /v1/live/doubts/",
+        "info" : "Get Doubt entity",
+        "return" : "Doubt entity",
+        "optional" : [
+          "teacher : teacher username",
+          "student : student username",
+          "status : <doubt status> could be [unassigned, assigned, solved, unsolved]",
+          "lt : iso datetime string - for pagination - doubts with (createdAt < lt)"
+        ],
+        "possible errors" : "[]"
       },
       {
-        "error" : errUtils.errors.UNKNOWN,
-        "info" : "general error : unknown unexpected error - handle gracefully client side"
+        "endpoint" : "POST /v1/live/doubts/end",
+        "info" : "end the doubt - either to 'solved' or 'unsolved' status",
+        "return" : "updated doubt entity",
+        "required" : [
+          "username : string",
+          "doubtId : string",
+          "status : string - one of [solved, unsolved]",
+          "description : solution description(if solved) or reason(if unsolved)",
+          "images : [<url>] solution photos(if solved), empty array(if unsolved)"
+        ],
+        "possible errors" : "[]"
       },
       {
-        "error" : errUtils.errors.NOT_FOUND,
-        "info" : "general error : resource not found"
-      },
-      {
-        "error" : errUtils.errors.USER_NOT_FOUND,
-        "info" : "during login : no such user not found"
-      },
-      {
-        "error" : errUtils.errors.THIRD_PARTY,
-        "info" : "general error : due to 3rd party service like gupshup"
-      },
-      {
-        "error" : errUtils.errors.INVALID_CREDENTIALS,
-        "info" : "phone login : password did not match"
-      },
-      {
-        "error" : errUtils.errors.INVALID_TOKEN,
-        "info" : "fb & google login/signup : invalid token - e.g expired token"
+        "endpoint" : "GET /v1/live/doubts/analytics",
+        "info" : "get usage summary analytics - with doubt count as measure",
+        "return" : "list of items(see for yourself)",
+        "required" : [
+          "by : one of [s, ss, t, ts] - meaning group doubts by [student, student-cum-status, teacher, teacher-cum-status] respectively",
+          "student : username (as filter)",
+          "teacher : username(as filter)",
+          "date : string e.g 2016-06-09 (as filter)",
+          "status : a valid doubt status (as filter) - look at DoubtSchema"
+        ],
+        "possible errors" : "[]"
       }
     ]
   });
 });
 
+var teacherSessionSchema = {
+  token : "string - token returned during login/signup",
+  ts : "number - datetime in millis"
+};
+
 var teacherSchema = {
-  "_id" : "string : mongodb object id",
-  "username" : "string : could be phone number, fb id, google id",
-  "name" : "string",
+  username : "string",
+  //phone : "string - 10 digit phone number",
+  name : "string",
+  password : "string",
 
-  "online" : "[<session>] : array of login session objects - if empty means the teacher is offline right now",
-  "status" : "either ''(empty string) or <requestId> : whether the teacher is busy currently with a teaching request",
-
-  "createdAt" : "string : date in iso 8601 format. e.g '2016-02-23T16:29:31.000Z'",
-  "updatedAt" : "string : date in iso 8601 format"
+  status : "string - enum [active, away]",
+  //online : "[<SessionSchema>] - active teacher device sessions",
+  doubtQueue : "[<doubtId>] - currently assinged doubts"
 };
 
-var requestSchema = {
-  "_id" : "string - mongodb object id",
-  "requestId" : "sytem generated unique id for request",
-  "student" : "username of student who made this request",
-  "teacher" : "username of teacher who was assigned this request - could be empty if no teacher could be assigned",
-  "info" : "after session ends, details of the teaching session e.g startTime, endTime, duration",
-  "billingId" : "id corresponding to the billing entity of this request"
-};
-
-router.get('/requests/help', function(req, res){
+router.get('/teachers/help', function(req, res){
   res.json({
-    message : "Welcome to requests api home page", 
-    RequestSchema : requestSchema,
+    message : "Welcome to live teachers api home page.",
+    SessionSchema : teacherSessionSchema,
+    TeacherSchema : teacherSchema,
     api : [
       {
-        "endpoint" : "GET /v1/live/requests/help", 
+        "endpoint" : "GET /v1/live/teachers/help",
         "info" : "See this help page",
       },
       {
-        "endpoint" : "POST /v1/live/requests", 
-        "info" : "Create a teaching requests",
+        "endpoint" : "POST /v1/live/teachers/signup",
+        "info" : "(ADMIN ONLY) create a new teacher account",
         "return" : {
-          "requestId" : "<requestId>(string)"
+          user : "Teacher Entity"
         },
         "required" : [
-          "requestDetails : ...to be decided..."
+          "username : string",
+          "name : string",
+          "password : string",
+          "secret : string"
         ],
-        "possible errors" : "[UNAUTHENTICATED]"
-      }
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "POST /v1/live/teachers/login",
+        "info" : "login using password",
+        "return" : {
+          user : "Teacher Entity"
+        },
+        "required" : [
+          "username",
+          "password"
+        ],
+        "possible errors" : "[INVALID_CREDENTIALS]"
+      },
+      {
+        "endpoint" : "GET /v1/live/teachers/<username>",
+        "info" : "Get Teacher entity by username",
+        "return" : "Teacher entity",
+        "required" : [
+        ],
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "PUT /v1/live/teachers/<username>",
+        "info" : "Update name, password or status",
+        "return" : "updated Teacher entity",
+        "optional params" : [
+          "name : string",
+          "status : string - enum in [active, away]",
+          "password : string"
+        ],
+        "possible errors" : "[]"
+      },
+      {
+        "endpoint" : "GET /v1/live/teachers/",
+        "info" : "(ADMIN ONLY) Get all teachers",
+        "return" : "array of Teacher entities",
+        "required" : [
+
+        ],
+        "possible errors" : "[]"
+      },
     ]
   });
 });
